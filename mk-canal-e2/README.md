@@ -36,8 +36,8 @@ opkg install /tmp/MK_Canal_E2_0.6.1.ipk
 Zrestartuj interfejs Enigma2. W menu wtyczek wybierz **MK Canal+ E2** — otwiera
 się bezpośrednio lista kanałów TV. Nie trzeba usuwać danych ani innych wtyczek.
 
-Manifest nowego pakietu jest w `tv-test.json`. Automatyczny aktualizator nadal
-wskazuje potwierdzoną 0.4.0 do czasu próby nowego pakietu na dekoderze.
+Niebieski przycisk pobiera `update.json`, który udostępnia wersję 0.6.1.
+Ten sam pakiet opisuje `tv-test.json`. Po instalacji zrestartuj interfejs Enigma2.
 
 ## Sprawdzenie
 
