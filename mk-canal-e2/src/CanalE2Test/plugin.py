@@ -221,7 +221,8 @@ class CanalE2Player(Screen):
             return
         self.quality_preference = self.quality_choices[index]['preference']
         if self.running and self.container is not None:
-            self.container.write((json.dumps({'quality_index': index}) + '\n').encode('ascii'))
+            command = json.dumps({'quality_index': index}) + '\n'
+            self.container.write(command, len(command))
 
     def epg_received(self, event):
         self.epg = event if event.get("stage") == "epg_loaded" else {}
@@ -252,7 +253,8 @@ class CanalE2Player(Screen):
 
     def control(self, command):
         if self.vod and self.playing_started and self.container is not None and self.running:
-            self.container.write((command + "\n").encode("ascii"))
+            command += "\n"
+            self.container.write(command, len(command))
 
     def pause_resume(self):
         if not self.vod or not self.playing_started or self.control_pending:

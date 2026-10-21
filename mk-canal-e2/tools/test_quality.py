@@ -91,17 +91,31 @@ class QualityTests(unittest.TestCase):
         player = plugin.CanalE2Player(session, '11', 'Test', channel_list=[('Test', '11'), ('Inny', '22')])
         player.start()
         self.assertIn('--choose-quality', player.container.arguments)
-        player.container.write = Mock()
+        player.container.write = Mock(wraps=player.container.write)
         choices = [{'label': quality.label(meta), 'preference': meta} for meta, _, _ in quality.variants(manifest())]
         player.on_data((json.dumps({'stage': 'quality_choices', 'quality_choices': choices}) + '\n').encode())
         callbacks[0](5)
-        player.container.write.assert_called_once_with(b'{"quality_index": 5}\n')
+        command = '{"quality_index": 5}\n'
+        player.container.write.assert_called_once_with(command, len(command))
+        self.assertEqual(player.container.written, [command])
         self.assertEqual(player.quality_preference['fps'], 25)
         player.zap(1)
         player.on_exit(0)
         player.start()
         self.assertIn('--quality-preference', player.container.arguments)
         self.assertNotIn('--choose-quality', player.container.arguments)
+        player.cleanup()
+
+    def test_vod_pause_resume_and_seek_use_openatv_text_pipe(self):
+        plugin = load_plugin_with_enigma_stubs()
+        session = SimpleNamespace(nav=SimpleNamespace(getCurrentlyPlayingServiceReference=lambda: None,
+                                                     stopService=lambda: None))
+        player = plugin.CanalE2Player(session, '1_2', 'Film', vod=True)
+        player.start()
+        player.playing_started = True
+        for command in ('pause', 'resume', 'seek_back', 'seek_forward'):
+            player.control(command)
+        self.assertEqual(player.container.written, ['pause\n', 'resume\n', 'seek_back\n', 'seek_forward\n'])
         player.cleanup()
 
 

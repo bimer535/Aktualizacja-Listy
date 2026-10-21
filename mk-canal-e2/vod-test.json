@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.5.6",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.6.ipk",
-  "sha256": "5c94f1798e6a60d1ec96b57b63b72a4add97ca220526b7aced109dfbe7059d6c",
-  "size": 72740,
-  "notes": "Wybór bitrate, rozdzielczości, klatek i AAC/Dolby przed odtworzeniem; zachowanie jakości przy zmianie kanału. VOD: pełny opis oferty i licencja przypisana do medium. Poprzednia próba licencji zwróciła 403; poprawka VOD wymaga testu na dekoderze."
+  "version": "0.5.7",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.7.ipk",
+  "sha256": "484125be146f22f83301af17bb568a340ea73181d9be22a4b2625b147b5b3003",
+  "size": 72884,
+  "notes": "Poprawka awarii Python po OK w wyborze jakości na OpenATV: komendy przekazywane jako tekst, nie bytes. Dotyczy też pauzy i przewijania. Odtwarzanie po poprawce wymaga potwierdzenia na dekoderze."
 }

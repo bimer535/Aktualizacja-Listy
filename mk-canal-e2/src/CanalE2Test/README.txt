@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.6 - VOD TEST
+MK Canal+ E2 0.5.7 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.6.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.7.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: choose an advertised video/audio bitrate, resolution, frame rate and codec.
  - CH+/CH- or up/down during TV: zap using the nearest matching quality.
@@ -168,3 +168,9 @@ VOD view preserves the complete offered descriptor and requests embedded media;
 each manifest is paired with its media-specific licence when provided.
 The previous receiver test still returned licence HTTP 403; this revision needs
 receiver validation and does not claim working movie playback.
+
+Version 0.5.7 (VOD TEST): fixes OpenATV TypeError after confirming quality.
+The Enigma console binding receives text and length rather than bytes. This
+also fixes pause, resume and seek command delivery. The UI test double now
+rejects bytes like the observed receiver binding, so this regression is covered.
+Playback after this fix still needs receiver confirmation.

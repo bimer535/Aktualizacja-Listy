@@ -6,12 +6,17 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ![Logo MK Canal+ E2](src/CanalE2Test/logo.svg)
 
-## Test filmów i seriali oraz wybór jakości: 0.5.6
+## Test filmów i seriali oraz wybór jakości: 0.5.7
 
-[Pakiet testowy 0.5.6](VOD_TEST.md) dodaje przed odtworzeniem TV i VOD listę
+[Pakiet testowy 0.5.7](VOD_TEST.md) dodaje przed odtworzeniem TV i VOD listę
 wariantów z manifestu: rozdzielczość, bitrate, liczbę klatek, język i kodeki.
 AAC i Dolby są osobnymi pozycjami. Przy CH+/CH− i ↑/↓ dobierana jest najbliższa
 jakość kolejnego kanału, bez ponownego okna wyboru.
+
+Wersja 0.5.7 poprawia awarię OpenATV po zatwierdzeniu jakości: do procesu
+odtwarzania przekazuje tekst z długością zamiast obiektu bytes. Ta sama poprawka
+obejmuje pauzę, wznowienie i przewijanie. Zrzut błędu użytkownika potwierdził
+TypeError w quality_selected w 0.5.6. Obraz i dźwięk po poprawce wymagają próby.
 
 VOD zachowuje pełny opis wariantu z playsetu i łączy adres manifestu z licencją
 tego samego medium. Poprzedni test 0.5.5 potwierdził manifest DASH i odmowę

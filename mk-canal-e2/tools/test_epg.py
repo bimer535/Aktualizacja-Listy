@@ -125,12 +125,20 @@ class Container:
     def __init__(self):
         self.dataAvail, self.appClosed = [], []
         self.interrupted = False
+        self.written = []
         self.instances.append(self)
     def execute(self, *args):
         self.arguments = args
         return 0
     def sendCtrlC(self):
         self.interrupted = True
+    def write(self, data, length=None):
+        # Match the OpenATV Python binding, not subprocess.stdin's byte API.
+        if not isinstance(data, str):
+            raise TypeError('1st arg must be a string, optionally 2nd arg can be the string length')
+        if length is not None and length != len(data):
+            raise ValueError('incorrect command length')
+        self.written.append(data)
 
 
 def load_plugin_with_enigma_stubs():

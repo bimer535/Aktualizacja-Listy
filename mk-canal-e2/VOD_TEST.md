@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.6 — test VOD i wybór jakości
+# MK Canal+ E2 0.5.7 — test VOD i wybór jakości
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,19 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.7: poprawka awarii po OK w wyborze jakości
+
+Zrzut ekranu z OpenATV 7.4 wskazał `plugin.py`, `quality_selected` i komunikat
+`TypeError: 1st arg must be a string, optionally 2nd arg can be the string length`.
+W 0.5.6 komenda była kodowana do bytes, podczas gdy wiązanie Enigmy oczekuje tekstu.
+W 0.5.7 wybór jakości oraz komendy pauzy/wznowienia/przewijania przekazują tekst
+i jego długość do `eConsoleAppContainer.write`. Wszystkie te komendy są ASCII.
+
+Test interfejsu odwzorowuje teraz wymóg tekstu i sprawdza rzeczywiste przekazanie
+komendy zamiast zastępować write dowolnie przyjmującą argumenty atrapą. Wcześniejsze
+testy nie wykrywały tego błędu. Nie deklarujemy jeszcze potwierdzenia obrazu/dźwięku
+po poprawce na dekoderze. Zmiana nie modyfikuje protokołu licencji ani selekcji ścieżek.
 
 ## Wersja 0.5.6: jakość obrazu/dźwięku i licencja konkretnego medium
 
@@ -138,8 +151,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.6.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.6.ipk
-opkg install /tmp/MK_Canal_E2_0.5.6.ipk
+wget -O /tmp/MK_Canal_E2_0.5.7.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.7.ipk
+opkg install /tmp/MK_Canal_E2_0.5.7.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -171,7 +184,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 82 testy (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 83 testy (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

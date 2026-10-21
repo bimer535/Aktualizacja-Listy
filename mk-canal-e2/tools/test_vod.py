@@ -342,19 +342,19 @@ class GuiTests(unittest.TestCase):
         session = SimpleNamespace(nav=SimpleNamespace(getCurrentlyPlayingServiceReference=lambda: None))
         player = plugin.CanalE2Player(session, '123_70026', 'Film', True, 'Opis filmu')
         self.assertIsNone(player.epg_loader.channel)
-        sent = []
-        player.container = SimpleNamespace(write=sent.append)
+        player.container = Container()
+        sent = player.container.written
         player.running = True
         player.on_data(b'{"stage":"player_running"}\n')
         self.assertIn('VOD', player['status'].text)
         player.pause_resume()
-        self.assertEqual(sent, [b'pause\n'])
+        self.assertEqual(sent, ['pause\n'])
         self.assertFalse(player.paused)
         player.on_data(b'{"stage":"vod_paused"}\n')
         self.assertTrue(player.paused)
         player.pause_resume()
         player.control('seek_forward')
-        self.assertEqual(sent[-2:], [b'resume\n', b'seek_forward\n'])
+        self.assertEqual(sent[-2:], ['resume\n', 'seek_forward\n'])
         player.on_data(b'{"stage":"vod_resumed"}\n')
         self.assertFalse(player.paused)
         player.container = None; player.cleanup()
