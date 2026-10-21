@@ -6,10 +6,11 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ![Logo MK Canal+ E2](src/CanalE2Test/logo.svg)
 
-## Test filmów i seriali: 0.5.0
+## Test filmów i seriali: 0.5.1
 
-Osobny [pakiet testowy VOD 0.5.0](VOD_TEST.md) dodaje katalog, sezony, odcinki,
-opisy i wyszukiwanie. Katalog sprawdzono na danych CANAL+; odtwarzanie VOD
+Osobny [pakiet testowy VOD 0.5.1](VOD_TEST.md) dodaje katalog, sezony, odcinki,
+opisy i wyszukiwanie. Wersja 0.5.1 poprawia nagłówek HTTP powodujący błąd 403
+na SF8008. Katalog sprawdzono na danych CANAL+; odtwarzanie VOD
 wymaga jeszcze próby na dekoderze. Automatyczne aktualizacje nadal wskazują
 wersję 0.4.0. Instrukcje i ograniczenia znajdują się w podanym dokumencie.
 

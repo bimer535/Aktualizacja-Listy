@@ -33,6 +33,28 @@ def ssr(*pages):
 
 
 class CatalogueTests(unittest.TestCase):
+    def test_catalogue_transport_uses_receiver_accepted_header_and_reports_refusal(self):
+        # Model the receiver probe: app UA -> 403, standard browser UA -> 200.
+        accepted = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                    'AppleWebKit/537.36 (KHTML, like Gecko) '
+                    'Chrome/153.0.0.0 Safari/537.36')
+        body = ssr({'currentPage': {'path': '/pl/film/'}, 'contents': [card()]}).encode()
+        def open_request(request, **kwargs):
+            self.assertFalse(request.has_header('Authorization'))
+            self.assertFalse(request.has_header('Cookie'))
+            if request.get_header('User-agent') != accepted:
+                raise v.urllib.error.HTTPError(request.full_url, 403, 'Forbidden', {}, None)
+            return io.BytesIO(body)
+        opener = SimpleNamespace(open=open_request)
+        with patch.object(v.urllib.request, 'build_opener', return_value=opener):
+            page = v.load_page({'url': '/pl/film/'})
+            self.assertEqual(page['items'][0]['title'], 'Film testowy')
+            with patch.object(v, 'CATALOGUE_USER_AGENT', 'Mozilla/5.0 MK-Canal-E2'):
+                with self.assertRaises(v.VodError) as caught:
+                    v.fetch('/pl/film/')
+        self.assertEqual(caught.exception.reason, 'vod_catalogue_http_error')
+        self.assertEqual(caught.exception.details, {'http_status': 403})
+
     def test_parse_serialized_undefined_without_evaluating_javascript(self):
         page = 'window.__data = {"a":undefined,"b":"undefined","c":"x \\\" undefined"}; throw new Error();'
         self.assertEqual(v.script_value(page, '__data'), {'a': None, 'b': 'undefined', 'c': 'x " undefined'})
@@ -263,6 +285,15 @@ class GuiTests(unittest.TestCase):
         self.assertTrue(process.interrupted)
         screen.data(body)
         self.assertEqual(process.dataAvail, [])
+
+    def test_catalogue_error_shows_http_status_and_survives_worker_exit(self):
+        ui, _ = self.load_ui()
+        screen = ui.CanalVodBrowser(SimpleNamespace(), {'url': '/pl/film/'})
+        screen.reload()
+        screen.data(b'{"stage":"error","reason":"vod_catalogue_http_error","http_status":403}\n')
+        screen.finished(1)
+        self.assertIn('HTTP 403', screen['status'].text)
+        screen.cleanup()
 
     def test_vod_player_disables_epg_and_waits_for_native_pause_confirmation(self):
         _, plugin = self.load_ui()

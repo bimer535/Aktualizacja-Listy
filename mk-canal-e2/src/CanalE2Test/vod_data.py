@@ -10,6 +10,11 @@ import urllib.request
 SITE = 'https://www.canalplus.com'
 HODOR = 'https://hodor.canalplus.pro/api/v2/'
 MAX_BYTES = 12 * 1024 * 1024
+# Receiver probe: application UA returned 403; this exact UA returned 200
+# with catalogue data for both films and series.
+CATALOGUE_USER_AGENT = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                        'AppleWebKit/537.36 (KHTML, like Gecko) '
+                        'Chrome/153.0.0.0 Safari/537.36')
 ROOTS = [('Filmy', '/pl/film/'), ('Seriale', '/pl/seriale/'),
          ('Dokumentalne', '/pl/dokumenty/'), ('Dzieci', '/pl/dzieci/'),
          ('Produkcje oryginalne', '/pl/produkcje-oryginalne/'),
@@ -61,7 +66,7 @@ def fetch(url):
     opener = urllib.request.build_opener(
         urllib.request.HTTPSHandler(context=ssl.create_default_context()), CatalogueRedirect())
     request = urllib.request.Request(url, headers={
-        'User-Agent': 'Mozilla/5.0 MK-Canal-E2', 'Accept-Language': 'pl-PL,pl;q=0.9',
+        'User-Agent': CATALOGUE_USER_AGENT, 'Accept-Language': 'pl-PL,pl;q=0.9',
         'Accept-Encoding': 'identity', 'Origin': SITE, 'Accept': 'text/html,application/json'})
     try:
         with opener.open(request, timeout=25) as r:

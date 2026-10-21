@@ -10,7 +10,7 @@ from Screens.Screen import Screen
 from enigma import eConsoleAppContainer, eTimer
 
 ERRORS = {
-    'vod_catalogue_http_error': 'Serwer katalogu odmówił połączenia. Spróbuj ponownie później.',
+    'vod_catalogue_http_error': 'Błąd pobierania katalogu CANAL+.',
     'vod_catalogue_connection_error': 'Nie można połączyć się z katalogiem CANAL+.',
     'vod_catalogue_format_changed': 'Nie rozpoznano danych katalogu CANAL+.',
     'vod_search_configuration_missing': 'Wyszukiwanie jest chwilowo niedostępne.',
@@ -125,7 +125,11 @@ class CanalVodBrowser(Screen):
             elif event.get('stage') == 'error':
                 self.delivered = True
                 reason = event.get('reason', 'vod_error')
-                self['status'].setText(ERRORS.get(reason, 'Błąd katalogu: ' + str(reason)) + '\nŻÓŁTY: ponów · EXIT: wróć')
+                message = ERRORS.get(reason, 'Błąd katalogu: ' + str(reason))
+                code = event.get('http_status')
+                if isinstance(code, int) and 400 <= code <= 599:
+                    message += ' (HTTP %d)' % code
+                self['status'].setText(message + '\nŻÓŁTY: ponów · EXIT: wróć')
 
     def finished(self, code):
         self.running = False

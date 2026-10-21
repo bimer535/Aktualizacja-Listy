@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.0 - VOD TEST
+MK Canal+ E2 0.5.1 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.0.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.1.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -112,3 +112,9 @@ Continue using /tmp/canal_e2_playback_report.json for sanitized error reports.
 
 HAPI protocol reference: public GPL CanalPLUS-VOD 1.7.5.11 by mbebe, mariusz89b,
 hevet. This is an independent implementation; the Kodi application is not used.
+
+Version 0.5.1 fixes catalogue HTTP 403 on the receiver by using the exact
+standard browser User-Agent that passed the user's public connectivity probe.
+Films and series returned HTTP 200 with catalogue data using that header.
+Catalogue failures now include the HTTP status in the UI. This does not
+constitute confirmation of authenticated VOD playback or licensing.

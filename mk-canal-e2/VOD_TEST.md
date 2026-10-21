@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.0 — test VOD
+# MK Canal+ E2 0.5.1 — test VOD
 
 Pomysł i projekt: **MK**.
 
@@ -7,11 +7,18 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
 
+## Poprawka 0.5.1
+
+Test na SF8008 potwierdził HTTP 403 dla nagłówka User-Agent wtyczki i HTTP 200
+z katalogiem dla standardowego nagłówka przeglądarki (filmy i seriale).
+Ta wersja używa dokładnie nagłówka zaakceptowanego w teście. Błędy katalogu
+pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzenia.
+
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.0.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.0.ipk
-opkg install /tmp/MK_Canal_E2_0.5.0.ipk
+wget -O /tmp/MK_Canal_E2_0.5.1.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.1.ipk
+opkg install /tmp/MK_Canal_E2_0.5.1.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -43,7 +50,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 42 testy: normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 44 testy: normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

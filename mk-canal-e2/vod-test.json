@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.5.0",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.0.ipk",
-  "sha256": "711613b2c25a153fdb04fd3046524e3187e27a9e76aa873421c8cfe0ed0280ef",
-  "size": 64748,
-  "notes": "WERSJA TESTOWA VOD: menu filmów i seriali, pozostałe kategorie, sezony, odcinki, opisy i wyszukiwanie. Adapter odtwarzania VOD, pauza i przewijanie wymagają próby na dekoderze. Dotychczasowa telewizja i EPG pozostają dostępne. Ta wersja nie jest jeszcze publikowana jako automatyczna aktualizacja."
+  "version": "0.5.1",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.1.ipk",
+  "sha256": "6c4c52ab3d6c9948d5712d545fffb9b2ca3883a37109b598dc7e586318d331ac",
+  "size": 65070,
+  "notes": "WERSJA TESTOWA 0.5.1: poprawka błędu HTTP 403 katalogu VOD na SF8008. Używa standardowego nagłówka User-Agent potwierdzonego testem na dekoderze. Błędy katalogu pokazują kod HTTP. Odtwarzanie VOD nadal wymaga próby na dekoderze. Po instalacji zrestartuj interfejs Enigma2."
 }
