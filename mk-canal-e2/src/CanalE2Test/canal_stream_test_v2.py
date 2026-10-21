@@ -77,8 +77,7 @@ class SafeRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class Http:
-    def __init__(self, user_agent=None):
-        self.user_agent = user_agent or "Mozilla/5.0 (X11; Linux armv7l) CANAL-E2-Stream-Test/0.1"
+    def __init__(self):
         self.last_response_metadata = {}
         self.opener = urllib.request.build_opener(
             urllib.request.HTTPSHandler(context=ssl.create_default_context()), SafeRedirect())
@@ -87,7 +86,7 @@ class Http:
         self.last_response_metadata = {}
         url = checked_url(url)
         headers = {
-            "User-Agent": self.user_agent,
+            "User-Agent": "Mozilla/5.0 (X11; Linux armv7l) CANAL-E2-Stream-Test/0.1",
             "Accept": "*/*", "Accept-Language": "pl-PL,pl;q=0.9",
             "Origin": "https://www.canalplus.com",
             "Referer": "https://www.canalplus.com/",
@@ -514,8 +513,7 @@ def read_license_response(raw, sensitive_values=()):
     return license_data
 
 
-def check_license(engine_dir, engine_helper, http, pssh, channel, out, ids, key_callback=None,
-                  license_request=None):
+def check_license(engine_dir, engine_helper, http, pssh, channel, out, ids, key_callback=None):
     for relative, digest in engine_helper.SOURCE_HASHES.items():
         import hashlib
         path = engine_dir / relative
@@ -537,24 +535,21 @@ def check_license(engine_dir, engine_helper, http, pssh, channel, out, ids, key_
         challenge = cdm.get_license_request(session_id)
         if not isinstance(challenge, bytes):
             raise StreamError("license_challenge_creation_failed")
-        if license_request is not None:
-            license_data = license_request(challenge)
-        else:
-            try:
-                raw, _ = http.read(LICENSE_URL, license_payload(channel, out, ids, challenge))
-            except StreamError as error:
-                error.details.update(http.last_response_metadata)
-                error.details["license_step"] = "get_licence"
-                raise
-            request_secrets = (out.get("LiveToken"), out.get("RMUToken"),
-                               ids.get("UserKeyId"), ids.get("DeviceKeyId"),
-                               base64.b64encode(challenge).decode("ascii"))
-            try:
-                license_data = read_license_response(raw, request_secrets)
-            except StreamError as error:
-                error.details.update(http.last_response_metadata)
-                error.details["license_step"] = "get_licence"
-                raise
+        try:
+            raw, _ = http.read(LICENSE_URL, license_payload(channel, out, ids, challenge))
+        except StreamError as error:
+            error.details.update(http.last_response_metadata)
+            error.details["license_step"] = "get_licence"
+            raise
+        request_secrets = (out.get("LiveToken"), out.get("RMUToken"),
+                           ids.get("UserKeyId"), ids.get("DeviceKeyId"),
+                           base64.b64encode(challenge).decode("ascii"))
+        try:
+            license_data = read_license_response(raw, request_secrets)
+        except StreamError as error:
+            error.details.update(http.last_response_metadata)
+            error.details["license_step"] = "get_licence"
+            raise
         if cdm.provide_license(session_id, license_data) != 0:
             raise StreamError("license_processing_failed")
         keys = [key for key in cdm.get_keys(session_id) if key.type == "CONTENT"]

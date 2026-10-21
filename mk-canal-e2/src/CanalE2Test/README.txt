@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.7 - VOD TEST
+MK Canal+ E2 0.6.0
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,10 +8,9 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.7.ipk
+  opkg install /tmp/MK_Canal_E2_0.6.0.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
- - OK: choose an advertised video/audio bitrate, resolution, frame rate and codec.
- - CH+/CH- or up/down during TV: zap using the nearest matching quality.
+ - OK: play the selected channel, using the highest advertised quality covered by the granted licence.
  - Green: show a pairing code for https://connect.canalplus.com/ .
  - Yellow: refresh channels with the saved CANAL+ session.
  - Blue: check for a new version from the project's public GitHub folder.
@@ -93,84 +92,13 @@ programmes per channel for up to 120 seconds or until a programme boundary.
 Times use the receiver's configured timezone. Expired programmes are not shown
 as currently airing. The new GUI still requires receiver-side verification.
 
-Version 0.5.0 is a separate VOD TEST build, not yet the automatic update.
-The home menu includes live television, films, series, documentaries, children,
-originals, collections, sport and title search. Movie details, season selectors,
-episode lists, pagination, back navigation and descriptions use CANAL+ metadata.
-Public catalogue/episode data was checked against the official website.
-Authenticated HAPI playset/view playback, VOD licensing, search/pagination via
-Hodor, native pause and seeking still require receiver validation. Developer
-host access to Hodor/HAPI returns HTTP 403; local contract tests are not a real
-account playback test. See VOD_TEST.md in the public repository.
-
-VOD controls: green pause/resume; left/right seek 30 seconds; INFO description.
-The player confirms pause/resume before changing the UI state. A movie ending
-returns to its catalogue. No Kodi/E2iPlayer imports, purchase calls or decrypted
-media files are introduced. Only single-period DASH is supported in this test.
-The visible public catalogue may include items outside the user's subscription.
-VOD rights are checked at playback. External-app titles require that service.
-Continue using /tmp/canal_e2_playback_report.json for sanitized error reports.
-
-HAPI protocol reference: public GPL CanalPLUS-VOD 1.7.5.11 by mbebe, mariusz89b,
-hevet. This is an independent implementation; the Kodi application is not used.
-
-Version 0.5.1 fixes catalogue HTTP 403 on the receiver by using the exact
-standard browser User-Agent that passed the user's public connectivity probe.
-Films and series returned HTTP 200 with catalogue data using that header.
-Catalogue failures now include the HTTP status in the UI. This does not
-constitute confirmation of authenticated VOD playback or licensing.
-
-Version 0.5.2 adds live channel switching without leaving the player. CH+ and
-UP select the next listed channel; CH- and DOWN select the previous one, with
-wraparound. Repeated presses coalesce to the latest selection. The old worker
-fully exits before a new player is started; EXIT cancels a pending switch.
-The original Enigma service is restored only when leaving this player screen.
-
-The VOD adapter now also uses the standard browser User-Agent. The receiver's
-0.5.1 VOD attempt was refused with HTTP 403 at playset; resolution in this new
-build still needs receiver testing. Playset HTTP failures automatically add
-vod_http_diagnostic to /tmp/canal_e2_playback_report.json. Only allowlisted
-field names, numeric service codes and message hint tags are saved. No raw
-message, account token, media URL or licence response is included. No separate
-probe file is needed for reporting a normal VOD attempt.
-
-Version 0.5.4 corrects VOD signed manifest URLs: append the packager suffix to
-the path, preserving the original query bytes and duplicate parameters.
-Provider DASH URLs retain their order and take priority over derived URLs.
-VOD uses one browser User-Agent for HAPI, manifest, track initialization,
-manifest refresh and native playback. CDN requests carry no account headers.
-Default live TV HTTP and native User-Agent values are retained.
-
-The user confirmed live TV after a full reboot. Their 0.5.2 VOD request now
-reaches the manifest stage but returns HTTP 503. The report adds candidate
-type, query presence, status, content type/size and parse result without
-saving URLs, query tokens or response bodies. Receiver verification of the
-new VOD request is still required; the cause of that 503 is not yet confirmed.
-
-Version 0.5.4 (VOD TEST): includes Widevine-labelled playback offers instead of
-filtering them out, prefers DASH, and recognises DASH URLs by the service MIME
-type even without an .mpd suffix. Reports fixed format labels and counts only.
-After a DASH failure, checks the original Smooth manifest once. Smooth is
-not implemented by the current isolated player; a confirmed Smooth response
-shows an explicit unsupported-format message. Receiver VOD remains unverified.
-
-Version 0.5.5 (VOD TEST): preserves the service licence URL query exactly;
-does not collapse repeated fields, re-encode signatures or overwrite a supplied
-drmType. Reports bounded JSON HTTP failure codes and fixed hint labels only.
-Successful licence bodies never go to the error inspector. The receiver's
-0.5.4 test loaded DASH and encrypted video/audio init; licence returned HTTP
-403. VOD playback is still not confirmed. No DRM refusal is bypassed.
-
-Version 0.5.6 (VOD TEST): select individual manifest video/audio combinations
-before playback, including same-height bitrates, frame rates and AAC/Dolby.
-Keep both selected tracks in manifest refreshes. Reuse quality properties on zap.
-VOD view preserves the complete offered descriptor and requests embedded media;
-each manifest is paired with its media-specific licence when provided.
-The previous receiver test still returned licence HTTP 403; this revision needs
-receiver validation and does not claim working movie playback.
-
-Version 0.5.7 (VOD TEST): fixes OpenATV TypeError after confirming quality.
-The Enigma console binding receives text and length rather than bytes. This
-also fixes pause, resume and seek command delivery. The UI test double now
-rejects bytes like the observed receiver binding, so this regression is covered.
-Playback after this fix still needs receiver confirmation.
+Version 0.6.0: TV only, based on the confirmed 0.4.0 IPK.
+CH+/CH- and up/down change channels inside playback. The old worker stops
+before the new one starts. Fast presses select the last requested channel.
+Quality is automatic: select the highest advertised resolution, and retain
+the existing fallback to a video track covered by the granted licence.
+There is no manual quality menu, VOD catalogue or movie playback.
+Account, channel API, DRM, native player and now/next EPG are restored
+byte-for-byte from 0.4.0. This release needs picture/sound and remote validation
+on the receiver; restoring the client does not guarantee recovery from a
+current server-side HTTP 403. Do not share account or native-player logs.

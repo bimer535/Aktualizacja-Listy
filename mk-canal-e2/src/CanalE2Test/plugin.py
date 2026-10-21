@@ -19,11 +19,6 @@ from .epg_ui import EpgLoader, programme_line, programme_details, programme_prog
 ROOT = Path(__file__).resolve().parent
 
 STAGES = {
-    "quality_choices": "Wybierz jakość obrazu i dźwięku...",
-    "quality_chosen": "Przygotowanie wybranego wariantu...",
-    "vod_check_access": "Sprawdzanie sesji CANAL+...",
-    "vod_resolve_stream": "Sprawdzanie dostępu do filmu lub odcinka...",
-    "vod_ended": "Koniec materiału.",
     "prepare": "Przygotowanie odtwarzacza...",
     "prepare_player": "Pierwsze uruchomienie: pobieranie odtwarzacza (11 MB)...",
     "refresh_channels": "Sprawdzanie sesji i dostepu do kanalu...",
@@ -38,30 +33,6 @@ STAGES = {
     "player_running": "Odtwarzacz uruchomiony. Sprawdz obraz i dzwiek. EXIT: powrot.",
     "stopped": "Odtwarzanie zatrzymane.",
 }
-
-
-class CanalE2Quality(Screen):
-    skin = """<screen name="CanalE2Quality" position="center,center" size="1160,600" title="MK Canal+ E2 — wybierz jakość">
-      <widget name="name" position="25,15" size="1110,40" font="Regular;26" />
-      <widget name="list" position="25,70" size="1110,450" font="Regular;23" itemHeight="34" scrollbarMode="showOnDemand" />
-      <widget name="hint" position="25,545" size="1110,35" font="Regular;22" />
-    </screen>"""
-
-    def __init__(self, session, name, choices):
-        Screen.__init__(self, session)
-        self.choices = choices
-        self['name'] = Label(name)
-        self['list'] = MenuList([(item['label'], index) for index, item in enumerate(choices)])
-        self['hint'] = Label('↑/↓: jakość  ·  OK: odtwarzaj  ·  EXIT: wróć')
-        self['actions'] = ActionMap(['OkCancelActions', 'DirectionActions'], {
-            'ok': self.select, 'cancel': lambda: self.close(None),
-            'up': self['list'].up, 'down': self['list'].down,
-            'left': self['list'].pageUp, 'right': self['list'].pageDown}, -2)
-
-    def select(self):
-        current = self['list'].getCurrent()
-        if current is not None:
-            self.close(current[1])
 
 
 class CanalE2NowNext(Screen):
@@ -89,33 +60,24 @@ class CanalE2Player(Screen):
       <widget name="status" position="40,510" size="1200,170" font="Regular;23" foregroundColor="white" backgroundColor="#50000000" transparent="0" />
     </screen>"""
 
-    def __init__(self, session, channel_id, channel_name, vod=False, description="", channel_list=None):
+    def __init__(self, session, channel_id, channel_name, channel_list=None):
         Screen.__init__(self, session)
         self.channel_id, self.channel_name = channel_id, channel_name
-        self.vod, self.description, self.paused, self.ended = vod, description, False, False
-        self.control_pending = False
-        self.channel_list = list(channel_list or []) if not vod else []
+        self.channel_list = list(channel_list or [])
         self.pending_channel = None
         self.worker_stop_requested = False
         self.actual_height = None
-        self.quality_preference = None
-        self.quality_choices = []
-        self.quality_dialog = None
         self.epg = {}
         self.playing_started = False
         self["status"] = Label(channel_name + "\nPrzygotowanie...")
-        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions",
-                                    "ColorActions", "NavigationActions"], {
+        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions", "NavigationActions"], {
             "cancel": self.stop, "ok": self.toggle_status, "showMovies": self.toggle_status,
             "info": self.show_programmes, "InfoPressed": self.show_programmes,
-            "EPGPressed": self.show_programmes, "green": self.pause_resume,
-            "left": lambda: self.control("seek_back"),
-            "right": lambda: self.control("seek_forward"),
+            "EPGPressed": self.show_programmes,
             "pageUp": lambda: self.zap(1), "pageDown": lambda: self.zap(-1),
             "up": lambda: self.zap(1), "down": lambda: self.zap(-1)}, -2)
         self.epg_loader = EpgLoader(self.epg_received)
-        if not self.vod:
-            self.epg_loader.request(channel_id)
+        self.epg_loader.request(channel_id)
         self.onShow.append(self.epg_loader.resume)
         self.onHide.append(self.epg_loader.pause)
         self.previous = session.nav.getCurrentlyPlayingServiceReference()
@@ -141,10 +103,7 @@ class CanalE2Player(Screen):
         worker = str(ROOT / "playback_worker.py")
         self.running = True
         self.worker_stop_requested = False
-        quality_args = (["--quality-preference", json.dumps(self.quality_preference)]
-                        if self.quality_preference is not None else ["--choose-quality"])
-        result = self.container.execute(python, python, "-u", worker, *quality_args,
-                                        "--vod" if self.vod else "--channel", self.channel_id, "--height", "1080")
+        result = self.container.execute(python, python, "-u", worker, "--channel", self.channel_id, "--height", "4320")
         if result:
             self.running = False
             self["status"].setText("Nie mozna uruchomic testu. EXIT: powrot.")
@@ -153,8 +112,7 @@ class CanalE2Player(Screen):
         if self.closed or self.stopping or self.pending_channel is not None:
             return
         text = data.decode("utf-8", "replace") if isinstance(data, bytes) else data
-        # A quality event can include multiple languages and audio codecs.
-        self.buffer = (self.buffer + text)[-2097152:]
+        self.buffer = (self.buffer + text)[-65536:]
         while "\n" in self.buffer:
             line, self.buffer = self.buffer.split("\n", 1)
             try:
@@ -164,30 +122,16 @@ class CanalE2Player(Screen):
             if not isinstance(event, dict):
                 continue
             stage = event.get("stage")
-            if stage == 'quality_choices':
-                self.quality_choices = event.get('quality_choices', [])
-                self.quality_dialog = self.session.openWithCallback(
-                    self.quality_selected, CanalE2Quality, self.channel_name, self.quality_choices)
-            elif stage == 'quality_chosen':
-                self.quality_preference = event.get('selected_quality')
             height = event.get("selected_video_height")
             if isinstance(height, int) and 0 < height <= 4320:
                 self.actual_height = height
             if stage == "error":
                 self.playing_started = False
                 reason = event.get("reason", "error")
-                if reason == "vod_smooth_streaming_not_supported":
-                    reason = "Film jest w formacie Smooth Streaming. Ten odtwarzacz jeszcze go nie obsluguje."
-                elif reason == "selected_quality_not_licensed":
-                    reason = "Usługa nie przyznała licencji dla wybranej jakości. Wybierz inny wariant."
-                code = event.get("http_status")
-                if isinstance(code, int) and 400 <= code <= 599:
-                    reason += " (HTTP %d)" % code
                 # Worker reasons are codes, never native player exception text.
                 message = "Blad: %s\nRaport: /tmp/canal_e2_playback_report.json\nEXIT: powrot." % reason
                 self.status_timer.stop()
                 self["status"].show()
-                self.status_visible = True
             else:
                 message = STAGES.get(stage)
             if message:
@@ -197,32 +141,6 @@ class CanalE2Player(Screen):
                 self.playing_started = True
                 self.update_overlay()
                 self.status_timer.start(7000, True)
-            elif stage == "vod_ended":
-                self.ended = True
-            elif stage in ("vod_paused", "vod_resumed", "vod_control_failed"):
-                self.control_pending = False
-                if stage != "vod_control_failed":
-                    self.paused = stage == "vod_paused"
-                self.update_overlay()
-                self["status"].show()
-                self.status_visible = True
-                self.status_timer.stop()
-                if stage == "vod_control_failed":
-                    self["status"].setText(self.channel_name + "\nOdtwarzacz nie wykonał tej operacji.\nEXIT: powrót")
-                if not self.paused:
-                    self.status_timer.start(5000, True)
-
-    def quality_selected(self, index):
-        self.quality_dialog = None
-        if self.closed or self.stopping or self.pending_channel is not None:
-            return
-        if type(index) is not int or not 0 <= index < len(self.quality_choices):
-            self.stop()
-            return
-        self.quality_preference = self.quality_choices[index]['preference']
-        if self.running and self.container is not None:
-            command = json.dumps({'quality_index': index}) + '\n'
-            self.container.write(command, len(command))
 
     def epg_received(self, event):
         self.epg = event if event.get("stage") == "epg_loaded" else {}
@@ -231,36 +149,14 @@ class CanalE2Player(Screen):
 
     def update_overlay(self):
         quality = " — %dp" % self.actual_height if self.actual_height else ""
-        if self.vod:
-            self["status"].setText(self.channel_name + quality
-                + ("\nPauza" if self.paused else "\nOdtwarzanie VOD")
-                + "\nZIELONY: pauza / odtwarzaj  ·  ←/→: 30 sekund"
-                + "\nOK: pokaż/ukryj  ·  INFO: opis  ·  EXIT: powrót")
-            return
         self["status"].setText(self.channel_name + quality + "\nTeraz: "
             + programme_line(self.epg.get("current")) + "\nNastępnie: "
             + programme_line(self.epg.get("next"))
             + "\nCH+/− lub ↑/↓: kanał  ·  OK: pasek  ·  INFO: opis  ·  EXIT: powrót")
 
     def show_programmes(self):
-        if self.pending_channel is not None:
-            return
-        if self.vod:
-            from .vod_ui import CanalVodDescription
-            self.session.open(CanalVodDescription, self.channel_name, self.description)
-        else:
+        if self.pending_channel is None:
             self.session.open(CanalE2NowNext, self.channel_name, self.epg)
-
-    def control(self, command):
-        if self.vod and self.playing_started and self.container is not None and self.running:
-            command += "\n"
-            self.container.write(command, len(command))
-
-    def pause_resume(self):
-        if not self.vod or not self.playing_started or self.control_pending:
-            return
-        self.control_pending = True
-        self.control("resume" if self.paused else "pause")
 
     def interrupt_worker(self):
         if self.container is not None and self.running and not self.worker_stop_requested:
@@ -276,7 +172,7 @@ class CanalE2Player(Screen):
         self.container = None
 
     def zap(self, direction):
-        if self.vod or self.closed or self.stopping or len(self.channel_list) < 2:
+        if self.closed or self.stopping or len(self.channel_list) < 2:
             return
         current = self.pending_channel[1] if self.pending_channel is not None else self.channel_id
         indices = [i for i, item in enumerate(self.channel_list) if item[1] == current]
@@ -303,7 +199,7 @@ class CanalE2Player(Screen):
         self.channel_name, self.channel_id = self.pending_channel
         self.pending_channel = None
         self.actual_height, self.epg = None, {}
-        self.paused = self.ended = self.control_pending = self.worker_stop_requested = False
+        self.worker_stop_requested = False
         self.buffer = ""
         self.epg_loader.request(self.channel_id)
         self.epg_loader.resume()
@@ -341,12 +237,9 @@ class CanalE2Player(Screen):
     def on_exit(self, code):
         self.running = False
         self.playing_started = False
-        if self.quality_dialog is not None:
-            dialog, self.quality_dialog = self.quality_dialog, None
-            dialog.close(None)
         if self.closed:
             return
-        if self.stopping or self.ended:
+        if self.stopping:
             self.close()
         elif self.pending_channel is not None:
             self.start_pending_channel()
@@ -726,71 +619,15 @@ class CanalE2Channels(Screen):
     def play(self):
         item = self["channels"].getCurrent()
         if item is not None:
-            self.session.open(CanalE2Player, item[1], item[0], False, "", self.entries)
+            self.session.open(CanalE2Player, item[1], item[0], self.entries)
         else:
             self.login()
 
 
-class CanalE2Home(Screen):
-    skin = """<screen name="CanalE2Home" position="center,center" size="1000,640" title="MK Canal+ E2">
-      <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/logo.png" position="25,16" size="128,128" alphatest="blend" />
-      <widget name="brand" position="175,38" size="800,40" font="Regular;31" />
-      <widget name="creator" position="175,91" size="800,29" font="Regular;20" foregroundColor="#bcbcbc" />
-      <widget name="sections" position="25,165" size="950,345" scrollbarMode="showOnDemand" />
-      <widget name="hint" position="25,532" size="950,30" font="Regular;22" />
-      <widget name="key_green" position="25,578" size="300,40" font="Regular;22" halign="center" backgroundColor="#177443" />
-      <widget name="key_yellow" position="345,578" size="300,40" font="Regular;22" halign="center" foregroundColor="black" backgroundColor="#e3bc38" />
-      <widget name="key_blue" position="665,578" size="310,40" font="Regular;22" halign="center" backgroundColor="#2363ba" />
-    </screen>"""
-
-    def __init__(self, session):
-        Screen.__init__(self, session)
-        from .vod_data import ROOTS
-        self["brand"] = Label(APP_NAME)
-        self["creator"] = Label("Pomysł i projekt: MK  ·  Wersja " + APP_VERSION)
-        self["sections"] = MenuList([("Telewizja na żywo", "tv")]
-                                   + [(title, path) for title, path in ROOTS] + [("Szukaj filmu / serialu", "search")])
-        self["hint"] = Label("OK: Otwórz  ·  EXIT: Wróć")
-        self["key_green"] = Label("Zaloguj")
-        self["key_yellow"] = Label("Odśwież kanały")
-        self["key_blue"] = Label("Aktualizacja")
-        self["actions"] = ActionMap(["OkCancelActions", "ColorActions"], {
-            "ok": self.select, "cancel": self.close, "green": self.login,
-            "yellow": self.refresh, "blue": self.update}, -2)
-
-    def select(self):
-        item = self["sections"].getCurrent()
-        if not item:
-            return
-        if item[1] == "tv":
-            self.session.open(CanalE2Channels)
-        elif item[1] == "search":
-            from Screens.VirtualKeyBoard import VirtualKeyBoard
-            self.session.openWithCallback(self.search_received, VirtualKeyBoard,
-                                          title="Szukaj filmu lub serialu w CANAL+", text="")
-        else:
-            from .vod_ui import CanalVodBrowser
-            self.session.open(CanalVodBrowser, {"url": item[1]})
-
-    def search_received(self, query):
-        if isinstance(query, str) and query.strip():
-            from .vod_ui import CanalVodBrowser
-            self.session.open(CanalVodBrowser, query=query.strip()[:160])
-
-    def login(self):
-        self.session.open(CanalE2Account, "login")
-
-    def refresh(self):
-        self.session.open(CanalE2Account, "refresh")
-
-    def update(self):
-        self.session.open(CanalE2Update)
-
-
 def main(session, **kwargs):
-    session.open(CanalE2Home)
+    session.open(CanalE2Channels)
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(name=APP_NAME, description="Projekt MK · telewizja, filmy, seriale i aktualizacje online",
+    return [PluginDescriptor(name=APP_NAME, description="Projekt MK · kanały CANAL+ i aktualizacje online",
                              icon=str(ROOT / "icon.png"), where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main)]

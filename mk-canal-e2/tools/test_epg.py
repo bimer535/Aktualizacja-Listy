@@ -300,7 +300,7 @@ class InterfaceTests(unittest.TestCase):
         info = plugin.CanalE2NowNext(session, *opened[-1][1:])
         self.assertIn("Film, Polska", info["body"].text)
         screen["actions"].actions["ok"]()
-        self.assertEqual(opened[-1], (plugin.CanalE2Player, "12", "Test HD", False, "", [("Test HD", "12")]))
+        self.assertEqual(opened[-1], (plugin.CanalE2Player, "12", "Test HD", [("Test HD", "12")]))
         screen.cleanup_epg()
 
     def test_player_info_does_not_override_playback_error_or_stop(self):
