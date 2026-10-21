@@ -77,7 +77,8 @@ class SafeRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class Http:
-    def __init__(self):
+    def __init__(self, user_agent=None):
+        self.user_agent = user_agent or "Mozilla/5.0 (X11; Linux armv7l) CANAL-E2-Stream-Test/0.1"
         self.last_response_metadata = {}
         self.opener = urllib.request.build_opener(
             urllib.request.HTTPSHandler(context=ssl.create_default_context()), SafeRedirect())
@@ -86,7 +87,7 @@ class Http:
         self.last_response_metadata = {}
         url = checked_url(url)
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux armv7l) CANAL-E2-Stream-Test/0.1",
+            "User-Agent": self.user_agent,
             "Accept": "*/*", "Accept-Language": "pl-PL,pl;q=0.9",
             "Origin": "https://www.canalplus.com",
             "Referer": "https://www.canalplus.com/",

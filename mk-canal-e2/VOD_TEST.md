@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.2 — test VOD
+# MK Canal+ E2 0.5.3 — test VOD
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,34 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.3: manifest i spójne nagłówki VOD
+
+Użytkownik potwierdził działanie TV po pełnym restarcie dekodera. Kolejna próba
+filmu w 0.5.2 przeszła playset/view i zatrzymała się przy `vod_manifest`, HTTP 503.
+Nie było jeszcze próby licencji VOD ani odtwarzania filmu.
+
+W 0.5.3 poprawiono składanie adresu DASH z bazowego adresu `.ism`/`.isml`:
+sufiks manifestu jest dopisywany do ścieżki, a oryginalna część `?token=...`
+pozostaje dokładnie zachowana, z kodowaniem, kolejnością i powtórzonymi parametrami.
+Poprzednio sufiks mógł zostać dopisany wewnątrz wartości parametru URL.
+Obsługiwany jest też bazowy adres `.ism/Manifest`. Adresy DASH podane przez
+usługę mają pierwszeństwo i zachowują kolejność z odpowiedzi.
+
+Nagłówek przeglądarki dla VOD jest używany także dla manifestu, inicjalizacji
+ścieżek, odświeżania manifestu i odtwarzacza natywnego. Klient połączeń CDN nie
+przekazuje nagłówków autoryzacji konta. Domyślne nagłówki TV pozostają takie,
+jak w poprzedniej wersji.
+
+Raport `canal_e2_playback_report.json` zawiera `vod_http_diagnostic` z liczbą
+kandydatów i opisem każdej próby manifestu: rodzaj adresu, obecność parametrów,
+kod HTTP, typ i rozmiar odpowiedzi oraz wynik parsowania. Raport nie zawiera
+adresów, tokenów ani treści odpowiedzi CDN. Nie wiadomo jeszcze, czy znaleziony
+błąd składania URL był przyczyną 503 dla filmu użytkownika; wymaga to nowej próby.
+
+Składnia wyboru DASH użyta przy adresach `.ism` jest opisana w dokumentacji
+pakowania strumieni Microsoft. Nie każdy serwer źródłowy musi ją obsługiwać:
+https://learn.microsoft.com/en-us/azure/media-services/latest/filters-dynamic-manifest-concept.
 
 ## Wersja 0.5.2: pilot i raport VOD
 
@@ -44,8 +72,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.2.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.2.ipk
-opkg install /tmp/MK_Canal_E2_0.5.2.ipk
+wget -O /tmp/MK_Canal_E2_0.5.3.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.3.ipk
+opkg install /tmp/MK_Canal_E2_0.5.3.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -77,7 +105,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 51 testów: normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 58 testów: normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

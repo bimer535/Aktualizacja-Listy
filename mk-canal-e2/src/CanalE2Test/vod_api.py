@@ -38,7 +38,7 @@ class SameApiRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class VodApi:
-    def __init__(self, authentication, device_id, opener=None):
+    def __init__(self, authentication, device_id, opener=None, media_http=None):
         token = authentication.get('passToken')
         if not isinstance(token, str) or not token or not re.fullmatch(r'[a-zA-Z0-9-]{8,80}', str(device_id)):
             raise stream.StreamError('authenticated_session_missing')
@@ -54,6 +54,7 @@ class VodApi:
             urllib.request.HTTPSHandler(context=ssl.create_default_context()), SameApiRedirect())
         self.stage = 'vod_playset'
         self.diagnostic = {}
+        self.media_http = media_http if media_http is not None else stream.Http(user_agent=CATALOGUE_USER_AGENT)
 
     def request(self, url, payload=None, method='GET', binary=False):
         self.diagnostic = {}
@@ -131,14 +132,32 @@ class VodApi:
         if not candidates:
             raise stream.StreamError('vod_dash_manifest_missing')
         self.stage = 'vod_manifest'
+        attempts = []
+        self.diagnostic = {'manifest_candidate_count': len(candidates),
+                           'user_agent_profile': 'standard_browser',
+                           'selected_delivery_is_dash': 'DASH' in str(option.get('distTechnology', '')).upper(),
+                           'manifest_attempts': attempts}
         last_error = None
         for manifest in candidates[:4]:
+            parts = urllib.parse.urlsplit(manifest)
+            attempt = {'candidate_type': 'packager_dash' if 'format=mpd-' in parts.path.casefold() else 'provided_dash',
+                       'has_query_parameters': bool(parts.query)}
+            attempts.append(attempt)
             try:
-                root, final_url = stream.resolve_mpd(stream.Http(), manifest)
+                root, final_url = stream.resolve_mpd(self.media_http, manifest)
                 if sum(1 for node in root if node.tag.rsplit('}', 1)[-1] == 'Period') != 1:
                     raise stream.StreamError('vod_multiple_periods_not_supported')
+                attempt['result'] = 'mpd_loaded'
+                attempt.update(manifest_response_metadata(self.media_http))
                 return root, final_url, licence
             except stream.StreamError as error:
+                known = {'http_error', 'connection_or_tls_error', 'smooth_streaming_received_instead_of_dash',
+                         'hls_received_instead_of_dash', 'unrecognized_stream_response', 'invalid_stream_descriptor',
+                         'descriptor_has_no_supported_url', 'vod_multiple_periods_not_supported'}
+                attempt['result'] = error.reason if error.reason in known else 'manifest_resolution_failed'
+                attempt.update(manifest_response_metadata(self.media_http))
+                code = error.details.get('http_status')
+                if isinstance(code, int): attempt['http_status'] = code
                 if error.reason == 'vod_multiple_periods_not_supported':
                     raise
                 last_error = error
@@ -158,7 +177,7 @@ class VodApi:
 
 
 def manifest_candidates(medias):
-    candidates = []
+    direct, derived = [], []
     def walk(node, depth=0):
         if depth > 8:
             return
@@ -169,18 +188,40 @@ def manifest_candidates(medias):
                         url = stream.checked_url(v)
                     except stream.StreamError:
                         continue
-                    path = urllib.parse.urlsplit(url).path.lower()
-                    if '.mpd' in path:
-                        candidates.insert(0, url)
-                    elif path.endswith('.ism') or path.endswith('.isml'):
-                        candidates.append(url.rstrip('/') + '/manifest(format=mpd-time-csf)')
+                    parts = urllib.parse.urlsplit(url)
+                    path = parts.path.rstrip('/')
+                    if '.mpd' in path.casefold() or 'format=mpd-' in path.casefold():
+                        direct.append(url)
+                    elif path.casefold().endswith(('.ism', '.isml')):
+                        # Change the path only. Appending to a complete signed URL
+                        # would put the manifest suffix INSIDE its query token.
+                        derived.append(urllib.parse.urlunsplit(parts._replace(
+                            path=path + '/manifest(format=mpd-time-csf)')))
+                    elif re.search(r'\.(?:ism|isml)/manifest$', path, re.IGNORECASE):
+                        derived.append(urllib.parse.urlunsplit(parts._replace(
+                            path=path + '(format=mpd-time-csf)')))
                 elif isinstance(v, (dict, list)):
                     walk(v, depth + 1)
         elif isinstance(node, list):
             for v in node[:100]:
                 walk(v, depth + 1)
     walk(medias)
-    return list(dict.fromkeys(candidates))
+    return list(dict.fromkeys(direct + derived))
+
+
+def manifest_response_metadata(http):
+    """Copy only transport status, never a URL, query, header or response body."""
+    raw = getattr(http, 'last_response_metadata', {})
+    result = {}
+    for key in ('http_status', 'response_bytes'):
+        value = raw.get(key)
+        if isinstance(value, int) and not isinstance(value, bool): result[key] = value
+    for key in ('response_content_type', 'response_content_encoding'):
+        value = raw.get(key)
+        if isinstance(value, str) and re.fullmatch(r'[a-z0-9.+/-]{1,80}', value): result[key] = value
+    if isinstance(raw.get('response_redirected'), bool):
+        result['response_redirected'] = raw['response_redirected']
+    return result
 
 
 def decode_licence(raw):

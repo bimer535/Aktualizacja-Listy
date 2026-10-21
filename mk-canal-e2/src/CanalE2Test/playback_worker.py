@@ -79,7 +79,7 @@ class ManifestServer(ThreadingHTTPServer):
     daemon_threads = True
 
 
-def start_manifest_server(mpd_url, root, height, on_error, video_reference=None):
+def start_manifest_server(mpd_url, root, height, on_error, video_reference=None, http=None):
     initial, expected = runtime.filtered_manifest(root, mpd_url, height, video_reference=video_reference)
     endpoint = "/" + secrets.token_hex(16) + "/manifest.mpd"
     first = [initial]
@@ -98,7 +98,7 @@ def start_manifest_server(mpd_url, root, height, on_error, video_reference=None)
                     if first:
                         body = first.pop()
                     else:
-                        raw, final = stream.Http().read(mpd_url)
+                        raw, final = (http if http is not None else stream.Http()).read(mpd_url)
                         current = ET.fromstring(raw)
                         body, _ = runtime.filtered_manifest(current, final, height, expected, video_reference)
                 self.send_response(200)
@@ -158,6 +158,13 @@ def player_events(pipe, events):
         pass
 
 
+def native_user_agent(vod):
+    if vod:
+        from vod_data import CATALOGUE_USER_AGENT
+        return CATALOGUE_USER_AGENT
+    return "Mozilla/5.0"
+
+
 def main():
     parser = argparse.ArgumentParser()
     source = parser.add_mutually_exclusive_group(required=True)
@@ -194,6 +201,10 @@ def main():
             vod_api = VodApi(auth, saved.get("device_id"))
             emit("vod_resolve_stream")
             root, mpd_url, licence_url = vod_api.resolve(args.vod)
+            http = getattr(vod_api, "media_http", http)
+            diagnostic = getattr(vod_api, "diagnostic", {})
+            if isinstance(diagnostic, dict) and diagnostic.get("manifest_attempts"):
+                emit("vod_manifest_ready", vod_http_diagnostic=diagnostic)
             license_request = lambda challenge: vod_api.licence(licence_url, challenge)
             selected, out, ids = {}, {}, {}
         else:
@@ -251,7 +262,8 @@ def main():
             return 0
         server, manifest_url = start_manifest_server(mpd_url, root, args.height,
                                                     lambda reason: events.put((reason, None)),
-                                                    video_reference=runtime.track_reference(video))
+                                                    video_reference=runtime.track_reference(video),
+                                                    http=http if args.vod else None)
         environment = os.environ.copy()
         environment["LD_LIBRARY_PATH"] = str(binary.parent.parent / "lib")
         # FFmpeg dictionary syntax: kid=key:kid=key. Keys stay in process memory;
@@ -260,7 +272,7 @@ def main():
         command = [str(binary), manifest_url]
         if keys:
             command.extend(["-f", "cenc_decryption_keys=" + key_map])
-        command.extend(["-u", "Mozilla/5.0", "-h", "Origin: https://www.canalplus.com\r\nReferer: https://www.canalplus.com/\r\n",
+        command.extend(["-u", native_user_agent(bool(args.vod)), "-h", "Origin: https://www.canalplus.com\r\nReferer: https://www.canalplus.com/\r\n",
                         "-e", "-3", "-s"])
         emit("starting_player")
         try:
