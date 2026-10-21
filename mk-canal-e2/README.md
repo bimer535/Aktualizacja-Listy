@@ -6,6 +6,13 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ![Logo MK Canal+ E2](src/CanalE2Test/logo.svg)
 
+## Test filmów i seriali: 0.5.0
+
+Osobny [pakiet testowy VOD 0.5.0](VOD_TEST.md) dodaje katalog, sezony, odcinki,
+opisy i wyszukiwanie. Katalog sprawdzono na danych CANAL+; odtwarzanie VOD
+wymaga jeszcze próby na dekoderze. Automatyczne aktualizacje nadal wskazują
+wersję 0.4.0. Instrukcje i ograniczenia znajdują się w podanym dokumencie.
+
 ## Instalacja
 
 Pobierz [MK_Canal_E2_0.4.0.ipk](packages/MK_Canal_E2_0.4.0.ipk), skopiuj do `/tmp` i wykonaj:

@@ -19,6 +19,9 @@ from .epg_ui import EpgLoader, programme_line, programme_details, programme_prog
 ROOT = Path(__file__).resolve().parent
 
 STAGES = {
+    "vod_check_access": "Sprawdzanie sesji CANAL+...",
+    "vod_resolve_stream": "Sprawdzanie dostępu do filmu lub odcinka...",
+    "vod_ended": "Koniec materiału.",
     "prepare": "Przygotowanie odtwarzacza...",
     "prepare_player": "Pierwsze uruchomienie: pobieranie odtwarzacza (11 MB)...",
     "refresh_channels": "Sprawdzanie sesji i dostepu do kanalu...",
@@ -60,19 +63,25 @@ class CanalE2Player(Screen):
       <widget name="status" position="40,510" size="1200,170" font="Regular;23" foregroundColor="white" backgroundColor="#50000000" transparent="0" />
     </screen>"""
 
-    def __init__(self, session, channel_id, channel_name):
+    def __init__(self, session, channel_id, channel_name, vod=False, description=""):
         Screen.__init__(self, session)
         self.channel_id, self.channel_name = channel_id, channel_name
+        self.vod, self.description, self.paused, self.ended = vod, description, False, False
+        self.control_pending = False
         self.actual_height = None
         self.epg = {}
         self.playing_started = False
         self["status"] = Label(channel_name + "\nPrzygotowanie...")
-        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions"], {
+        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions",
+                                    "ColorActions", "DirectionActions"], {
             "cancel": self.stop, "ok": self.toggle_status, "showMovies": self.toggle_status,
             "info": self.show_programmes, "InfoPressed": self.show_programmes,
-            "EPGPressed": self.show_programmes}, -2)
+            "EPGPressed": self.show_programmes, "green": self.pause_resume,
+            "left": lambda: self.control("seek_back"),
+            "right": lambda: self.control("seek_forward")}, -2)
         self.epg_loader = EpgLoader(self.epg_received)
-        self.epg_loader.request(channel_id)
+        if not self.vod:
+            self.epg_loader.request(channel_id)
         self.onShow.append(self.epg_loader.resume)
         self.onHide.append(self.epg_loader.pause)
         self.previous = session.nav.getCurrentlyPlayingServiceReference()
@@ -97,7 +106,8 @@ class CanalE2Player(Screen):
         python = "/usr/bin/python3"
         worker = str(ROOT / "playback_worker.py")
         self.running = True
-        result = self.container.execute(python, python, "-u", worker, "--channel", self.channel_id, "--height", "1080")
+        result = self.container.execute(python, python, "-u", worker,
+                                        "--vod" if self.vod else "--channel", self.channel_id, "--height", "1080")
         if result:
             self.running = False
             self["status"].setText("Nie mozna uruchomic testu. EXIT: powrot.")
@@ -126,6 +136,7 @@ class CanalE2Player(Screen):
                 message = "Blad: %s\nRaport: /tmp/canal_e2_playback_report.json\nEXIT: powrot." % reason
                 self.status_timer.stop()
                 self["status"].show()
+                self.status_visible = True
             else:
                 message = STAGES.get(stage)
             if message:
@@ -135,6 +146,20 @@ class CanalE2Player(Screen):
                 self.playing_started = True
                 self.update_overlay()
                 self.status_timer.start(7000, True)
+            elif stage == "vod_ended":
+                self.ended = True
+            elif stage in ("vod_paused", "vod_resumed", "vod_control_failed"):
+                self.control_pending = False
+                if stage != "vod_control_failed":
+                    self.paused = stage == "vod_paused"
+                self.update_overlay()
+                self["status"].show()
+                self.status_visible = True
+                self.status_timer.stop()
+                if stage == "vod_control_failed":
+                    self["status"].setText(self.channel_name + "\nOdtwarzacz nie wykonał tej operacji.\nEXIT: powrót")
+                if not self.paused:
+                    self.status_timer.start(5000, True)
 
     def epg_received(self, event):
         self.epg = event if event.get("stage") == "epg_loaded" else {}
@@ -143,13 +168,33 @@ class CanalE2Player(Screen):
 
     def update_overlay(self):
         quality = " — %dp" % self.actual_height if self.actual_height else ""
+        if self.vod:
+            self["status"].setText(self.channel_name + quality
+                + ("\nPauza" if self.paused else "\nOdtwarzanie VOD")
+                + "\nZIELONY: pauza / odtwarzaj  ·  ←/→: 30 sekund"
+                + "\nOK: pokaż/ukryj  ·  INFO: opis  ·  EXIT: powrót")
+            return
         self["status"].setText(self.channel_name + quality + "\nTeraz: "
             + programme_line(self.epg.get("current")) + "\nNastępnie: "
             + programme_line(self.epg.get("next"))
             + "\nOK: pokaż/ukryj  ·  INFO: szczegóły  ·  EXIT: powrót")
 
     def show_programmes(self):
-        self.session.open(CanalE2NowNext, self.channel_name, self.epg)
+        if self.vod:
+            from .vod_ui import CanalVodDescription
+            self.session.open(CanalVodDescription, self.channel_name, self.description)
+        else:
+            self.session.open(CanalE2NowNext, self.channel_name, self.epg)
+
+    def control(self, command):
+        if self.vod and self.playing_started and self.container is not None and self.running:
+            self.container.write((command + "\n").encode("ascii"))
+
+    def pause_resume(self):
+        if not self.vod or not self.playing_started or self.control_pending:
+            return
+        self.control_pending = True
+        self.control("resume" if self.paused else "pause")
 
     def hide_status(self):
         if not self.closed:
@@ -182,7 +227,7 @@ class CanalE2Player(Screen):
         self.playing_started = False
         if self.closed:
             return
-        if self.stopping:
+        if self.stopping or self.ended:
             self.close()
         elif code != 0:
             self.status_timer.stop()
@@ -568,10 +613,66 @@ class CanalE2Channels(Screen):
             self.login()
 
 
+class CanalE2Home(Screen):
+    skin = """<screen name="CanalE2Home" position="center,center" size="1000,640" title="MK Canal+ E2">
+      <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/logo.png" position="25,16" size="128,128" alphatest="blend" />
+      <widget name="brand" position="175,38" size="800,40" font="Regular;31" />
+      <widget name="creator" position="175,91" size="800,29" font="Regular;20" foregroundColor="#bcbcbc" />
+      <widget name="sections" position="25,165" size="950,345" scrollbarMode="showOnDemand" />
+      <widget name="hint" position="25,532" size="950,30" font="Regular;22" />
+      <widget name="key_green" position="25,578" size="300,40" font="Regular;22" halign="center" backgroundColor="#177443" />
+      <widget name="key_yellow" position="345,578" size="300,40" font="Regular;22" halign="center" foregroundColor="black" backgroundColor="#e3bc38" />
+      <widget name="key_blue" position="665,578" size="310,40" font="Regular;22" halign="center" backgroundColor="#2363ba" />
+    </screen>"""
+
+    def __init__(self, session):
+        Screen.__init__(self, session)
+        from .vod_data import ROOTS
+        self["brand"] = Label(APP_NAME)
+        self["creator"] = Label("Pomysł i projekt: MK  ·  Wersja " + APP_VERSION)
+        self["sections"] = MenuList([("Telewizja na żywo", "tv")]
+                                   + [(title, path) for title, path in ROOTS] + [("Szukaj filmu / serialu", "search")])
+        self["hint"] = Label("OK: Otwórz  ·  EXIT: Wróć")
+        self["key_green"] = Label("Zaloguj")
+        self["key_yellow"] = Label("Odśwież kanały")
+        self["key_blue"] = Label("Aktualizacja")
+        self["actions"] = ActionMap(["OkCancelActions", "ColorActions"], {
+            "ok": self.select, "cancel": self.close, "green": self.login,
+            "yellow": self.refresh, "blue": self.update}, -2)
+
+    def select(self):
+        item = self["sections"].getCurrent()
+        if not item:
+            return
+        if item[1] == "tv":
+            self.session.open(CanalE2Channels)
+        elif item[1] == "search":
+            from Screens.VirtualKeyBoard import VirtualKeyBoard
+            self.session.openWithCallback(self.search_received, VirtualKeyBoard,
+                                          title="Szukaj filmu lub serialu w CANAL+", text="")
+        else:
+            from .vod_ui import CanalVodBrowser
+            self.session.open(CanalVodBrowser, {"url": item[1]})
+
+    def search_received(self, query):
+        if isinstance(query, str) and query.strip():
+            from .vod_ui import CanalVodBrowser
+            self.session.open(CanalVodBrowser, query=query.strip()[:160])
+
+    def login(self):
+        self.session.open(CanalE2Account, "login")
+
+    def refresh(self):
+        self.session.open(CanalE2Account, "refresh")
+
+    def update(self):
+        self.session.open(CanalE2Update)
+
+
 def main(session, **kwargs):
-    session.open(CanalE2Channels)
+    session.open(CanalE2Home)
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(name=APP_NAME, description="Projekt MK · kanały CANAL+ i aktualizacje online",
+    return [PluginDescriptor(name=APP_NAME, description="Projekt MK · telewizja, filmy, seriale i aktualizacje online",
                              icon=str(ROOT / "icon.png"), where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main)]

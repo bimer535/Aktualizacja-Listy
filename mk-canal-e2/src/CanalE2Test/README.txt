@@ -1,4 +1,4 @@
-MK Canal+ E2 0.4.0
+MK Canal+ E2 0.5.0 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.4.0.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.0.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -91,3 +91,24 @@ A separate process fetches metadata; /tmp/mk-canal-epg.json caches at most two
 programmes per channel for up to 120 seconds or until a programme boundary.
 Times use the receiver's configured timezone. Expired programmes are not shown
 as currently airing. The new GUI still requires receiver-side verification.
+
+Version 0.5.0 is a separate VOD TEST build, not yet the automatic update.
+The home menu includes live television, films, series, documentaries, children,
+originals, collections, sport and title search. Movie details, season selectors,
+episode lists, pagination, back navigation and descriptions use CANAL+ metadata.
+Public catalogue/episode data was checked against the official website.
+Authenticated HAPI playset/view playback, VOD licensing, search/pagination via
+Hodor, native pause and seeking still require receiver validation. Developer
+host access to Hodor/HAPI returns HTTP 403; local contract tests are not a real
+account playback test. See VOD_TEST.md in the public repository.
+
+VOD controls: green pause/resume; left/right seek 30 seconds; INFO description.
+The player confirms pause/resume before changing the UI state. A movie ending
+returns to its catalogue. No Kodi/E2iPlayer imports, purchase calls or decrypted
+media files are introduced. Only single-period DASH is supported in this test.
+The visible public catalogue may include items outside the user's subscription.
+VOD rights are checked at playback. External-app titles require that service.
+Continue using /tmp/canal_e2_playback_report.json for sanitized error reports.
+
+HAPI protocol reference: public GPL CanalPLUS-VOD 1.7.5.11 by mbebe, mariusz89b,
+hevet. This is an independent implementation; the Kodi application is not used.

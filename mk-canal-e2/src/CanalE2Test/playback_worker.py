@@ -46,7 +46,7 @@ def collect_keys(target, keys):
             target[bytes(item.kid).hex()] = bytes(item.key).hex()
 
 
-def acquire_track_keys(directory, http, selected, out, ids, video, audio, keys):
+def acquire_track_keys(directory, http, selected, out, ids, video, audio, keys, license_request=None):
     requested = set()
     for track in (video, audio):
         if not track["encrypted"]:
@@ -60,7 +60,8 @@ def acquire_track_keys(directory, http, selected, out, ids, video, audio, keys):
                 continue
             requested.add(pssh)
             stream.check_license(directory, drm, http, pssh, selected, out, ids,
-                                 key_callback=lambda values: collect_keys(keys, values))
+                                 key_callback=lambda values: collect_keys(keys, values),
+                                 license_request=license_request)
     summary = {"license_request_count": len(requested), "content_key_count": len(keys)}
     for label, track in (("video", video), ("audio", audio)):
         summary.update({
@@ -148,7 +149,8 @@ def player_events(pipe, events):
                 continue
             if not isinstance(value, dict):
                 continue
-            for label in ("PLAYBACK_OPEN", "OUTPUT_OPEN", "PLAYBACK_PLAY", "PLAYBACK_STOP"):
+            for label in ("PLAYBACK_OPEN", "OUTPUT_OPEN", "PLAYBACK_PLAY", "PLAYBACK_STOP",
+                          "PLAYBACK_PAUSE", "PLAYBACK_CONTINUE", "PLAYBACK_SEEK"):
                 item = value.get(label)
                 if isinstance(item, dict) and isinstance(item.get("sts"), int):
                     events.put((label.lower(), item["sts"]))
@@ -158,40 +160,53 @@ def player_events(pipe, events):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--channel", required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--channel")
+    source.add_argument("--vod")
     parser.add_argument("--height", type=int, default=1080)
     args = parser.parse_args()
-    if not re.fullmatch(r"[0-9]{1,12}", args.channel) or not 1 <= args.height <= 4320:
+    if ((args.channel is not None and not re.fullmatch(r"[0-9]{1,12}", args.channel))
+            or (args.vod is not None and not re.fullmatch(r"[0-9]{1,15}(?:_[0-9]{1,10})?", args.vod))
+            or not 1 <= args.height <= 4320):
         return 2
     def interrupt(*_):
         STOP.set()
         raise KeyboardInterrupt
     signal.signal(signal.SIGINT, interrupt)
     signal.signal(signal.SIGTERM, interrupt)
-    player, server, keys = None, None, {}
+    player, server, keys, vod_api = None, None, {}, None
     events = queue.Queue()
     try:
         emit("prepare")
         binary = runtime.ensure_player(Path("/var/lib/canal-e2"), emit)
         if STOP.is_set():
             return 0
-        emit("refresh_channels")
+        emit("refresh_channels" if not args.vod else "vod_check_access")
         session_path = Path("/etc/canal-e2/session.json")
         saved = channels.load_json(session_path)
         auth = saved.get("authentication", {})
         if not isinstance(auth, dict) or not isinstance(auth.get("passToken"), str):
             raise stream.StreamError("authenticated_session_missing")
-        ids = channels.get_client_ids(session_path.with_name("client.json"))
-        response = channels.fetch_init(channels.make_request(auth["passToken"], ids))
-        out = channels.extract_outdata(response)
-        entries = channels.normalize_channels(out)
-        selected = stream.select_channel(entries, args.channel)
-        channels.atomic_private_json(session_path.with_name("live.json"), {
-            "schema_version": 1, "client_ids": ids,
-            "init_live_response": response, "channels": entries})
-        emit("resolve_stream", channel=selected["name"])
         http = stream.Http()
-        root, mpd_url = stream.resolve_mpd(http, stream.entry_url(selected, out))
+        license_request = None
+        if args.vod:
+            from vod_api import VodApi
+            vod_api = VodApi(auth, saved.get("device_id"))
+            emit("vod_resolve_stream")
+            root, mpd_url, licence_url = vod_api.resolve(args.vod)
+            license_request = lambda challenge: vod_api.licence(licence_url, challenge)
+            selected, out, ids = {}, {}, {}
+        else:
+            ids = channels.get_client_ids(session_path.with_name("client.json"))
+            response = channels.fetch_init(channels.make_request(auth["passToken"], ids))
+            out = channels.extract_outdata(response)
+            entries = channels.normalize_channels(out)
+            selected = stream.select_channel(entries, args.channel)
+            channels.atomic_private_json(session_path.with_name("live.json"), {
+                "schema_version": 1, "client_ids": ids,
+                "init_live_response": response, "channels": entries})
+            emit("resolve_stream", channel=selected["name"])
+            root, mpd_url = stream.resolve_mpd(http, stream.entry_url(selected, out))
         video, audio = runtime.select_tracks(root, args.height)
         emit("inspect_initialization", requested_max_height=args.height, selected_video_height=video["height"],
              selected_audio_language=audio["lang"] if audio["lang"] in ("pl", "pol", "pl-pl", "en", "eng", "und", "") else "other")
@@ -205,7 +220,8 @@ def main():
             # Suppress both Python logs and public engine diagnostic printing.
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 drm.prepare_engine(directory)
-                mapping = acquire_track_keys(directory, http, selected, out, ids, video, audio, keys)
+                mapping = acquire_track_keys(directory, http, selected, out, ids, video, audio, keys,
+                                             license_request=license_request)
         emit("key_mapping", **mapping)
         if not keys and (video["encrypted"] or audio["encrypted"]):
             raise stream.StreamError("license_has_no_content_keys")
@@ -254,6 +270,13 @@ def main():
             raise stream.StreamError("private_player_start_failed") from None
         for pipe in (player.stdout, player.stderr):
             threading.Thread(target=player_events, args=(pipe, events), daemon=True).start()
+        if args.vod:
+            def read_controls():
+                for line in sys.stdin:
+                    command = line.strip()
+                    if command in ("pause", "resume", "seek_back", "seek_forward"):
+                        events.put(("control_" + command, 0))
+            threading.Thread(target=read_controls, daemon=True).start()
         started = time.monotonic()
         playing = False
         while not STOP.is_set():
@@ -268,9 +291,29 @@ def main():
                 emit("player_running", player_reported_play=True)
             elif event in ("playback_open", "output_open") and code != 0:
                 raise stream.StreamError(event + "_failed", player_status=code)
+            elif args.vod and event and event.startswith("control_"):
+                commands = {"control_pause": b"p\n", "control_resume": b"c\n",
+                            "control_seek_back": b"kf-30\n", "control_seek_forward": b"kf30\n"}
+                command = commands.get(event)
+                if command and playing and player.poll() is None:
+                    player.stdin.write(command)
+                    player.stdin.flush()
+            elif args.vod and event == "playback_stop" and code == 0 and playing:
+                emit("vod_ended")
+                return 0
+            elif args.vod and event in ("playback_pause", "playback_continue", "playback_seek"):
+                if code != 0:
+                    emit("vod_control_failed")
+                elif event == "playback_pause":
+                    emit("vod_paused")
+                elif event == "playback_continue":
+                    emit("vod_resumed")
             elif event and code is None:
                 raise stream.StreamError(event)
             if player.poll() is not None:
+                if args.vod and playing and player.returncode == 0:
+                    emit("vod_ended")
+                    return 0
                 raise stream.StreamError("player_exited", player_exit_code=player.returncode,
                                          player_reported_play=playing)
             if not playing and time.monotonic() - started > 60:
@@ -286,6 +329,8 @@ def main():
         safe = {key: value for key, value in details.items()
                 if key in ("http_status", "player_status", "player_exit_code", "player_reported_play")
                 and isinstance(value, (int, bool))}
+        if vod_api is not None:
+            safe["vod_step"] = vod_api.stage
         emit("error", reason=reason, **safe)
         return 1
     finally:

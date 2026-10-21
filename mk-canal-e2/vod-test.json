@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "MK Canal+ E2",
+  "package": "enigma2-plugin-extensions-canale2test",
+  "version": "0.5.0",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.0.ipk",
+  "sha256": "711613b2c25a153fdb04fd3046524e3187e27a9e76aa873421c8cfe0ed0280ef",
+  "size": 64748,
+  "notes": "WERSJA TESTOWA VOD: menu filmów i seriali, pozostałe kategorie, sezony, odcinki, opisy i wyszukiwanie. Adapter odtwarzania VOD, pauza i przewijanie wymagają próby na dekoderze. Dotychczasowa telewizja i EPG pozostają dostępne. Ta wersja nie jest jeszcze publikowana jako automatyczna aktualizacja."
+}
