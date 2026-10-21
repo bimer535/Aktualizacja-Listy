@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "MK Canal+ E2",
+  "package": "enigma2-plugin-extensions-canale2test",
+  "version": "0.3.0",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.3.0.ipk",
+  "sha256": "d172f49e42a7feefed06c6e0f3594e335a3eaee53ef0bfa5834d02db7ddc0bb9",
+  "size": 46462,
+  "notes": "MK Canal+ E2: nowe logo z białym plusem i MK, kolorowe przyciski, aktualizacja z GitHuba pod niebieskim przyciskiem. Zachowane logowanie i działający tor odtwarzania."
+}
