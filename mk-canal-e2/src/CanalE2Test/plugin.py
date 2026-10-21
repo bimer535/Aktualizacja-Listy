@@ -138,6 +138,8 @@ class CanalE2Player(Screen):
             if stage == "error":
                 self.playing_started = False
                 reason = event.get("reason", "error")
+                if reason == "vod_smooth_streaming_not_supported":
+                    reason = "Film jest w formacie Smooth Streaming. Ten odtwarzacz jeszcze go nie obsluguje."
                 code = event.get("http_status")
                 if isinstance(code, int) and 400 <= code <= 599:
                     reason += " (HTTP %d)" % code

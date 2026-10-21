@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.5.3",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.3.ipk",
-  "sha256": "27d22fe16dcdf376cbc4a4f937ea16205060cd45b7673889577096ce7925b584",
-  "size": 67832,
-  "notes": "WERSJA TESTOWA 0.5.3: poprawione adresy manifestów VOD z parametrami i tokenami. Spójny nagłówek VOD dla manifestu, inicjalizacji, odświeżania i odtwarzacza. Rozszerzona diagnostyka błędu 503 w zwykłym raporcie, bez adresów i tokenów. Odtwarzanie filmu wymaga nowej próby na dekoderze. Po instalacji zrestartuj interfejs Enigma2."
+  "version": "0.5.4",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.4.ipk",
+  "sha256": "4cae6da783485f733c57b6f872a6bce85d92883d4bc4e7c32dbccdde1a5e3297",
+  "size": 69028,
+  "notes": "WERSJA TESTOWA 0.5.4: poprawiony wybór wariantów Widevine/DASH i rozpoznawanie adresów DASH po typie pliku. Raport pokazuje formaty oferowane przez usługę. Oryginalny Smooth Streaming jest sprawdzany po błędzie DASH; ten format nie jest jeszcze obsługiwany przez odtwarzacz. Odtwarzanie VOD wymaga próby na dekoderze. Po instalacji zrestartuj interfejs Enigma2."
 }

@@ -107,12 +107,14 @@ class VodApi:
         if not isinstance(available, list) or not available:
             raise stream.StreamError('vod_not_available_for_account')
         options = [v for v in available if isinstance(v, dict)
-                   and 'DRM_COMMON_ENCRYPTION' in str(v.get('drmType', ''))]
+                   and any(kind in str(v.get('drmType', '')).upper()
+                           for kind in ('COMMON_ENCRYPTION', 'WIDEVINE'))]
         if not options:
             raise stream.StreamError('vod_supported_drm_not_available')
         def score(option):
             quality = str(option.get('quality', '')).upper()
             return (0 if 'DASH' in str(option.get('distTechnology', '')).upper() else 1,
+                    0 if 'WIDEVINE' in str(option.get('drmType', '')).upper() else 1,
                     0 if quality in ('HD', 'HD1080', 'FULLHD', '1080') else 1 if 'HD' in quality else 2)
         fields = ('comMode', 'contentId', 'distMode', 'distTechnology', 'drmType',
                   'functionalType', 'hash', 'idKey', 'quality')
@@ -135,6 +137,9 @@ class VodApi:
         attempts = []
         self.diagnostic = {'manifest_candidate_count': len(candidates),
                            'user_agent_profile': 'standard_browser',
+                           'available_formats': available_format_summary(available),
+                           'supported_option_count': len(options),
+                           'selected_drm_profile': drm_profile(option),
                            'selected_delivery_is_dash': 'DASH' in str(option.get('distTechnology', '')).upper(),
                            'manifest_attempts': attempts}
         last_error = None
@@ -161,6 +166,15 @@ class VodApi:
                 if error.reason == 'vod_multiple_periods_not_supported':
                     raise
                 last_error = error
+        # A Smooth source is a different transport. Inspect it once for a clear
+        # diagnosis after DASH failed; do not claim that the DASH-only player
+        # can play it or copy private E2iPlayer flags into the native command.
+        sources = smooth_candidates(medias)
+        if sources:
+            check = inspect_source_manifest(self.media_http, sources[0])
+            self.diagnostic['source_manifest_check'] = check
+            if check.get('result') == 'smooth_streaming':
+                raise stream.StreamError('vod_smooth_streaming_not_supported')
         raise stream.StreamError('vod_dash_manifest_unavailable',
                                  http_status=getattr(last_error, 'details', {}).get('http_status', 0))
 
@@ -182,6 +196,7 @@ def manifest_candidates(medias):
         if depth > 8:
             return
         if isinstance(node, dict):
+            mime = str(node.get('mimeType', node.get('mime_type', ''))).split(';', 1)[0].strip().lower()
             for k, v in node.items():
                 if k in ('distribURL', 'manifestUrl', 'manifestURL', 'url', 'src') and isinstance(v, str):
                     try:
@@ -190,7 +205,7 @@ def manifest_candidates(medias):
                         continue
                     parts = urllib.parse.urlsplit(url)
                     path = parts.path.rstrip('/')
-                    if '.mpd' in path.casefold() or 'format=mpd-' in path.casefold():
+                    if mime == 'application/dash+xml' or '.mpd' in path.casefold() or 'format=mpd-' in path.casefold():
                         direct.append(url)
                     elif path.casefold().endswith(('.ism', '.isml')):
                         # Change the path only. Appending to a complete signed URL
@@ -207,6 +222,81 @@ def manifest_candidates(medias):
                 walk(v, depth + 1)
     walk(medias)
     return list(dict.fromkeys(direct + derived))
+
+
+def drm_profile(option):
+    value = str(option.get('drmType', '')).upper()
+    if 'WIDEVINE' in value:
+        return 'widevine'
+    if 'COMMON_ENCRYPTION' in value:
+        return 'common_encryption'
+    if 'PLAYREADY' in value:
+        return 'playready'
+    return 'other'
+
+
+def available_format_summary(available):
+    """Fixed labels and counts only; never export offer ids, hashes or tokens."""
+    counts = {}
+    for option in available:
+        if not isinstance(option, dict):
+            continue
+        delivery = str(option.get('distTechnology', '')).upper()
+        delivery = 'dash' if 'DASH' in delivery else 'hls' if delivery == 'HLS' else 'other'
+        key = (drm_profile(option), delivery)
+        counts[key] = counts.get(key, 0) + 1
+    return [dict(drm=drm, delivery=delivery, count=count)
+            for (drm, delivery), count in sorted(counts.items())]
+
+
+def smooth_candidates(medias):
+    result = []
+    def walk(node, depth=0):
+        if depth > 8:
+            return
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ('distribURL', 'manifestUrl', 'manifestURL', 'url', 'src') and isinstance(value, str):
+                    try:
+                        url = stream.checked_url(value)
+                    except stream.StreamError:
+                        continue
+                    parts = urllib.parse.urlsplit(url)
+                    path = parts.path.rstrip('/')
+                    if path.casefold().endswith(('.ism', '.isml')):
+                        result.append(urllib.parse.urlunsplit(parts._replace(path=path + '/manifest')))
+                    elif re.search(r'\.(?:ism|isml)/manifest$', path, re.IGNORECASE):
+                        result.append(url)
+                elif isinstance(value, (dict, list)):
+                    walk(value, depth + 1)
+        elif isinstance(node, list):
+            for value in node[:100]:
+                walk(value, depth + 1)
+    walk(medias)
+    return list(dict.fromkeys(result))
+
+
+def inspect_source_manifest(http, url):
+    result = {}
+    try:
+        raw, _ = http.read(url)
+        root = ET.fromstring(raw)
+        name = root.tag.rsplit('}', 1)[-1].lower()
+        result['result'] = ('smooth_streaming' if name == 'smoothstreamingmedia' else
+                            'dash' if name == 'mpd' else 'other_xml')
+        if name == 'smoothstreamingmedia':
+            streams = [n for n in root if n.tag.rsplit('}', 1)[-1] == 'StreamIndex']
+            result['stream_types'] = sorted({n.get('Type') for n in streams
+                                             if n.get('Type') in ('audio', 'video', 'text')})
+            result['video_heights'] = sorted({int(n.get('MaxHeight')) for s in streams
+                if s.get('Type') == 'video' for n in s if n.get('MaxHeight', '').isdigit()
+                and len(n.get('MaxHeight')) <= 5})
+    except stream.StreamError as error:
+        result['result'] = 'http_error' if error.reason == 'http_error' else 'source_unavailable'
+    except (ET.ParseError, OSError, ValueError):
+        result['result'] = 'source_invalid_or_unavailable'
+    result.update(manifest_response_metadata(http))
+    return result
 
 
 def manifest_response_metadata(http):

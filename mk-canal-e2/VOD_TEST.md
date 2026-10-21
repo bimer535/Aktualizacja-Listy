@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.3 — test VOD
+# MK Canal+ E2 0.5.4 — test VOD
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,24 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.4: wybór wariantów DRM i adresów DASH
+
+Poprzednia wersja filtrowała warianty odtwarzania tylko po COMMON_ENCRYPTION.
+Wersja 0.5.4 uwzględnia również warianty Widevine, preferuje DASH, a następnie
+Widevine i jakość HD. Rozpoznaje adresy DASH także po `mimeType`, gdy adres
+nie ma końcówki `.mpd`. Licencja nadal musi zostać przyznana przez usługę.
+
+Raport pokazuje wyłącznie stałe etykiety i liczby wariantów DRM/transportu;
+bez identyfikatorów ofert, skrótów, adresów i tokenów. Po błędzie DASH
+wykonuje jeden odczyt oryginalnego manifestu Smooth i zapisuje rozpoznany
+format, typy ścieżek oraz wysokości obrazu. Nie zapisuje treści manifestu.
+
+**Smooth Streaming nie jest jeszcze obsługiwany przez odtwarzacz.**
+Potwierdzona odpowiedź Smooth powoduje jednoznaczny komunikat zamiast
+sugerowania błędu licencji. Nie deklarujemy uruchomionego filmu ani odcinka
+na dekoderze; ta wersja wymaga takiej próby. Tor TV i biblioteki natywnego
+odtwarzacza pozostały bez zmian.
 
 ## Wersja 0.5.3: manifest i spójne nagłówki VOD
 
@@ -72,8 +90,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.3.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.3.ipk
-opkg install /tmp/MK_Canal_E2_0.5.3.ipk
+wget -O /tmp/MK_Canal_E2_0.5.4.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.4.ipk
+opkg install /tmp/MK_Canal_E2_0.5.4.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -105,7 +123,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 58 testów: normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 67 testów lokalnych (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

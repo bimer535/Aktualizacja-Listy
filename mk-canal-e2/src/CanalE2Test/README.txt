@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.3 - VOD TEST
+MK Canal+ E2 0.5.4 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.3.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.4.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -133,7 +133,7 @@ field names, numeric service codes and message hint tags are saved. No raw
 message, account token, media URL or licence response is included. No separate
 probe file is needed for reporting a normal VOD attempt.
 
-Version 0.5.3 corrects VOD signed manifest URLs: append the packager suffix to
+Version 0.5.4 corrects VOD signed manifest URLs: append the packager suffix to
 the path, preserving the original query bytes and duplicate parameters.
 Provider DASH URLs retain their order and take priority over derived URLs.
 VOD uses one browser User-Agent for HAPI, manifest, track initialization,
@@ -145,3 +145,10 @@ reaches the manifest stage but returns HTTP 503. The report adds candidate
 type, query presence, status, content type/size and parse result without
 saving URLs, query tokens or response bodies. Receiver verification of the
 new VOD request is still required; the cause of that 503 is not yet confirmed.
+
+Version 0.5.4 (VOD TEST): includes Widevine-labelled playback offers instead of
+filtering them out, prefers DASH, and recognises DASH URLs by the service MIME
+type even without an .mpd suffix. Reports fixed format labels and counts only.
+After a DASH failure, checks the original Smooth manifest once. Smooth is
+not implemented by the current isolated player; a confirmed Smooth response
+shows an explicit unsupported-format message. Receiver VOD remains unverified.
