@@ -394,10 +394,10 @@ class CanalE2Update(Screen):
 
 class CanalE2Channels(Screen):
     skin = """<screen name="CanalE2Channels" position="center,center" size="1000,640" title="MK Canal+ E2">
-      <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/logo.png" position="25,18" size="72,72" alphatest="blend" />
-      <widget name="brand" position="115,19" size="850,40" font="Regular;31" />
-      <widget name="creator" position="115,61" size="850,29" font="Regular;20" foregroundColor="#bcbcbc" />
-      <widget name="channels" position="25,105" size="950,420" scrollbarMode="showOnDemand" />
+      <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/logo.png" position="25,16" size="128,128" alphatest="blend" />
+      <widget name="brand" position="175,38" size="800,40" font="Regular;31" />
+      <widget name="creator" position="175,91" size="800,29" font="Regular;20" foregroundColor="#bcbcbc" />
+      <widget name="channels" position="25,160" size="950,365" scrollbarMode="showOnDemand" />
       <widget name="hint" position="25,532" size="950,30" font="Regular;22" />
       <widget name="key_green" position="25,578" size="300,40" font="Regular;22" halign="center" valign="center" foregroundColor="white" backgroundColor="#177443" />
       <widget name="key_yellow" position="345,578" size="300,40" font="Regular;22" halign="center" valign="center" foregroundColor="black" backgroundColor="#e3bc38" />

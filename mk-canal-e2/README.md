@@ -8,15 +8,20 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ## Instalacja
 
-Pobierz [MK_Canal_E2_0.3.0.ipk](packages/MK_Canal_E2_0.3.0.ipk), skopiuj do `/tmp` i wykonaj:
+Pobierz [MK_Canal_E2_0.3.1.ipk](packages/MK_Canal_E2_0.3.1.ipk), skopiuj do `/tmp` i wykonaj:
 
 ```sh
 opkg update
-opkg install /tmp/MK_Canal_E2_0.3.0.ipk
+opkg install /tmp/MK_Canal_E2_0.3.1.ipk
 ```
 
 Zrestartuj interfejs Enigma2 i otwórz **Wtyczki → MK Canal+ E2**.
 Dotychczasowe logowanie z wersji CANAL E2 zostaje zachowane.
+
+Wersja 0.3.1 zachowuje kwadratowe proporcje znaku w standardowym menu
+OpenATV (pole ikony 100×40) dzięki przezroczystym marginesom. Wewnątrz
+wtyczki logo ma 128×128 zamiast 72×72. Rozmiar ikony w zewnętrznym menu
+ogranicza aktywny motyw Enigmy.
 
 | Przycisk | Działanie |
 | --- | --- |
@@ -42,7 +47,7 @@ restart interfejsu. Nie instaluje samoczynnie i nie usuwa zapisanej sesji.
 Publikacja kolejnej wersji:
 
 ```sh
-python3 tools/build_release.py --version 0.3.1 --notes "Opis zmian dla użytkowników"
+python3 tools/build_release.py --version 0.3.2 --notes "Opis zmian dla użytkowników"
 ```
 
 Następnie dodaj zmienione źródła, nowy IPK w `packages/` i `update.json`

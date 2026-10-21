@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="100" viewBox="0 0 640 256">
+  <!-- OpenATV's plugin browser scales the complete bitmap to 100x40.
+       Transparent side margins preserve the square mark in that slot. -->
+  <g transform="translate(192 0)">
+    <rect width="256" height="256" rx="20" fill="#000"/>
+    <path d="M103 53H153V103H203V153H153V203H103V153H53V103H103Z" fill="#fff"/>
+    <text x="239" y="242" text-anchor="end" font-family="DejaVu Sans,sans-serif" font-size="39" font-weight="700" letter-spacing="-1" fill="#fff">MK</text>
+  </g>
+</svg>
