@@ -4,7 +4,7 @@
   "package": "enigma2-plugin-extensions-canale2test",
   "version": "0.5.6",
   "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.6.ipk",
-  "sha256": "916ff591bfc8adc30a4a6fe8996c2a7f542ed8dc2d79c49a0ddf3e91f4b4d956",
-  "size": 72618,
+  "sha256": "5c94f1798e6a60d1ec96b57b63b72a4add97ca220526b7aced109dfbe7059d6c",
+  "size": 72740,
   "notes": "Wybór bitrate, rozdzielczości, klatek i AAC/Dolby przed odtworzeniem; zachowanie jakości przy zmianie kanału. VOD: pełny opis oferty i licencja przypisana do medium. Poprzednia próba licencji zwróciła 403; poprawka VOD wymaga testu na dekoderze."
 }

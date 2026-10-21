@@ -153,7 +153,8 @@ class CanalE2Player(Screen):
         if self.closed or self.stopping or self.pending_channel is not None:
             return
         text = data.decode("utf-8", "replace") if isinstance(data, bytes) else data
-        self.buffer = (self.buffer + text)[-65536:]
+        # A quality event can include multiple languages and audio codecs.
+        self.buffer = (self.buffer + text)[-2097152:]
         while "\n" in self.buffer:
             line, self.buffer = self.buffer.split("\n", 1)
             try:

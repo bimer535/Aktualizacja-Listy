@@ -24,7 +24,7 @@ class VodFormatTests(unittest.TestCase):
         client = api.VodApi({'passToken': 'PRIVATE'}, '11111111')
         client.request = Mock(side_effect=[{'available': [selected]}, {
             '@licence': '/view/licence', 'medias': [
-                {'@licence': '/media/licence?x=1&x=2', 'files': [
+                {'type': 'feature', '@licence': '/media/licence?x=1&x=2', 'files': [
                     {'type': 'video', 'mimeType': 'application/dash+xml', 'distribURL': 'https://cdn.example/movie'}]}]}])
         with patch.object(stream, 'resolve_mpd', return_value=(ET.fromstring('<MPD><Period/></MPD>'),
                                                              'https://cdn.example/movie')):

@@ -244,10 +244,11 @@ def manifest_licence_pairs(medias, fallback=None):
         if isinstance(node, dict):
             if node.get('@licence'):
                 licence, source = api_url(node['@licence']), 'media'
-            if node.get('type') not in (None, 'video'):
-                return
             scalar = {k: v for k, v in node.items() if not isinstance(v, (dict, list))}
-            for manifest in manifest_candidates(scalar):
+            # Only a file's type describes its transport. A containing media
+            # object may carry an unrelated type and still contain video files.
+            urls = manifest_candidates(scalar) if node.get('type') in (None, 'video') else []
+            for manifest in urls:
                 if licence is not None:
                     pair = (manifest, licence, source)
                     if pair not in pairs:
