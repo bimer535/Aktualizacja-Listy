@@ -63,22 +63,27 @@ class CanalE2Player(Screen):
       <widget name="status" position="40,510" size="1200,170" font="Regular;23" foregroundColor="white" backgroundColor="#50000000" transparent="0" />
     </screen>"""
 
-    def __init__(self, session, channel_id, channel_name, vod=False, description=""):
+    def __init__(self, session, channel_id, channel_name, vod=False, description="", channel_list=None):
         Screen.__init__(self, session)
         self.channel_id, self.channel_name = channel_id, channel_name
         self.vod, self.description, self.paused, self.ended = vod, description, False, False
         self.control_pending = False
+        self.channel_list = list(channel_list or []) if not vod else []
+        self.pending_channel = None
+        self.worker_stop_requested = False
         self.actual_height = None
         self.epg = {}
         self.playing_started = False
         self["status"] = Label(channel_name + "\nPrzygotowanie...")
         self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions",
-                                    "ColorActions", "DirectionActions"], {
+                                    "ColorActions", "NavigationActions"], {
             "cancel": self.stop, "ok": self.toggle_status, "showMovies": self.toggle_status,
             "info": self.show_programmes, "InfoPressed": self.show_programmes,
             "EPGPressed": self.show_programmes, "green": self.pause_resume,
             "left": lambda: self.control("seek_back"),
-            "right": lambda: self.control("seek_forward")}, -2)
+            "right": lambda: self.control("seek_forward"),
+            "pageUp": lambda: self.zap(1), "pageDown": lambda: self.zap(-1),
+            "up": lambda: self.zap(1), "down": lambda: self.zap(-1)}, -2)
         self.epg_loader = EpgLoader(self.epg_received)
         if not self.vod:
             self.epg_loader.request(channel_id)
@@ -106,6 +111,7 @@ class CanalE2Player(Screen):
         python = "/usr/bin/python3"
         worker = str(ROOT / "playback_worker.py")
         self.running = True
+        self.worker_stop_requested = False
         result = self.container.execute(python, python, "-u", worker,
                                         "--vod" if self.vod else "--channel", self.channel_id, "--height", "1080")
         if result:
@@ -113,7 +119,7 @@ class CanalE2Player(Screen):
             self["status"].setText("Nie mozna uruchomic testu. EXIT: powrot.")
 
     def on_data(self, data):
-        if self.closed:
+        if self.closed or self.stopping or self.pending_channel is not None:
             return
         text = data.decode("utf-8", "replace") if isinstance(data, bytes) else data
         self.buffer = (self.buffer + text)[-65536:]
@@ -132,6 +138,9 @@ class CanalE2Player(Screen):
             if stage == "error":
                 self.playing_started = False
                 reason = event.get("reason", "error")
+                code = event.get("http_status")
+                if isinstance(code, int) and 400 <= code <= 599:
+                    reason += " (HTTP %d)" % code
                 # Worker reasons are codes, never native player exception text.
                 message = "Blad: %s\nRaport: /tmp/canal_e2_playback_report.json\nEXIT: powrot." % reason
                 self.status_timer.stop()
@@ -177,9 +186,11 @@ class CanalE2Player(Screen):
         self["status"].setText(self.channel_name + quality + "\nTeraz: "
             + programme_line(self.epg.get("current")) + "\nNastępnie: "
             + programme_line(self.epg.get("next"))
-            + "\nOK: pokaż/ukryj  ·  INFO: szczegóły  ·  EXIT: powrót")
+            + "\nCH+/− lub ↑/↓: kanał  ·  OK: pasek  ·  INFO: opis  ·  EXIT: powrót")
 
     def show_programmes(self):
+        if self.pending_channel is not None:
+            return
         if self.vod:
             from .vod_ui import CanalVodDescription
             self.session.open(CanalVodDescription, self.channel_name, self.description)
@@ -195,6 +206,54 @@ class CanalE2Player(Screen):
             return
         self.control_pending = True
         self.control("resume" if self.paused else "pause")
+
+    def interrupt_worker(self):
+        if self.container is not None and self.running and not self.worker_stop_requested:
+            self.worker_stop_requested = True
+            self.container.sendCtrlC()
+
+    def detach_worker(self):
+        if self.container is not None:
+            for event, callback in ((self.container.dataAvail, self.on_data),
+                                    (self.container.appClosed, self.on_exit)):
+                if callback in event:
+                    event.remove(callback)
+        self.container = None
+
+    def zap(self, direction):
+        if self.vod or self.closed or self.stopping or len(self.channel_list) < 2:
+            return
+        current = self.pending_channel[1] if self.pending_channel is not None else self.channel_id
+        indices = [i for i, item in enumerate(self.channel_list) if item[1] == current]
+        if not indices:
+            return
+        self.pending_channel = self.channel_list[(indices[0] + direction) % len(self.channel_list)]
+        self.playing_started = False
+        self.status_timer.stop()
+        self.start_timer.stop()
+        self.epg_loader.pause()
+        self["status"].show()
+        self.status_visible = True
+        self["status"].setText(self.pending_channel[0] + "\nPrzełączanie kanału...")
+        if self.running:
+            # One interrupt only: a second signal could interrupt worker cleanup.
+            self.interrupt_worker()
+        else:
+            self.start_pending_channel()
+
+    def start_pending_channel(self):
+        if self.closed or self.stopping or self.pending_channel is None or self.running:
+            return
+        self.detach_worker()
+        self.channel_name, self.channel_id = self.pending_channel
+        self.pending_channel = None
+        self.actual_height, self.epg = None, {}
+        self.paused = self.ended = self.control_pending = self.worker_stop_requested = False
+        self.buffer = ""
+        self.epg_loader.request(self.channel_id)
+        self.epg_loader.resume()
+        # Coalesce repeated remote presses while no worker is using the decoder.
+        self.start_timer.start(200, True)
 
     def hide_status(self):
         if not self.closed:
@@ -213,12 +272,14 @@ class CanalE2Player(Screen):
         if self.stopping:
             return
         self.stopping = True
+        self.pending_channel = None
+        self.start_timer.stop()
         self.playing_started = False
         self.status_timer.stop()
         if self.container is not None and self.running:
             self["status"].show()
             self["status"].setText("Zatrzymywanie odtwarzacza...")
-            self.container.sendCtrlC()
+            self.interrupt_worker()
         else:
             self.close()
 
@@ -229,6 +290,8 @@ class CanalE2Player(Screen):
             return
         if self.stopping or self.ended:
             self.close()
+        elif self.pending_channel is not None:
+            self.start_pending_channel()
         elif code != 0:
             self.status_timer.stop()
             self["status"].show()
@@ -245,11 +308,8 @@ class CanalE2Player(Screen):
         self.start_timer.stop()
         self.status_timer.stop()
         if self.container is not None:
-            if self.running:
-                self.container.sendCtrlC()
-            for signal, callback in ((self.container.dataAvail, self.on_data), (self.container.appClosed, self.on_exit)):
-                if callback in signal:
-                    signal.remove(callback)
+            self.interrupt_worker()
+            self.detach_worker()
         if self.previous is not None:
             self.session.nav.playService(self.previous)
 
@@ -608,7 +668,7 @@ class CanalE2Channels(Screen):
     def play(self):
         item = self["channels"].getCurrent()
         if item is not None:
-            self.session.open(CanalE2Player, item[1], item[0])
+            self.session.open(CanalE2Player, item[1], item[0], False, "", self.entries)
         else:
             self.login()
 

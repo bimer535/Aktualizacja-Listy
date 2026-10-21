@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.1 - VOD TEST
+MK Canal+ E2 0.5.2 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.1.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.2.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -118,3 +118,17 @@ standard browser User-Agent that passed the user's public connectivity probe.
 Films and series returned HTTP 200 with catalogue data using that header.
 Catalogue failures now include the HTTP status in the UI. This does not
 constitute confirmation of authenticated VOD playback or licensing.
+
+Version 0.5.2 adds live channel switching without leaving the player. CH+ and
+UP select the next listed channel; CH- and DOWN select the previous one, with
+wraparound. Repeated presses coalesce to the latest selection. The old worker
+fully exits before a new player is started; EXIT cancels a pending switch.
+The original Enigma service is restored only when leaving this player screen.
+
+The VOD adapter now also uses the standard browser User-Agent. The receiver's
+0.5.1 VOD attempt was refused with HTTP 403 at playset; resolution in this new
+build still needs receiver testing. Playset HTTP failures automatically add
+vod_http_diagnostic to /tmp/canal_e2_playback_report.json. Only allowlisted
+field names, numeric service codes and message hint tags are saved. No raw
+message, account token, media URL or licence response is included. No separate
+probe file is needed for reporting a normal VOD attempt.

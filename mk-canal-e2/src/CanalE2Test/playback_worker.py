@@ -331,6 +331,9 @@ def main():
                 and isinstance(value, (int, bool))}
         if vod_api is not None:
             safe["vod_step"] = vod_api.stage
+            diagnostic = getattr(vod_api, "diagnostic", {})
+            if isinstance(diagnostic, dict) and diagnostic:
+                safe["vod_http_diagnostic"] = diagnostic
         emit("error", reason=reason, **safe)
         return 1
     finally:

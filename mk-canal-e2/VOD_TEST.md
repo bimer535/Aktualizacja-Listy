@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.1 — test VOD
+# MK Canal+ E2 0.5.2 — test VOD
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,33 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.2: pilot i raport VOD
+
+Podczas oglądania TV **CH+ lub ↑** przełącza na następny kanał, a **CH− lub ↓**
+na poprzedni w kolejności listy. Lista zapętla się na końcach. Ekran odtwarzania
+pozostaje otwarty; aktualizuje nazwę, jakość i Teraz/Następnie. EXIT kończy oglądanie.
+Przy szybkich naciśnięciach wybierany jest ostatni kanał, a poprzedni proces
+odtwarzacza kończy pracę przed uruchomieniem nowego. Przyciski kanałów dotyczą TV.
+Mapowanie CH+/CH− korzysta z NavigationActions/pageUp/pageDown oficjalnej mapy
+OpenATV: https://github.com/openatv/enigma2/blob/master/data/keymap.xml.
+
+Próba VOD w 0.5.1 zakończyła się HTTP 403 przy `vod_playset`. W 0.5.2 również
+adapter odtwarzania VOD korzysta ze standardowego nagłówka przeglądarki.
+Nie potwierdzono jeszcze, czy rozwiązuje to odmowę HAPI na dekoderze.
+
+Dodatkowa diagnostyka błędu playsetu zapisuje się automatycznie w zwykłym
+`/tmp/canal_e2_playback_report.json`, w polu `vod_http_diagnostic`. Zawiera
+kod HTTP, format odpowiedzi, rozpoznane nazwy pól, numeryczne kody serwera
+i znaczniki słów z komunikatu (np. wzmianka o tokenie lub urządzeniu).
+Nie zapisuje treści komunikatów, tokenów konta, adresów ani odpowiedzi licencji.
+Sonda `mk_canal_vod_probe.json` jest oddzielnym narzędziem i powstaje dopiero
+po ręcznym uruchomieniu; do zwykłej próby filmu nie jest potrzebna.
+
+Testy lokalne obejmują szybkie przełączanie, oba kierunki i zapętlenie listy,
+anulowanie podczas przełączania, zmianę po błędzie kanału oraz zachowanie VOD,
+nagłówek HTTP i bezpieczne dane błędu w raporcie. Pilot i obraz/dźwięk nowej
+wersji wymagają sprawdzenia na rzeczywistym dekoderze.
 
 ## Poprawka 0.5.1
 
@@ -17,8 +44,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.1.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.1.ipk
-opkg install /tmp/MK_Canal_E2_0.5.1.ipk
+wget -O /tmp/MK_Canal_E2_0.5.2.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.2.ipk
+opkg install /tmp/MK_Canal_E2_0.5.2.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -50,7 +77,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 44 testy: normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 51 testów: normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

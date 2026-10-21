@@ -13,6 +13,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 import canal_stream_test_v2 as stream
+from vod_data import CATALOGUE_USER_AGENT
+from vod_http_diagnostics import error_shape
 
 HAPI = 'https://secure-gen-hapi.canal-plus.com'
 MAX_BODY = 4 * 1024 * 1024
@@ -41,7 +43,7 @@ class VodApi:
         if not isinstance(token, str) or not token or not re.fullmatch(r'[a-zA-Z0-9-]{8,80}', str(device_id)):
             raise stream.StreamError('authenticated_session_missing')
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 MK-Canal-E2', 'Accept': 'application/json,application/xml,*/*',
+            'User-Agent': CATALOGUE_USER_AGENT, 'Accept': 'application/json,application/xml,*/*',
             'Accept-Language': 'pl-PL,pl;q=0.9', 'Accept-Encoding': 'identity',
             'Origin': 'https://www.canalplus.com', 'XX-DOMAIN': 'cppol', 'XX-OZ': 'cppol',
             'XX-OL': 'pl', 'XX-SERVICE': 'mycanal', 'XX-OPERATOR': 'pc',
@@ -51,8 +53,10 @@ class VodApi:
         self.opener = opener or urllib.request.build_opener(
             urllib.request.HTTPSHandler(context=ssl.create_default_context()), SameApiRedirect())
         self.stage = 'vod_playset'
+        self.diagnostic = {}
 
     def request(self, url, payload=None, method='GET', binary=False):
+        self.diagnostic = {}
         headers = dict(self.headers)
         body = payload
         if isinstance(payload, dict):
@@ -65,7 +69,17 @@ class VodApi:
             with self.opener.open(req, timeout=25) as response:
                 raw = response.read(MAX_BODY + 1)
         except urllib.error.HTTPError as e:
-            raise stream.StreamError('vod_service_http_error', http_status=e.code) from None
+            status = e.code
+            # Playset metadata only. Never inspect or include licence bodies.
+            if self.stage == 'vod_playset':
+                try:
+                    raw = e.read(65536)
+                    self.diagnostic = dict(error_shape(raw), http_status=status,
+                                           user_agent_profile='standard_browser')
+                except (OSError, ValueError):
+                    self.diagnostic = {'http_status': status, 'response_read_failed': True}
+            e.close()
+            raise stream.StreamError('vod_service_http_error', http_status=status) from None
         except (urllib.error.URLError, OSError):
             raise stream.StreamError('vod_service_connection_error') from None
         if len(raw) > MAX_BODY:

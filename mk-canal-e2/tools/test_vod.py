@@ -144,6 +144,34 @@ class CatalogueTests(unittest.TestCase):
 
 
 class PlaybackApiTests(unittest.TestCase):
+    def test_vod_uses_browser_header_and_retains_sanitized_playset_error(self):
+        import urllib.error
+        secret = 'DO-NOT-PRINT-ACCOUNT-TOKEN'
+        body = json.dumps({'error': {'code': 43, 'message': 'Expired token ' + secret}, 'private': secret}).encode()
+        calls = []
+        def open_request(req, **kwargs):
+            calls.append(req)
+            self.assertEqual(req.get_header('User-agent'), v.CATALOGUE_USER_AGENT)
+            raise urllib.error.HTTPError(req.full_url, 403, 'Forbidden', {}, io.BytesIO(body))
+        client = api.VodApi({'passToken': secret}, '11111111', opener=SimpleNamespace(open=open_request))
+        with self.assertRaisesRegex(stream.StreamError, 'vod_service_http_error'):
+            client.playset('123_70026')
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(client.diagnostic['service_codes'], {'code': 43})
+        self.assertIn('expired_mentioned', client.diagnostic['message_hint_tags'])
+        self.assertNotIn(secret, json.dumps(client.diagnostic))
+        self.assertNotIn('Expired token', json.dumps(client.diagnostic))
+
+    def test_licence_error_body_is_not_inspected_or_saved_in_diagnostic(self):
+        import urllib.error
+        response = io.BytesIO(b'PRIVATE LICENCE RESPONSE')
+        client = api.VodApi({'passToken': 'PRIVATE'}, '11111111', opener=SimpleNamespace(
+            open=lambda *args, **kwargs: (_ for _ in ()).throw(urllib.error.HTTPError('https://secure-gen-hapi.canal-plus.com/license', 403, 'Denied', {}, response))))
+        client.stage = 'vod_licence'
+        with self.assertRaises(stream.StreamError): client.request('/license')
+        self.assertEqual(client.diagnostic, {})
+        self.assertTrue(response.closed)
+
     def test_playset_view_media_contract_uses_subscription_session_and_no_purchase(self):
         client = api.VodApi({'passToken': 'PRIVATE-TOKEN'}, '11111111-1111-1111-1111-111111111111')
         option = {k: 'example' for k in ('comMode', 'contentId', 'distMode', 'distTechnology',
@@ -205,11 +233,16 @@ class PlaybackApiTests(unittest.TestCase):
 
 
 class WorkerRoutingTests(unittest.TestCase):
-    def run_until_track_selection(self, vod):
+    def run_until_track_selection(self, vod, diagnostic=None):
         import playback_worker as worker
         import threading
         calls, emitted = [], []
         fake_api = SimpleNamespace(stage='vod_manifest', resolve=lambda cid: (calls.append(cid) or ('ROOT', 'https://cdn.example/film.mpd', '/license')), licence=lambda *args: b'')
+        if diagnostic is not None:
+            fake_api.stage, fake_api.diagnostic = 'vod_playset', diagnostic
+            def fail_resolve(cid):
+                raise stream.StreamError('vod_service_http_error', http_status=403)
+            fake_api.resolve = fail_resolve
         saved = {'device_id': '11111111', 'authentication': {'passToken': 'PRIVATE-ACCOUNT-TOKEN'}}
         command = ['playback_worker', '--vod' if vod else '--channel', '123_70026' if vod else '12']
         import signal
@@ -231,7 +264,7 @@ class WorkerRoutingTests(unittest.TestCase):
                  patch.object(worker, 'emit', side_effect=lambda stage, **kw: emitted.append({'stage': stage, **kw})):
                 self.assertEqual(worker.main(), 1)
             self.assertNotIn('PRIVATE-ACCOUNT-TOKEN', json.dumps(emitted))
-            self.assertEqual(emitted[-1]['reason'], 'track_stage_reached')
+            self.assertEqual(emitted[-1]['reason'], 'vod_service_http_error' if diagnostic is not None else 'track_stage_reached')
             return calls, live.call_count, vod_constructor.call_count, emitted
         finally:
             for number, handler in handlers.items(): signal.signal(number, handler)
@@ -242,6 +275,12 @@ class WorkerRoutingTests(unittest.TestCase):
         self.assertEqual(live_calls, 0)
         self.assertEqual(vod_calls, 1)
         self.assertEqual(emitted[-1]['vod_step'], 'vod_manifest')
+
+    def test_vod_http_diagnostic_is_in_normal_playback_report_events(self):
+        diagnostic = {'http_status': 403, 'response_format': 'json', 'service_codes': {'code': 43}}
+        _, _, _, events = self.run_until_track_selection(True, diagnostic)
+        self.assertEqual(events[-1]['vod_http_diagnostic'], diagnostic)
+        self.assertEqual(events[-1]['vod_step'], 'vod_playset')
 
     def test_live_keeps_existing_path_and_does_not_create_vod_session(self):
         calls, live_calls, vod_calls, emitted = self.run_until_track_selection(False)
