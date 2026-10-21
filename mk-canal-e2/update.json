@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.3.1",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.3.1.ipk",
-  "sha256": "ae5f882b99d2eade50ec8bfb5941d7663af3082e36028ea988b3e724efbcb655",
-  "size": 47944,
-  "notes": "Poprawiono kwadratowe proporcje logo w menu OpenATV. Logo wewnątrz wtyczki powiększono z 72×72 do 128×128. Po instalacji uruchom ponownie interfejs Enigma2."
+  "version": "0.3.2",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.3.2.ipk",
+  "sha256": "f72832980d332153902827315476e736ed0f31fc6f0ff04d060ce1d12222acbe",
+  "size": 47982,
+  "notes": "Kwadratowe proporcje logo w menu OpenATV oraz większe logo 128×128 wewnątrz wtyczki. Poprawione odświeżanie pamięci podręcznej Pythona po aktualizacji. Po instalacji uruchom ponownie interfejs Enigma2."
 }

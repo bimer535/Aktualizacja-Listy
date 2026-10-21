@@ -1,4 +1,4 @@
-MK Canal+ E2 0.3.1
+MK Canal+ E2 0.3.2
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.3.1.ipk
+  opkg install /tmp/MK_Canal_E2_0.3.2.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -17,9 +17,10 @@ Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - EXIT: return; during playback stop and restore the previous service.
 The menu labels match the remote-control button colors. The icon is a white
 plus and MK mark on a black background.
-Version 0.3.1 preserves the square mark in OpenATV's 100x40 plugin-menu
+Version 0.3.2 preserves the square mark in OpenATV's 100x40 plugin-menu
 slot with transparent side margins. The in-app logo is enlarged to 128x128.
 The external plugin browser skin controls its own icon slot size.
+Source file timestamps also invalidate stale Python bytecode after updates.
 
 Updates are installed only after selecting Install in the update screen.
 The client verifies HTTPS project URL, size, SHA256, package name, version,

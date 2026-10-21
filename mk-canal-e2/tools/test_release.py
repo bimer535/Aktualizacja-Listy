@@ -5,11 +5,15 @@ import copy
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
+import py_compile
 import signal
 import stat
+import subprocess
 import sys
 import tarfile
+import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -34,6 +38,30 @@ class ReleaseTests(unittest.TestCase):
         changed = self.package[:-1] + bytes((self.package[-1] ^ 1,))
         with self.assertRaisesRegex(core.UpdateError, "update_checksum_mismatch"):
             core.validate_package(changed, self.manifest)
+
+    def test_upgrade_reloads_same_size_version_source_with_old_bytecode(self):
+        archive = core.ar_members(self.package)
+        with tarfile.open(fileobj=io.BytesIO(archive["data.tar.gz"]), mode="r:gz") as tar:
+            member = next(m for m in tar if m.name.endswith("/version.py"))
+            source = tar.extractfile(member).read()
+            timestamp = member.mtime
+        current = self.manifest["version"]
+        older = "0.0.0"
+        self.assertEqual(len(current), len(older))
+        old_source = source.replace(('APP_VERSION = "' + current + '"').encode(),
+                                    ('APP_VERSION = "' + older + '"').encode())
+        self.assertEqual(len(source), len(old_source))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "version.py"
+            path.write_bytes(old_source)
+            os.utime(path, (0, 0))
+            py_compile.compile(str(path), doraise=True)
+            path.write_bytes(source)
+            os.utime(path, (timestamp, timestamp))
+            script = "import sys; sys.path.insert(0, sys.argv[1]); import version; print(version.APP_VERSION)"
+            result = subprocess.run([sys.executable, "-I", "-c", script, directory],
+                                    check=True, capture_output=True, text=True)
+            self.assertEqual(result.stdout.strip(), current)
 
     def test_other_package_version_and_untrusted_hosts_rejected(self):
         wrong = copy.deepcopy(self.manifest)

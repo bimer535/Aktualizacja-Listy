@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import re
 import tarfile
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_URL = "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/"
@@ -15,13 +16,14 @@ PREFIX = "usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/"
 PACKAGE = "enigma2-plugin-extensions-canale2test"
 
 
-def tar_gz(files):
+def tar_gz(files, mtime=0):
     output = io.BytesIO()
     with tarfile.open(fileobj=output, mode="w:gz", format=tarfile.GNU_FORMAT) as tar:
         for name, body in files:
             entry = tarfile.TarInfo(name)
             entry.mode = 0o644
-            entry.uid = entry.gid = entry.mtime = 0
+            entry.uid = entry.gid = 0
+            entry.mtime = mtime
             entry.size = len(body)
             tar.addfile(entry, io.BytesIO(body))
     return output.getvalue()
@@ -62,7 +64,9 @@ def main():
     result = bytearray(b"!<arch>\n")
     for name, body in (("debian-binary", b"2.0\n"),
                        ("control.tar.gz", tar_gz([("./control", control)])),
-                       ("data.tar.gz", tar_gz(files))):
+                       # Real source timestamps invalidate timestamp-based .pyc
+                       # files when an update changes text without changing size.
+                       ("data.tar.gz", tar_gz(files, mtime=int(time.time())))):
         header = ((name + "/").ljust(16) + "0".ljust(12) + "0".ljust(6) + "0".ljust(6)
                   + "100644".ljust(8) + str(len(body)).ljust(10) + "`\n")
         result.extend(header.encode("ascii"))
