@@ -51,6 +51,29 @@ Przywrócenie klienta z 0.4.0 nie jest potwierdzoną naprawą zgłoszonego póź
 HTTP 403 z serwera logowania. Nie zmieniano w tej wersji logowania ani zapisanej
 sesji i nie deklarujemy rozwiązania tej odmowy przez sam powrót do starego kodu.
 
+## Odnowienie istniejącej sesji
+
+Próba 0.6.0 na dekoderze nadal zakończyła się `live_initialization_failed`.
+Wcześniejszy test pokazał status usługi -3, a pobieranie nowego kodu parowania
+HTTP 403 także ze standardowym nagłówkiem przeglądarki. Nie uznajemy tego za
+potwierdzone rozwiązanie ani nie przypisujemy kodowi -3 nieudokumentowanego znaczenia.
+
+`tools/session_recover.py` podejmuje jedną próbę standardowego PASS createToken
+z tożsamością i identyfikatorem urządzenia już zapisanymi przez użytkownika.
+Nie pobiera danych z innych aplikacji. Nowy token jest najpierw sprawdzany przez
+zwykłe InitLiveTV. Dopiero gdy usługa zwróci kanały z uprawnieniami, odświeżona
+sesja i lista są zapisywane lokalnie. Błąd odnowienia lub sprawdzenia kanałów
+zostawia poprzednią sesję bez zmian. Skuteczność wymaga próby na dekoderze.
+
+```sh
+wget -O /tmp/mk_session_recover.py https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/tools/session_recover.py
+python3 /tmp/mk_session_recover.py
+```
+
+Raport zawiera tylko status, liczbę kanałów i kody błędów. Tokeny, identyfikatory,
+odpowiedzi konta i adresy strumieni nie są wypisywane. Nie zastępuje to logowania
+nowego konta: narzędzie wymaga istniejącej, wcześniej sparowanej tożsamości.
+
 ## Bezpieczeństwo danych
 
 Tokeny konta i odpowiedzi serwera pozostają w `/etc/canal-e2` z uprawnieniami
