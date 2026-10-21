@@ -17,6 +17,29 @@ def emit(stage, **fields):
     print(json.dumps({"stage": stage, **fields}, ensure_ascii=False), flush=True)
 
 
+def package_status_matches(output, version):
+    """Check the package state, allowing normal opkg user/hold flags."""
+    records, fields = [], {}
+    for line in output.decode("utf-8", "replace").splitlines() + [""]:
+        if not line.strip():
+            if fields:
+                records.append(fields)
+                fields = {}
+        elif not line[0].isspace() and ":" in line:
+            key, value = line.split(":", 1)
+            fields[key.strip()] = value.strip()
+    matches = [item for item in records if item.get("Package") == PACKAGE_NAME]
+    if len(matches) != 1 or matches[0].get("Version") != version:
+        return False
+    state = matches[0].get("Status", "").split()
+    if len(state) != 3 or state[0] != "install" or state[2] != "installed":
+        return False
+    # Flags describe package policy, rather than installation completeness.
+    # reinstreq is deliberately excluded: it indicates a broken package.
+    flags = set(state[1].split(","))
+    return bool(flags) and flags <= {"ok", "hold", "replace", "noprune", "prefer", "obsolete", "user"}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=("check", "install"))
@@ -58,14 +81,7 @@ def main():
                 raise updates.UpdateError("opkg_install_failed")
             status = subprocess.run([opkg, "status", PACKAGE_NAME], stdin=subprocess.DEVNULL,
                                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False)
-            fields = {}
-            for line in status.stdout.decode("utf-8", "replace").splitlines():
-                if ":" in line and not line.startswith(" "):
-                    key, value = line.split(":", 1)
-                    fields[key] = value.strip()
-            if (status.returncode != 0 or fields.get("Package") != PACKAGE_NAME
-                    or fields.get("Version") != manifest["version"]
-                    or fields.get("Status") != "install ok installed"):
+            if status.returncode != 0 or not package_status_matches(status.stdout, manifest["version"]):
                 raise updates.UpdateError("installed_version_not_confirmed")
         emit("installed", version=manifest["version"])
         return 0

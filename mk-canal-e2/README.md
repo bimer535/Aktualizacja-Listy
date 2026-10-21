@@ -8,17 +8,17 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ## Instalacja
 
-Pobierz [MK_Canal_E2_0.3.2.ipk](packages/MK_Canal_E2_0.3.2.ipk), skopiuj do `/tmp` i wykonaj:
+Pobierz [MK_Canal_E2_0.3.3.ipk](packages/MK_Canal_E2_0.3.3.ipk), skopiuj do `/tmp` i wykonaj:
 
 ```sh
 opkg update
-opkg install /tmp/MK_Canal_E2_0.3.2.ipk
+opkg install /tmp/MK_Canal_E2_0.3.3.ipk
 ```
 
 Zrestartuj interfejs Enigma2 i otwórz **Wtyczki → MK Canal+ E2**.
 Dotychczasowe logowanie z wersji CANAL E2 zostaje zachowane.
 
-Wersja 0.3.2 zachowuje kwadratowe proporcje znaku w standardowym menu
+Wersja 0.3.3 zachowuje kwadratowe proporcje znaku w standardowym menu
 OpenATV (pole ikony 100×40) dzięki przezroczystym marginesom. Wewnątrz
 wtyczki logo ma 128×128 zamiast 72×72. Rozmiar ikony w zewnętrznym menu
 ogranicza aktywny motyw Enigmy.
@@ -40,6 +40,16 @@ w osobnym katalogu; systemowy `exteplayer3` nie jest podmieniany.
 
 ## Aktualizacje
 
+Wersja 0.3.3 rozpoznaje poprawne statusy `opkg`, w tym `install user installed`
+i `install hold,user installed`. Nadal odrzuca niewłaściwą wersję, błędy
+instalatora, stan niepełnej instalacji oraz flagę `reinstreq`.
+
+Przy przejściu z 0.3.0–0.3.2 starszy, już uruchomiony aktualizator może jeszcze
+wyświetlić `installed_version_not_confirmed` po pomyślnej instalacji. Zrestartuj
+interfejs Enigma2 i sprawdź numer w nagłówku wtyczki. Jeśli widnieje 0.3.3,
+nowa wersja jest wczytana. Jeśli numer pozostał starszy, sprawdź wynik
+`opkg status enigma2-plugin-extensions-canale2test` przed dalszą instalacją.
+
 Niebieski przycisk odczytuje [update.json](update.json). Jeśli pojawi się
 nowsza wersja, zielony przycisk w ekranie aktualizacji rozpoczyna instalację.
 Weryfikowane są adres projektu HTTPS, rozmiar, SHA256, nazwa i wersja pakietu
@@ -49,7 +59,7 @@ restart interfejsu. Nie instaluje samoczynnie i nie usuwa zapisanej sesji.
 Publikacja kolejnej wersji:
 
 ```sh
-python3 tools/build_release.py --version 0.3.3 --notes "Opis zmian dla użytkowników"
+python3 tools/build_release.py --version 0.3.4 --notes "Opis zmian dla użytkowników"
 ```
 
 Następnie dodaj zmienione źródła, nowy IPK w `packages/` i `update.json`

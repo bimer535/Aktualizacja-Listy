@@ -1,4 +1,4 @@
-MK Canal+ E2 0.3.2
+MK Canal+ E2 0.3.3
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.3.2.ipk
+  opkg install /tmp/MK_Canal_E2_0.3.3.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -17,7 +17,7 @@ Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - EXIT: return; during playback stop and restore the previous service.
 The menu labels match the remote-control button colors. The icon is a white
 plus and MK mark on a black background.
-Version 0.3.2 preserves the square mark in OpenATV's 100x40 plugin-menu
+Version 0.3.3 preserves the square mark in OpenATV's 100x40 plugin-menu
 slot with transparent side margins. The in-app logo is enlarged to 128x128.
 The external plugin browser skin controls its own icon slot size.
 Source file timestamps also invalidate stale Python bytecode after updates.
@@ -28,6 +28,11 @@ architecture and plugin-only file paths before running native opkg. It then
 checks the installed package status. No force-overwrite or automatic GUI
 restart is used. Restart can be chosen after a successful installation.
 Existing session and channel data under /etc/canal-e2 are preserved.
+Version 0.3.3 accepts normal opkg user/hold flags when confirming installation.
+Incomplete installs and reinstreq states are still rejected. The running old
+updater from 0.3.0-0.3.2 may report installed_version_not_confirmed once during
+this transition. Restart the Enigma2 interface and check the displayed version.
+If it is still older, inspect opkg status before retrying.
 
 No E2iPlayer/Kodi/ArchivCZSK application or earlier /tmp scripts are needed.
 PyCryptodome is declared as an IPK dependency; public player/DRM dependencies

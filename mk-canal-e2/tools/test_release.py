@@ -46,7 +46,7 @@ class ReleaseTests(unittest.TestCase):
             source = tar.extractfile(member).read()
             timestamp = member.mtime
         current = self.manifest["version"]
-        older = "0.0.0"
+        older = ".".join("0" * len(part) for part in current.split("."))
         self.assertEqual(len(current), len(older))
         old_source = source.replace(('APP_VERSION = "' + current + '"').encode(),
                                     ('APP_VERSION = "' + older + '"').encode())
@@ -97,7 +97,8 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(core.UpdateError, "ipk_writes_outside_plugin"):
             core.validate_package(bytes(body), manifest)
 
-    def run_flow(self, mode, *, installed_version=None, install_code=0, expected=None):
+    def run_flow(self, mode, *, installed_version=None, install_code=0, expected=None,
+                 installed_status="install ok installed"):
         calls, paths = [], []
         def fake_run(arguments, **kwargs):
             calls.append(arguments)
@@ -107,8 +108,8 @@ class ReleaseTests(unittest.TestCase):
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
                 return SimpleNamespace(returncode=install_code)
             self.assertEqual(arguments[1:], ["status", core.PACKAGE_NAME])
-            text = "Package: %s\nVersion: %s\nStatus: install ok installed\n" % (
-                core.PACKAGE_NAME, installed_version or self.manifest["version"])
+            text = "Package: %s\nVersion: %s\nStatus: %s\n" % (
+                core.PACKAGE_NAME, installed_version or self.manifest["version"], installed_status)
             return SimpleNamespace(returncode=0, stdout=text.encode())
         command = ["update_worker.py", mode]
         if expected: command += ["--expected-version", expected]
@@ -146,6 +147,36 @@ class ReleaseTests(unittest.TestCase):
                 result, events, _ = self.run_flow("install", expected=self.manifest["version"], **kwargs)
                 self.assertEqual(result, 1)
                 self.assertEqual(events[-1], {"stage": "error", "reason": reason})
+
+    def test_user_and_hold_flags_confirm_successful_native_install(self):
+        for status in ("install user installed", "install hold installed",
+                       "install hold,user installed", "install\tuser\tinstalled"):
+            with self.subTest(status=status):
+                result, events, _ = self.run_flow("install", expected=self.manifest["version"],
+                                                installed_status=status)
+                self.assertEqual(result, 0)
+                self.assertEqual(events[-1]["stage"], "installed")
+
+    def test_incomplete_and_broken_package_states_are_not_successful(self):
+        for status in ("install user unpacked", "install ok half-configured",
+                       "install ok half-installed", "install ok post-inst-failed",
+                       "install reinstreq installed", "install reinstreq,user installed",
+                       "deinstall user installed", "install unknown installed", ""):
+            with self.subTest(status=status):
+                result, events, _ = self.run_flow("install", expected=self.manifest["version"],
+                                                installed_status=status)
+                self.assertEqual(result, 1)
+                self.assertEqual(events[-1]["reason"], "installed_version_not_confirmed")
+
+    def test_status_records_cannot_mix_package_and_version(self):
+        version = self.manifest["version"]
+        target = ("Package: %s\nVersion: %s\nStatus: install user installed\n" %
+                  (core.PACKAGE_NAME, version)).encode()
+        other = b"Package: unrelated\nVersion: 0.0.1\nStatus: install ok installed\n"
+        self.assertTrue(worker.package_status_matches(target + b"\n" + other, version))
+        self.assertTrue(worker.package_status_matches(other + b"\n" + target, version))
+        self.assertFalse(worker.package_status_matches(target + b"\n" + target, version))
+        self.assertFalse(worker.package_status_matches(other, version))
 
     def test_changed_release_requires_new_check(self):
         result, events, calls = self.run_flow("install", expected="0.0.2")

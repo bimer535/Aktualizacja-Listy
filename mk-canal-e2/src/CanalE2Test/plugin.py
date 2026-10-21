@@ -311,6 +311,7 @@ class CanalE2Update(Screen):
             "update_checksum_mismatch": "Plik jest niekompletny lub uszkodzony. Nie został zainstalowany.",
             "update_changed_check_again": "Pojawiła się inna wersja. Sprawdź aktualizacje ponownie.",
             "opkg_install_failed": "Instalator zgłosił błąd. Aktualizacja nie została potwierdzona.",
+            "installed_version_not_confirmed": "Nie potwierdzono nowej wersji. Wróć, zrestartuj interfejs Enigma2 i sprawdź numer wersji wtyczki.",
         }
         while "\n" in self.buffer:
             line, self.buffer = self.buffer.split("\n", 1)
