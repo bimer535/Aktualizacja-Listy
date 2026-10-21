@@ -1,4 +1,4 @@
-MK Canal+ E2 0.6.0
+MK Canal+ E2 0.6.1
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.6.0.ipk
+  opkg install /tmp/MK_Canal_E2_0.6.1.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest advertised quality covered by the granted licence.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -42,9 +42,11 @@ At least 120 MB free space is needed during initial player setup. The player
 cache is under /var/lib/canal-e2; system exteplayer3 is not replaced.
 
 Only SF8008 playback is confirmed. The current runtime targets ARMv7, not
-MIPS or native 64-bit receivers. Automatic session renewal and playback
-through key rotation are not implemented. Re-pair with the green button if
-manual session renewal is needed. 1080p is not guaranteed by this client.
+MIPS or native 64-bit receivers. Existing paired sessions are renewed once
+when the live API returns the observed initialization status -3. New tokens
+are saved only after authorized channels are validated. This does not fix
+HTTP 403 when pairing a new account. Playback through key rotation is not
+implemented. 1080p is not guaranteed by this client.
 
 On playback failure, share only /tmp/canal_e2_playback_report.json.
 Never upload /etc/canal-e2/session.json or live.json.
@@ -98,7 +100,8 @@ before the new one starts. Fast presses select the last requested channel.
 Quality is automatic: select the highest advertised resolution, and retain
 the existing fallback to a video track covered by the granted licence.
 There is no manual quality menu, VOD catalogue or movie playback.
-Account, channel API, DRM, native player and now/next EPG are restored
-byte-for-byte from 0.4.0. This release needs picture/sound and remote validation
-on the receiver; restoring the client does not guarantee recovery from a
-current server-side HTTP 403. Do not share account or native-player logs.
+Channel API, DRM, native player and now/next EPG retain the 0.4.0 code.
+Version 0.6.1 integrates the session renewal verified by the user on the
+receiver. Channel refresh and playback use the same bounded renewal logic.
+The integrated release still requires receiver-side validation.
+Do not share account or native-player logs.

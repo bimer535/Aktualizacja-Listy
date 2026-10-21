@@ -23,6 +23,7 @@ import canal_drm_demo as drm
 import canal_stream_test_v2 as stream
 import player_runtime as runtime
 from version import APP_VERSION
+from session_recover import load_live_session
 
 STOP = threading.Event()
 REPORT = Path("/tmp/canal_e2_playback_report.json")
@@ -177,13 +178,7 @@ def main():
             return 0
         emit("refresh_channels")
         session_path = Path("/etc/canal-e2/session.json")
-        saved = channels.load_json(session_path)
-        auth = saved.get("authentication", {})
-        if not isinstance(auth, dict) or not isinstance(auth.get("passToken"), str):
-            raise stream.StreamError("authenticated_session_missing")
-        ids = channels.get_client_ids(session_path.with_name("client.json"))
-        response = channels.fetch_init(channels.make_request(auth["passToken"], ids))
-        out = channels.extract_outdata(response)
+        saved, ids, response, out = load_live_session(session_path, channels, emit)
         entries = channels.normalize_channels(out)
         selected = stream.select_channel(entries, args.channel)
         channels.atomic_private_json(session_path.with_name("live.json"), {

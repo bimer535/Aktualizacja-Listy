@@ -19,6 +19,7 @@ from .epg_ui import EpgLoader, programme_line, programme_details, programme_prog
 ROOT = Path(__file__).resolve().parent
 
 STAGES = {
+    "renew_session": "Odnawianie sesji CANAL+...",
     "prepare": "Przygotowanie odtwarzacza...",
     "prepare_player": "Pierwsze uruchomienie: pobieranie odtwarzacza (11 MB)...",
     "refresh_channels": "Sprawdzanie sesji i dostepu do kanalu...",
@@ -326,6 +327,8 @@ class CanalE2Account(Screen):
                 self["message"].setText("Pobieranie kodu logowania...")
             elif stage == "refresh_channels":
                 self["message"].setText("Pobieranie kanalow z Twojej subskrypcji...")
+            elif stage == "renew_session":
+                self["message"].setText("Odnawianie sesji CANAL+...")
             elif stage == "channels_loaded":
                 self.success = True
                 self["message"].setText("Lista kanalow gotowa.")

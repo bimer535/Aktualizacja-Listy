@@ -10,6 +10,7 @@ from pathlib import Path
 
 import canal_login_test as login_api
 import canal_channels_test as channel_api
+from session_recover import load_live_session
 
 SESSION = Path("/etc/canal-e2/session.json")
 
@@ -24,15 +25,8 @@ def refresh(session_path=SESSION):
     if not session_path.is_file():
         emit("login_required")
         return False
-    saved = channel_api.load_json(session_path)
-    authentication = saved.get("authentication", {})
-    token = authentication.get("passToken") if isinstance(authentication, dict) else None
-    if not isinstance(token, str) or not token:
-        raise channel_api.ChannelError("authenticated_session_missing")
     emit("refresh_channels")
-    ids = channel_api.get_client_ids(session_path.with_name("client.json"))
-    response = channel_api.fetch_init(channel_api.make_request(token, ids))
-    out = channel_api.extract_outdata(response)
+    saved, ids, response, out = load_live_session(session_path, channel_api, emit)
     entries = channel_api.normalize_channels(out)
     if not entries:
         raise channel_api.ChannelError("no_channels_returned")

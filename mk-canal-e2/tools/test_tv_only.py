@@ -38,9 +38,9 @@ def manifest():
 class TvOnlyTests(unittest.TestCase):
     def test_account_license_native_player_and_epg_match_original_ipk(self):
         baseline = data_files((ROOT / 'packages/MK_Canal_E2_0.4.0.ipk').read_bytes())
-        changed = {'plugin.py', 'playback_worker.py', 'version.py', 'README.txt'}
+        changed = {'plugin.py', 'playback_worker.py', 'version.py', 'README.txt', 'account_worker.py'}
         active = {p.name for p in SOURCE.iterdir() if p.is_file()}
-        self.assertEqual(active, set(baseline))
+        self.assertEqual(active, set(baseline) | {'session_recover.py'})
         for name in baseline.keys() - changed:
             with self.subTest(file=name):
                 self.assertEqual((SOURCE / name).read_bytes(), baseline[name])

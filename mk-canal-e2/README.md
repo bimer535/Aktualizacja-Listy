@@ -5,12 +5,12 @@ OpenATV z Pythonem 3. Każdy użytkownik korzysta z własnego abonamentu CANAL+.
 
 ![Logo MK Canal+ E2](src/CanalE2Test/logo.svg)
 
-## Wersja 0.6.0
+## Wersja 0.6.1
 
 Baza to działający, potwierdzony przez użytkownika pakiet **0.4.0**.
-Logowanie, API kanałów, licencje, natywny odtwarzacz i EPG odtworzono z tego
-pakietu. Zmienione są wyłącznie sterowanie kanałami, domyślny pułap automatycznej
-jakości, numer wersji i opis. Nie ma katalogu VOD ani ręcznego okna jakości.
+API kanałów, licencje, natywny odtwarzacz i EPG zachowują kod z tego pakietu.
+Dodano sterowanie kanałami, automatyczny wybór jakości oraz odnowienie istniejącej
+sesji sprawdzone przez użytkownika. Nie ma katalogu VOD ani ręcznego okna jakości.
 
 - **CH+ lub ↑**: następny kanał, **CH− lub ↓**: poprzedni.
 - Zmiana działa bez opuszczania odtwarzacza; kolejność jak na liście kanałów.
@@ -23,14 +23,14 @@ jakości, numer wersji i opis. Nie ma katalogu VOD ani ręcznego okna jakości.
 - Na liście: **zielony** logowanie kodem, **żółty** odświeżenie,
   **niebieski** sprawdzenie aktualizacji.
 
-Numer 0.6.0 pozwala zainstalować tę samą wtyczkę jako aktualizację po testowych
+Numer 0.6.1 pozwala zainstalować tę samą wtyczkę jako aktualizację po testowych
 wersjach 0.5.x. Dane konta i pozostałe wtyczki pozostają na miejscu.
 
 ## Instalacja
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.6.0.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.6.0.ipk
-opkg install /tmp/MK_Canal_E2_0.6.0.ipk
+wget -O /tmp/MK_Canal_E2_0.6.1.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.6.1.ipk
+opkg install /tmp/MK_Canal_E2_0.6.1.ipk
 ```
 
 Zrestartuj interfejs Enigma2. W menu wtyczek wybierz **MK Canal+ E2** — otwiera
@@ -45,34 +45,29 @@ Lokalne testy obejmują zmianę kanału w obu kierunkach, koniec listy, szybkie
 przełączanie, EXIT podczas zmiany, zmianę po błędzie, wybór najwyższej dostępnej
 rozdzielczości i dopasowanie do przyznanej licencji. Sprawdzana jest też zgodność
 niezmienionych plików z oryginalnym IPK 0.4.0 oraz poprawność i suma IPK.
-Obraz, dźwięk i pilot 0.6.0 wymagają potwierdzenia na rzeczywistym dekoderze.
-
-Przywrócenie klienta z 0.4.0 nie jest potwierdzoną naprawą zgłoszonego później
-HTTP 403 z serwera logowania. Nie zmieniano w tej wersji logowania ani zapisanej
-sesji i nie deklarujemy rozwiązania tej odmowy przez sam powrót do starego kodu.
+Użytkownik potwierdził skuteczność narzędzia odnowienia istniejącej sesji.
+Wersja 0.6.1 integruje ten sam mechanizm; pakiet wymaga jeszcze sprawdzenia na
+rzeczywistym dekoderze. Testy obejmują też zachowanie starej sesji przy błędzie,
+brak odnawiania zdrowego tokena i limit jednej próby odnowienia.
 
 ## Odnowienie istniejącej sesji
 
-Próba 0.6.0 na dekoderze nadal zakończyła się `live_initialization_failed`.
-Wcześniejszy test pokazał status usługi -3, a pobieranie nowego kodu parowania
-HTTP 403 także ze standardowym nagłówkiem przeglądarki. Nie uznajemy tego za
-potwierdzone rozwiązanie ani nie przypisujemy kodowi -3 nieudokumentowanego znaczenia.
+Przy odświeżaniu listy i uruchamianiu kanału klient najpierw korzysta ze zwykłego
+InitLiveTV. Wyłącznie przy zaobserwowanym `live_initialization_failed` ze statusem
+usługi -3 podejmuje jedną próbę PASS createToken z zapisaną tożsamością i tym
+samym urządzeniem. Kodowi -3 nie przypisujemy nieudokumentowanego znaczenia.
+Nowy token jest sprawdzany przez InitLiveTV. Dopiero po uzyskaniu kanałów z
+uprawnieniami zapisywane są sesja i lista; odtwarzanie kontynuuje pracę na nowej
+odpowiedzi. Nieudane odnowienie nie nadpisuje poprzedniej tożsamości.
 
-`tools/session_recover.py` podejmuje jedną próbę standardowego PASS createToken
-z tożsamością i identyfikatorem urządzenia już zapisanymi przez użytkownika.
-Nie pobiera danych z innych aplikacji. Nowy token jest najpierw sprawdzany przez
-zwykłe InitLiveTV. Dopiero gdy usługa zwróci kanały z uprawnieniami, odświeżona
-sesja i lista są zapisywane lokalnie. Błąd odnowienia lub sprawdzenia kanałów
-zostawia poprzednią sesję bez zmian. Skuteczność wymaga próby na dekoderze.
+To odnowienie już sparowanego konta. HTTP 403 przy pobieraniu nowego kodu
+parowania pozostaje odrębnym, nierozwiązanym problemem. Nie pobieramy danych
+konta z innych aplikacji. Nie ma potrzeby ręcznego uruchamiania narzędzia przy
+kolejnym wystąpieniu tego samego błędu. Nie ma prób odnowienia w pętli.
 
-```sh
-wget -O /tmp/mk_session_recover.py https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/tools/session_recover.py
-python3 /tmp/mk_session_recover.py
-```
-
-Raport zawiera tylko status, liczbę kanałów i kody błędów. Tokeny, identyfikatory,
-odpowiedzi konta i adresy strumieni nie są wypisywane. Nie zastępuje to logowania
-nowego konta: narzędzie wymaga istniejącej, wcześniej sparowanej tożsamości.
+Narzędzie serwisowe `tools/session_recover.py` pozostaje dostępne. Raport zawiera
+tylko status, liczbę kanałów i kody błędów. Tokeny, identyfikatory, odpowiedzi
+konta i adresy strumieni nie są wypisywane.
 
 ## Bezpieczeństwo danych
 

@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.6.0",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.6.0.ipk",
-  "sha256": "d047941ff12d1ed83d80c56f6c7b11913274a329435b3bc0d5bd266cf357d281",
-  "size": 54866,
-  "notes": "Tylko TV na bazie działającej 0.4.0. CH+/CH− i strzałki zmieniają kanały bez wychodzenia. Automatyczna najwyższa dostępna jakość z zachowanym dopasowaniem do przyznanej licencji. Bez filmów i bez menu jakości."
+  "version": "0.6.1",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.6.1.ipk",
+  "sha256": "5f9746ed7538c0cf1c71e9794e6865f7299ef7620970013c704b965998da275e",
+  "size": 57184,
+  "notes": "Tylko TV. Dodano automatyczne odnawianie zapisanej sesji sprawdzonym mechanizmem po błędzie inicjalizacji -3, przy odświeżaniu kanałów i odtwarzaniu. Zachowane CH+/CH− i najwyższa dostępna jakość. Nie zmienia logowania nowego konta."
 }
