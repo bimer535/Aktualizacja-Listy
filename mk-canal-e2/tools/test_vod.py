@@ -162,14 +162,16 @@ class PlaybackApiTests(unittest.TestCase):
         self.assertNotIn(secret, json.dumps(client.diagnostic))
         self.assertNotIn('Expired token', json.dumps(client.diagnostic))
 
-    def test_licence_error_body_is_not_inspected_or_saved_in_diagnostic(self):
+    def test_non_json_licence_error_body_is_not_parsed_or_saved_in_diagnostic(self):
         import urllib.error
         response = io.BytesIO(b'PRIVATE LICENCE RESPONSE')
         client = api.VodApi({'passToken': 'PRIVATE'}, '11111111', opener=SimpleNamespace(
             open=lambda *args, **kwargs: (_ for _ in ()).throw(urllib.error.HTTPError('https://secure-gen-hapi.canal-plus.com/license', 403, 'Denied', {}, response))))
         client.stage = 'vod_licence'
         with self.assertRaises(stream.StreamError): client.request('/license')
-        self.assertEqual(client.diagnostic, {})
+        self.assertEqual(client.diagnostic['licence_http_error']['http_status'], 403)
+        self.assertEqual(client.diagnostic['licence_http_error']['response_format'], 'non_json')
+        self.assertNotIn('PRIVATE LICENCE RESPONSE', json.dumps(client.diagnostic))
         self.assertTrue(response.closed)
 
     def test_playset_view_media_contract_uses_subscription_session_and_no_purchase(self):

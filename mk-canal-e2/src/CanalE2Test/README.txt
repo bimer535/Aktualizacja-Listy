@@ -1,4 +1,4 @@
-MK Canal+ E2 0.5.4 - VOD TEST
+MK Canal+ E2 0.5.5 - VOD TEST
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,7 +8,7 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.5.4.ipk
+  opkg install /tmp/MK_Canal_E2_0.5.5.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
@@ -152,3 +152,10 @@ type even without an .mpd suffix. Reports fixed format labels and counts only.
 After a DASH failure, checks the original Smooth manifest once. Smooth is
 not implemented by the current isolated player; a confirmed Smooth response
 shows an explicit unsupported-format message. Receiver VOD remains unverified.
+
+Version 0.5.5 (VOD TEST): preserves the service licence URL query exactly;
+does not collapse repeated fields, re-encode signatures or overwrite a supplied
+drmType. Reports bounded JSON HTTP failure codes and fixed hint labels only.
+Successful licence bodies never go to the error inspector. The receiver's
+0.5.4 test loaded DASH and encrypted video/audio init; licence returned HTTP
+403. VOD playback is still not confirmed. No DRM refusal is bypassed.

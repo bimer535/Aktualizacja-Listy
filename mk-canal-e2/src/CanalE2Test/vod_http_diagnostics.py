@@ -3,7 +3,9 @@ import json
 import re
 
 ERROR_FIELDS = {'error', 'errors', 'errorCode', 'error_code', 'code', 'status', 'Status',
-                'message', 'description', 'detail', 'error_description'}
+                'message', 'description', 'detail', 'error_description',
+                'ServiceResponse', 'OutData', 'StatusMessage', 'ErrorMessage',
+                'errorMessage', 'ErrorCode', 'statusCode'}
 
 
 def error_shape(raw):
@@ -23,17 +25,20 @@ def error_shape(raw):
                 if key not in ERROR_FIELDS:
                     continue
                 names.add(key)
-                if key in ('errorCode', 'error_code', 'code', 'status', 'Status'):
+                if key in ('errorCode', 'error_code', 'code', 'status', 'Status', 'ErrorCode', 'statusCode'):
                     if isinstance(value, int) and not isinstance(value, bool):
                         codes[key] = value
                     elif isinstance(value, str) and re.fullmatch(r'-?\d{1,8}', value):
                         codes[key] = int(value)
-                if isinstance(value, str) and key in ('message', 'description', 'detail', 'error_description'):
+                if isinstance(value, str) and key in ('message', 'description', 'detail', 'error_description',
+                                                      'StatusMessage', 'ErrorMessage', 'errorMessage'):
                     text = value[:4000].casefold()
                     for tag, terms in [('user_agent_mentioned', ('user-agent', 'user agent', 'useragent')),
                                        ('token_mentioned', ('token', 'oauth')),
                                        ('device_mentioned', ('device', 'equipment')),
                                        ('expired_mentioned', ('expired', 'expiration')),
+                                       ('security_level_mentioned', ('security level', 'security_level', 'securitylevel', 'robustness', 'hdcp', 'hardware')),
+                                       ('location_mentioned', ('country', 'geoblock', 'geo-block', 'geolocation', 'territory')),
                                        ('subscription_mentioned', ('subscription', 'entitlement'))]:
                         if any(term in text for term in terms): hints.add(tag)
                 walk(value, depth + 1)

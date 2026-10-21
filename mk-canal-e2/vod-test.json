@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.5.4",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.4.ipk",
-  "sha256": "4cae6da783485f733c57b6f872a6bce85d92883d4bc4e7c32dbccdde1a5e3297",
-  "size": 69028,
-  "notes": "WERSJA TESTOWA 0.5.4: poprawiony wybór wariantów Widevine/DASH i rozpoznawanie adresów DASH po typie pliku. Raport pokazuje formaty oferowane przez usługę. Oryginalny Smooth Streaming jest sprawdzany po błędzie DASH; ten format nie jest jeszcze obsługiwany przez odtwarzacz. Odtwarzanie VOD wymaga próby na dekoderze. Po instalacji zrestartuj interfejs Enigma2."
+  "version": "0.5.5",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.5.ipk",
+  "sha256": "d81aa1663788ab710fc140e6afba9a721a6aa2490255a6d7d0e8b6a1f8cd1706",
+  "size": 69850,
+  "notes": "WERSJA TESTOWA 0.5.5: zachowanie kodowania i powtórzeń parametrów URL licencji; bez nadpisywania drmType podanego przez usługę. Bezpieczna diagnostyka odmowy licencji HTTP 403: kody liczbowe i etykiety, bez tokenów, kluczy i treści licencji. VOD nadal wymaga potwierdzenia na dekoderze. Po instalacji zrestartuj interfejs Enigma2."
 }

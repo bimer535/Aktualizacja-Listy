@@ -57,7 +57,8 @@ class VodApi:
         self.media_http = media_http if media_http is not None else stream.Http(user_agent=CATALOGUE_USER_AGENT)
 
     def request(self, url, payload=None, method='GET', binary=False):
-        self.diagnostic = {}
+        if self.stage != 'vod_licence':
+            self.diagnostic = {}
         headers = dict(self.headers)
         body = payload
         if isinstance(payload, dict):
@@ -79,6 +80,24 @@ class VodApi:
                                            user_agent_profile='standard_browser')
                 except (OSError, ValueError):
                     self.diagnostic = {'http_status': status, 'response_read_failed': True}
+            elif self.stage == 'vod_licence':
+                # Only an HTTP failure, never a successful licence response.
+                # JSON errors are reduced to fixed fields, numeric codes and
+                # hint labels. Arbitrary strings and licence fields are omitted.
+                metadata = {'http_status': status, 'request_method': method}
+                try:
+                    content_type = str(e.headers.get('Content-Type', '')).split(';', 1)[0].strip().lower()
+                    metadata['response_content_type'] = (content_type if re.fullmatch(
+                        r'[a-z0-9.+-]+/[a-z0-9.+-]+', content_type) else 'unknown')
+                    raw = e.read(65536)
+                    metadata['response_bytes_read'] = len(raw)
+                    if content_type == 'application/json' or content_type.endswith('+json'):
+                        metadata.update(error_shape(raw))
+                    else:
+                        metadata['response_format'] = 'non_json'
+                except (OSError, ValueError):
+                    metadata['response_read_failed'] = True
+                self.diagnostic['licence_http_error'] = metadata
             e.close()
             raise stream.StreamError('vod_service_http_error', http_status=status) from None
         except (urllib.error.URLError, OSError):
@@ -180,14 +199,30 @@ class VodApi:
 
     def licence(self, url, challenge):
         self.stage = 'vod_licence'
-        p = urllib.parse.urlsplit(api_url(url))
-        query = dict(urllib.parse.parse_qsl(p.query))
-        query['drmType'] = 'DRM_WIDEVINE'
-        target = urllib.parse.urlunsplit(p._replace(query=urllib.parse.urlencode(query)))
+        target, provided = licence_target(url)
+        self.diagnostic['licence_request'] = {
+            'method': 'POST', 'challenge_encoding': 'base64',
+            'drm_parameter_source': 'service' if provided else 'client',
+            'has_query_parameters': bool(urllib.parse.urlsplit(target).query),
+            'has_device_header': bool(self.headers.get('XX-DEVICE'))}
         # HAPI expects a base64 challenge in text/plain and may wrap its response
         # in XML (contentid) rather than return a raw Widevine protobuf.
         raw = self.request(target, base64.b64encode(challenge), 'POST', binary=True)
         return decode_licence(raw)
+
+
+def licence_target(url):
+    """Preserve the service reference verbatim, including signed/duplicate fields."""
+    url = api_url(url)
+    p = urllib.parse.urlsplit(url)
+    # Inspect names only; do not rebuild the query or overwrite a service value.
+    provided = any(urllib.parse.unquote_plus(field.partition('=')[0]).lower() == 'drmtype'
+                   for field in p.query.split('&'))
+    if provided:
+        return url, True
+    query = p.query + ('&' if p.query and not p.query.endswith('&') else '')
+    query += 'drmType=DRM_WIDEVINE'
+    return urllib.parse.urlunsplit(p._replace(query=query)), False
 
 
 def manifest_candidates(medias):

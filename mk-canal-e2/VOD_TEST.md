@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.4 — test VOD
+# MK Canal+ E2 0.5.5 — test VOD
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,25 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.5: żądanie licencji i kod odmowy
+
+Próba filmu w 0.5.4 potwierdziła manifest DASH HTTP 200, wybraną reprezentację
+1080p i polski dźwięk oraz odczyt zaszyfrowanej inicjalizacji obu ścieżek.
+Żądanie licencji zatrzymało się na HTTP 403; obraz i dźwięk nie są potwierdzone.
+
+W 0.5.5 adres licencji zachowuje dokładnie kolejność parametrów, ich kodowanie
+i powtórzenia. Jeśli usługa podała drmType, klient go nie nadpisuje. Gdy go
+brakuje, dopisywany jest parametr Widevine bez zmiany istniejącej części URL.
+Wcześniej zamiana zapytania URL na słownik mogła gubić pola i zmieniać kodowanie.
+Nie potwierdzono jeszcze, że ten błąd spowodował 403 w próbie użytkownika.
+
+Tylko nieudana odpowiedź HTTP licencji JSON jest sprowadzana do nazw znanych
+pól, kodów liczbowych i stałych etykiet wskazujących np. wzmiankę o urządzeniu,
+poziomie zabezpieczeń lub abonamencie. Raport zawiera też kod HTTP, MIME i
+rozmiar odczytanej odpowiedzi. Nie zawiera adresu, parametrów, treści komunikatu,
+challenge, tokenów ani kluczy. Prawidłowa odpowiedź licencji nie jest analizowana
+przez ten mechanizm. Serwer nadal decyduje o przyznaniu licencji.
 
 ## Wersja 0.5.4: wybór wariantów DRM i adresów DASH
 
@@ -90,8 +109,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.4.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.4.ipk
-opkg install /tmp/MK_Canal_E2_0.5.4.ipk
+wget -O /tmp/MK_Canal_E2_0.5.5.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.5.ipk
+opkg install /tmp/MK_Canal_E2_0.5.5.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -123,7 +142,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 67 testów lokalnych (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 74 testy lokalne (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.
