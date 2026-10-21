@@ -58,9 +58,9 @@ def main():
     if not {"plugin.py", "version.py", "update_worker.py", "account_worker.py", "icon.png", "logo.png", "LICENSE"} <= names:
         raise SystemExit("Incomplete plugin source")
     control = ("Package: " + PACKAGE + "\nVersion: " + args.version + "\n"
-               "Description: MK Canal+ E2 - live TV, device-code login and online updates\n"
+               "Description: MK Canal+ E2 - live TV, now/next EPG and online updates\n"
                "Architecture: all\nMaintainer: MK\nSection: extra\nPriority: optional\n"
-               "License: GPL-2.0\nDepends: enigma2, python3-core, python3-pycryptodome\n").encode()
+               "License: GPL-2.0\nDepends: enigma2, python3-core, python3-html, python3-pycryptodome\n").encode()
     result = bytearray(b"!<arch>\n")
     for name, body in (("debian-binary", b"2.0\n"),
                        ("control.tar.gz", tar_gz([("./control", control)])),

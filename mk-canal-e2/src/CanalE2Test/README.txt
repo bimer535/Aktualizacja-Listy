@@ -1,4 +1,4 @@
-MK Canal+ E2 0.3.3
+MK Canal+ E2 0.4.0
 Pomysl i projekt: MK
 
 Independent CANAL+ client for Octagon SF8008 / ARMv7, OpenATV / Python 3.
@@ -8,12 +8,13 @@ receiver-side validation; no new clean-receiver test is claimed.
 
 Install:
   opkg update
-  opkg install /tmp/MK_Canal_E2_0.3.3.ipk
+  opkg install /tmp/MK_Canal_E2_0.4.0.ipk
 Restart the Enigma2 interface and open Plugins -> MK Canal+ E2.
  - OK: play the selected channel, using the highest granted quality up to 1080p.
  - Green: show a pairing code for https://connect.canalplus.com/ .
  - Yellow: refresh channels with the saved CANAL+ session.
  - Blue: check for a new version from the project's public GitHub folder.
+ - INFO/EPG: show the current and following programme with CANAL+ metadata.
  - EXIT: return; during playback stop and restore the previous service.
 The menu labels match the remote-control button colors. The icon is a white
 plus and MK mark on a black background.
@@ -35,13 +36,13 @@ this transition. Restart the Enigma2 interface and check the displayed version.
 If it is still older, inspect opkg status before retrying.
 
 No E2iPlayer/Kodi/ArchivCZSK application or earlier /tmp scripts are needed.
-PyCryptodome is declared as an IPK dependency; public player/DRM dependencies
+PyCryptodome and Python HTML support are declared as IPK dependencies; public player/DRM dependencies
 are downloaded on first playback and checked against pinned hashes.
 At least 120 MB free space is needed during initial player setup. The player
 cache is under /var/lib/canal-e2; system exteplayer3 is not replaced.
 
 Only SF8008 playback is confirmed. The current runtime targets ARMv7, not
-MIPS or native 64-bit receivers. EPG, automatic session renewal and playback
+MIPS or native 64-bit receivers. Automatic session renewal and playback
 through key rotation are not implemented. Re-pair with the green button if
 manual session renewal is needed. 1080p is not guaranteed by this client.
 
@@ -81,3 +82,12 @@ up to the requested height and verifies that rendition's initialization.
 The UI and report display the actual selected height. The filtered MPD is
 pinned to this rendition, including when multiple codecs share one height.
 No new DRM identity or device profile is introduced for this quality choice.
+
+Version 0.4.0 adds only now/next EPG from CANAL+ globalchannels metadata.
+Channel IDs are matched exactly. The receiver probe confirmed title, subTitle,
+timecodes start and millisecond duration. No long synopsis was present in the
+shown sample; missing descriptions are not invented. INFO/EPG opens details.
+A separate process fetches metadata; /tmp/mk-canal-epg.json caches at most two
+programmes per channel for up to 120 seconds or until a programme boundary.
+Times use the receiver's configured timezone. Expired programmes are not shown
+as currently airing. The new GUI still requires receiver-side verification.

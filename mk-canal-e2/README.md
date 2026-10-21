@@ -8,11 +8,11 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ## Instalacja
 
-Pobierz [MK_Canal_E2_0.3.3.ipk](packages/MK_Canal_E2_0.3.3.ipk), skopiuj do `/tmp` i wykonaj:
+Pobierz [MK_Canal_E2_0.4.0.ipk](packages/MK_Canal_E2_0.4.0.ipk), skopiuj do `/tmp` i wykonaj:
 
 ```sh
 opkg update
-opkg install /tmp/MK_Canal_E2_0.3.3.ipk
+opkg install /tmp/MK_Canal_E2_0.4.0.ipk
 ```
 
 Zrestartuj interfejs Enigma2 i otwórz **Wtyczki → MK Canal+ E2**.
@@ -31,12 +31,32 @@ odświeżył pamięć podręczną i poprawnie odczytał nowy numer wersji.
 | Zielony | Logowanie kodem na `https://connect.canalplus.com/` |
 | Żółty | Odświeżenie listy kanałów |
 | Niebieski | Sprawdzenie i instalacja aktualizacji |
+| INFO / EPG | Aktualna i następna audycja z informacjami CANAL+ |
 | EXIT | Powrót; zatrzymanie odtwarzania |
 
 Pierwsza instalacja wymaga internetu, działających repozytoriów OpenATV
 i co najmniej 120 MB wolnego miejsca na przygotowanie odtwarzacza.
 Nie wymaga E2iPlayera ani Kodi. Odtwarzacz i biblioteki są przechowywane
 w osobnym katalogu; systemowy `exteplayer3` nie jest podmieniany.
+
+## EPG: Teraz / Następnie
+
+Wersja 0.4.0 pokazuje tytuły i godziny aktualnej oraz następnej audycji
+w panelu obok listy kanałów. Pasek wskazuje postęp aktualnej audycji.
+INFO/EPG otwiera szczegóły i przewijanie. Podczas oglądania OK pokazuje
+pasek informacyjny, a INFO/EPG otwiera szczegóły bez zatrzymywania kanału.
+
+Źródłem są bezpośrednio metadane CANAL+ używane przez ich odtwarzacz:
+`https://secure-webtv-static.canal-plus.com/metadata/cppol/all/v2.2/globalchannels.json`.
+Dopasowanie odbywa się po identyfikatorze kanału, a nie po podobnej nazwie.
+Pokazywany jest oryginalny podtytuł/opis, jeśli źródło go dostarcza. Test na
+dekoderze potwierdził tytuły, podtytuły i czasy; dłuższych opisów w pokazanej
+odpowiedzi nie było. Wtyczka nie dopisuje brakujących opisów.
+
+Odczyt odbywa się w osobnym procesie. Pamięć podręczna w `/tmp/mk-canal-epg.json`
+zawiera najwyżej dwie audycje na kanał i jest odświeżana po maksymalnie dwóch
+minutach lub przy zmianie audycji. Godziny korzystają ze strefy czasowej dekodera.
+Brak EPG nie blokuje odtwarzania. Nie wymaga dodatkowego konta ani komputera.
 
 ## Aktualizacje
 
@@ -59,7 +79,7 @@ restart interfejsu. Nie instaluje samoczynnie i nie usuwa zapisanej sesji.
 Publikacja kolejnej wersji:
 
 ```sh
-python3 tools/build_release.py --version 0.3.4 --notes "Opis zmian dla użytkowników"
+python3 tools/build_release.py --version 0.4.1 --notes "Opis zmian dla użytkowników"
 ```
 
 Następnie dodaj zmienione źródła, nowy IPK w `packages/` i `update.json`
@@ -74,8 +94,9 @@ Octagon SF8008 / OpenATV / Python 3.12. Nowe logowanie i aktualizacja mają
 testy lokalne; wymagają jeszcze próby na dekoderze. Instalacji na czystym
 obrazie i innych modelach nie potwierdzono. Obecny odtwarzacz jest ARMv7.
 Jakość jest wybierana zgodnie z otrzymaną licencją; 1080p nie jest gwarantowane.
-Nie ma jeszcze EPG, automatycznego odnowienia sesji ani obsługi zmiany kluczy
-w trakcie długiego odtwarzania. Logowanie można ponowić zielonym przyciskiem.
+EPG obejmuje wyłącznie aktualną i następną audycję; nowy interfejs wymaga
+jeszcze próby na dekoderze. Nie ma automatycznego odnowienia sesji ani obsługi
+zmiany kluczy w trakcie długiego odtwarzania. Logowanie można ponowić zielonym przyciskiem.
 
 ## Źródła i licencja
 

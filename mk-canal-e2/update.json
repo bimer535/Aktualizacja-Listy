@@ -2,9 +2,9 @@
   "schema": 1,
   "name": "MK Canal+ E2",
   "package": "enigma2-plugin-extensions-canale2test",
-  "version": "0.3.3",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.3.3.ipk",
-  "sha256": "a9210d1615f7c5ebad8002045169faa015615db4684e476ff1c423b545613846",
-  "size": 48484,
-  "notes": "Poprawiono potwierdzanie instalacji w OpenATV: obsługa statusów opkg z flagami user i hold. Logo pozostaje kwadratowe, a w aplikacji ma 128×128. Przy aktualizacji ze starszej wersji może jeszcze pojawić się poprzedni komunikat — zrestartuj interfejs i sprawdź, czy widnieje wersja 0.3.3."
+  "version": "0.4.0",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.4.0.ipk",
+  "sha256": "642062e1a43e1c720d7943da506649b3dc51093496e431208a008e95c2096e9f",
+  "size": 54064,
+  "notes": "EPG bezpośrednio z CANAL+: aktualna i następna audycja, godziny i pasek postępu przy liście kanałów. INFO/EPG pokazuje oryginalne podtytuły i dostępne opisy. OK podczas oglądania pokazuje Teraz/Następnie. Pobieranie w tle, bez pełnej ramówki. Po instalacji zrestartuj interfejs Enigma2."
 }

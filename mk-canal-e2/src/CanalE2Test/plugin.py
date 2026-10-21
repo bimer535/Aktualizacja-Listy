@@ -7,11 +7,14 @@ from pathlib import Path
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.MenuList import MenuList
+from Components.ProgressBar import ProgressBar
+from Components.ScrollLabel import ScrollLabel
 from Plugins.Plugin import PluginDescriptor
 from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from enigma import eConsoleAppContainer, eTimer
 from .version import APP_NAME, APP_VERSION
+from .epg_ui import EpgLoader, programme_line, programme_details, programme_progress
 
 ROOT = Path(__file__).resolve().parent
 
@@ -32,18 +35,46 @@ STAGES = {
 }
 
 
+class CanalE2NowNext(Screen):
+    skin = """<screen name="CanalE2NowNext" position="center,center" size="1000,580" title="MK Canal+ E2 — Teraz / Następnie">
+      <widget name="body" position="30,25" size="940,465" font="Regular;25" />
+      <widget name="hint" position="30,510" size="940,40" font="Regular;21" />
+    </screen>"""
+
+    def __init__(self, session, channel_name, data):
+        Screen.__init__(self, session)
+        paragraphs = [channel_name, ""]
+        for key, heading in (("current", "TERAZ"), ("next", "NASTĘPNIE")):
+            programme = data.get(key)
+            paragraphs += [heading, programme_line(programme),
+                           programme_details(programme) or ("Brak opisu w danych CANAL+." if programme else ""), ""]
+        self["body"] = ScrollLabel("\n".join(paragraphs))
+        self["hint"] = Label("Źródło: CANAL+  ·  ↑/↓: przewijanie  ·  OK / EXIT: Wróć")
+        self["actions"] = ActionMap(["OkCancelActions", "DirectionActions"], {
+            "ok": self.close, "cancel": self.close,
+            "up": self["body"].pageUp, "down": self["body"].pageDown}, -2)
+
+
 class CanalE2Player(Screen):
     skin = """<screen name="CanalE2Player" position="0,0" size="1280,720" flags="wfNoBorder" backgroundColor="transparent" zPosition="5">
-      <widget name="status" position="40,540" size="1200,120" font="Regular;25" foregroundColor="white" backgroundColor="#50000000" transparent="0" />
+      <widget name="status" position="40,510" size="1200,170" font="Regular;23" foregroundColor="white" backgroundColor="#50000000" transparent="0" />
     </screen>"""
 
     def __init__(self, session, channel_id, channel_name):
         Screen.__init__(self, session)
         self.channel_id, self.channel_name = channel_id, channel_name
         self.actual_height = None
-        self["status"] = Label(channel_name + " — 1080p\nPrzygotowanie...")
-        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions"], {
-            "cancel": self.stop, "ok": self.toggle_status, "showMovies": self.toggle_status}, -2)
+        self.epg = {}
+        self.playing_started = False
+        self["status"] = Label(channel_name + "\nPrzygotowanie...")
+        self["actions"] = ActionMap(["OkCancelActions", "InfobarActions", "InfoActions", "InfobarEPGActions"], {
+            "cancel": self.stop, "ok": self.toggle_status, "showMovies": self.toggle_status,
+            "info": self.show_programmes, "InfoPressed": self.show_programmes,
+            "EPGPressed": self.show_programmes}, -2)
+        self.epg_loader = EpgLoader(self.epg_received)
+        self.epg_loader.request(channel_id)
+        self.onShow.append(self.epg_loader.resume)
+        self.onHide.append(self.epg_loader.pause)
         self.previous = session.nav.getCurrentlyPlayingServiceReference()
         self.container = None
         self.buffer = ""
@@ -89,6 +120,7 @@ class CanalE2Player(Screen):
             if isinstance(height, int) and 0 < height <= 4320:
                 self.actual_height = height
             if stage == "error":
+                self.playing_started = False
                 reason = event.get("reason", "error")
                 # Worker reasons are codes, never native player exception text.
                 message = "Blad: %s\nRaport: /tmp/canal_e2_playback_report.json\nEXIT: powrot." % reason
@@ -100,7 +132,24 @@ class CanalE2Player(Screen):
                 quality = " — %dp" % self.actual_height if self.actual_height else ""
                 self["status"].setText(self.channel_name + quality + "\n" + message)
             if stage == "player_running":
+                self.playing_started = True
+                self.update_overlay()
                 self.status_timer.start(7000, True)
+
+    def epg_received(self, event):
+        self.epg = event if event.get("stage") == "epg_loaded" else {}
+        if self.playing_started and not self.closed:
+            self.update_overlay()
+
+    def update_overlay(self):
+        quality = " — %dp" % self.actual_height if self.actual_height else ""
+        self["status"].setText(self.channel_name + quality + "\nTeraz: "
+            + programme_line(self.epg.get("current")) + "\nNastępnie: "
+            + programme_line(self.epg.get("next"))
+            + "\nOK: pokaż/ukryj  ·  INFO: szczegóły  ·  EXIT: powrót")
+
+    def show_programmes(self):
+        self.session.open(CanalE2NowNext, self.channel_name, self.epg)
 
     def hide_status(self):
         if not self.closed:
@@ -119,6 +168,7 @@ class CanalE2Player(Screen):
         if self.stopping:
             return
         self.stopping = True
+        self.playing_started = False
         self.status_timer.stop()
         if self.container is not None and self.running:
             self["status"].show()
@@ -129,6 +179,7 @@ class CanalE2Player(Screen):
 
     def on_exit(self, code):
         self.running = False
+        self.playing_started = False
         if self.closed:
             return
         if self.stopping:
@@ -145,6 +196,7 @@ class CanalE2Player(Screen):
 
     def cleanup(self):
         self.closed = True
+        self.epg_loader.close()
         self.start_timer.stop()
         self.status_timer.stop()
         if self.container is not None:
@@ -398,7 +450,15 @@ class CanalE2Channels(Screen):
       <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/CanalE2Test/logo.png" position="25,16" size="128,128" alphatest="blend" />
       <widget name="brand" position="175,38" size="800,40" font="Regular;31" />
       <widget name="creator" position="175,91" size="800,29" font="Regular;20" foregroundColor="#bcbcbc" />
-      <widget name="channels" position="25,160" size="950,365" scrollbarMode="showOnDemand" />
+      <widget name="channels" position="25,160" size="390,365" scrollbarMode="showOnDemand" />
+      <eLabel text="TERAZ" position="440,158" size="535,28" font="Regular;20" foregroundColor="#6fcbff" />
+      <widget name="now_title" position="440,190" size="535,64" font="Regular;24" />
+      <widget name="now_details" position="440,258" size="535,48" font="Regular;20" foregroundColor="#c8c8c8" />
+      <widget name="epg_progress" position="440,316" size="535,8" foregroundColor="#6fcbff" backgroundColor="#363636" />
+      <eLabel text="NASTĘPNIE" position="440,345" size="535,28" font="Regular;20" foregroundColor="#6fcbff" />
+      <widget name="next_title" position="440,377" size="535,64" font="Regular;24" />
+      <widget name="next_details" position="440,445" size="535,48" font="Regular;20" foregroundColor="#c8c8c8" />
+      <widget name="epg_source" position="440,501" size="535,24" font="Regular;18" foregroundColor="#aaaaaa" />
       <widget name="hint" position="25,532" size="950,30" font="Regular;22" />
       <widget name="key_green" position="25,578" size="300,40" font="Regular;22" halign="center" valign="center" foregroundColor="white" backgroundColor="#177443" />
       <widget name="key_yellow" position="345,578" size="300,40" font="Regular;22" halign="center" valign="center" foregroundColor="black" backgroundColor="#e3bc38" />
@@ -414,8 +474,24 @@ class CanalE2Channels(Screen):
         self["key_green"] = Label("Zaloguj")
         self["key_yellow"] = Label("Odśwież kanały")
         self["key_blue"] = Label("Aktualizacja")
-        self["actions"] = ActionMap(["OkCancelActions", "ColorActions"], {
-            "ok": self.play, "cancel": self.close, "green": self.login, "yellow": self.refresh, "blue": self.update}, -2)
+        self["now_title"] = Label("Wybierz kanał")
+        self["now_details"] = Label("")
+        self["next_title"] = Label("")
+        self["next_details"] = Label("")
+        self["epg_source"] = Label("EPG: CANAL+")
+        self["epg_progress"] = ProgressBar()
+        self["epg_progress"].setRange((0, 100))
+        self.epg = {}
+        self.epg_channel = None
+        self.epg_loader = EpgLoader(self.epg_received)
+        self["channels"].onSelectionChanged.append(self.selection_changed)
+        self.onShow.append(self.epg_loader.resume)
+        self.onHide.append(self.epg_loader.pause)
+        self.onClose.append(self.cleanup_epg)
+        self["actions"] = ActionMap(["OkCancelActions", "ColorActions", "InfoActions", "InfobarEPGActions"], {
+            "ok": self.play, "cancel": self.close, "green": self.login, "yellow": self.refresh,
+            "blue": self.update, "info": self.show_programmes, "InfoPressed": self.show_programmes,
+            "EPGPressed": self.show_programmes}, -2)
         self.reload()
         if not self.entries and Path("/etc/canal-e2/session.json").is_file():
             self.onFirstExecBegin.append(self.refresh)
@@ -431,8 +507,49 @@ class CanalE2Channels(Screen):
             pass
         self.entries = entries
         self["channels"].setList(entries)
-        self["hint"].setText("OK: Odtwarzaj  ·  EXIT: Wróć" if entries else
+        self["hint"].setText("OK: Odtwarzaj  ·  INFO: Teraz / Następnie  ·  EXIT: Wróć" if entries else
                              "OK lub zielony przycisk: Zaloguj kodem  ·  EXIT: Wróć")
+        self.selection_changed()
+
+    def selection_changed(self):
+        item = self["channels"].getCurrent()
+        channel = item[1] if item is not None else None
+        if channel != self.epg_channel:
+            self.epg = {}
+            self.epg_channel = channel
+            self["now_title"].setText("Pobieranie danych..." if channel else "Wybierz kanał")
+            self["next_title"].setText("")
+            self["now_details"].setText("")
+            self["next_details"].setText("")
+            self["epg_progress"].setValue(0)
+            self["epg_source"].setText("EPG: CANAL+")
+        self.epg_loader.request(channel)
+
+    def epg_received(self, event):
+        if event.get("channel_id") != self.epg_channel:
+            return
+        self.epg = event if event.get("stage") == "epg_loaded" else {}
+        for prefix, key in (("now", "current"), ("next", "next")):
+            programme = self.epg.get(key)
+            self[prefix + "_title"].setText(programme_line(programme))
+            self[prefix + "_details"].setText(programme_details(programme))
+        self["epg_progress"].setValue(programme_progress(self.epg.get("current")))
+        source = "EPG: CANAL+"
+        if self.epg.get("cached"):
+            source += " · zapisane dane"
+        elif not self.epg:
+            source += " · chwilowo niedostępne"
+        self["epg_source"].setText(source)
+
+    def show_programmes(self):
+        item = self["channels"].getCurrent()
+        if item is not None:
+            self.session.open(CanalE2NowNext, item[0], self.epg)
+
+    def cleanup_epg(self):
+        self.epg_loader.close()
+        if self.selection_changed in self["channels"].onSelectionChanged:
+            self["channels"].onSelectionChanged.remove(self.selection_changed)
 
     def login(self):
         self.session.openWithCallback(self.reload, CanalE2Account, "login")
