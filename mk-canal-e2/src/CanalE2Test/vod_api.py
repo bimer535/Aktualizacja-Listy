@@ -10,6 +10,7 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 import xml.etree.ElementTree as ET
 
 import canal_stream_test_v2 as stream
@@ -46,6 +47,7 @@ class VodApi:
             'User-Agent': CATALOGUE_USER_AGENT, 'Accept': 'application/json,application/xml,*/*',
             'Accept-Language': 'pl-PL,pl;q=0.9', 'Accept-Encoding': 'identity',
             'Origin': 'https://www.canalplus.com', 'XX-DOMAIN': 'cppol', 'XX-OZ': 'cppol',
+            'Referer': 'https://www.canalplus.com/',
             'XX-OL': 'pl', 'XX-SERVICE': 'mycanal', 'XX-OPERATOR': 'pc',
             'XX-API-VERSION': '3.0', 'XX-SPYRO-VERSION': '3.0',
             'XX-Profile-Id': '0', 'XX-DEVICE': 'pc ' + str(device_id),
@@ -140,16 +142,22 @@ class VodApi:
         option = sorted(options, key=score)[0]
         if any(k not in option for k in fields):
             raise stream.StreamError('vod_playset_format_changed')
-        payload = {key: option[key] for key in fields}
-        payload['contentType'] = option['distMode']
+        # The selected offer is a server-issued descriptor. Preserve its fields;
+        # inventing contentType from distMode changes the playback contract.
+        payload = dict(option)
+        self.headers['XX-Request-Id'] = str(uuid.uuid4())
         self.stage = 'vod_view'
-        view = self.request('/conso/view', payload, 'PUT')
-        if not isinstance(view, dict) or not view.get('@medias') or not view.get('@licence'):
+        view = self.request('/conso/view?include=medias', payload, 'PUT')
+        if not isinstance(view, dict):
             raise stream.StreamError('vod_view_not_granted')
-        media_url, licence = api_url(view['@medias']), api_url(view['@licence'])
-        self.stage = 'vod_medias'
-        medias = self.request(media_url)
-        candidates = manifest_candidates(medias)
+        licence = api_url(view['@licence']) if view.get('@licence') else None
+        medias = view.get('medias')
+        if not isinstance(medias, (dict, list)) or not medias:
+            if not view.get('@medias'):
+                raise stream.StreamError('vod_view_not_granted')
+            self.stage = 'vod_medias'
+            medias = self.request(api_url(view['@medias']))
+        candidates = manifest_licence_pairs(medias, licence)
         if not candidates:
             raise stream.StreamError('vod_dash_manifest_missing')
         self.stage = 'vod_manifest'
@@ -159,10 +167,11 @@ class VodApi:
                            'available_formats': available_format_summary(available),
                            'supported_option_count': len(options),
                            'selected_drm_profile': drm_profile(option),
+                           'view_includes_medias': bool(view.get('medias')),
                            'selected_delivery_is_dash': 'DASH' in str(option.get('distTechnology', '')).upper(),
                            'manifest_attempts': attempts}
         last_error = None
-        for manifest in candidates[:4]:
+        for manifest, licence, licence_source in candidates[:4]:
             parts = urllib.parse.urlsplit(manifest)
             attempt = {'candidate_type': 'packager_dash' if 'format=mpd-' in parts.path.casefold() else 'provided_dash',
                        'has_query_parameters': bool(parts.query)}
@@ -173,6 +182,7 @@ class VodApi:
                     raise stream.StreamError('vod_multiple_periods_not_supported')
                 attempt['result'] = 'mpd_loaded'
                 attempt.update(manifest_response_metadata(self.media_http))
+                self.diagnostic['licence_reference_source'] = licence_source
                 return root, final_url, licence
             except stream.StreamError as error:
                 known = {'http_error', 'connection_or_tls_error', 'smooth_streaming_received_instead_of_dash',
@@ -223,6 +233,33 @@ def licence_target(url):
     query = p.query + ('&' if p.query and not p.query.endswith('&') else '')
     query += 'drmType=DRM_WIDEVINE'
     return urllib.parse.urlunsplit(p._replace(query=query)), False
+
+
+def manifest_licence_pairs(medias, fallback=None):
+    """Keep a rendition tied to its media licence, rather than the view index."""
+    pairs = []
+    def walk(node, licence=fallback, source='view', depth=0):
+        if depth > 8:
+            return
+        if isinstance(node, dict):
+            if node.get('@licence'):
+                licence, source = api_url(node['@licence']), 'media'
+            if node.get('type') not in (None, 'video'):
+                return
+            scalar = {k: v for k, v in node.items() if not isinstance(v, (dict, list))}
+            for manifest in manifest_candidates(scalar):
+                if licence is not None:
+                    pair = (manifest, licence, source)
+                    if pair not in pairs:
+                        pairs.append(pair)
+            for value in node.values():
+                if isinstance(value, (dict, list)):
+                    walk(value, licence, source, depth + 1)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item, licence, source, depth + 1)
+    walk(medias)
+    return sorted(pairs, key=lambda p: 'format=mpd-' in urllib.parse.urlsplit(p[0]).path.lower())
 
 
 def manifest_candidates(medias):

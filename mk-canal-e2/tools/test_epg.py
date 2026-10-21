@@ -161,12 +161,21 @@ def load_plugin_with_enigma_stubs():
     class MenuList:
         def __init__(self, items):
             self.items, self.onSelectionChanged = items, []
+            self.index = 0
         def setList(self, items):
             self.items = items
             for callback in self.onSelectionChanged:
                 callback()
         def getCurrent(self):
-            return self.items[0] if self.items else None
+            return self.items[self.index] if self.items else None
+        def up(self):
+            self.index = max(0, self.index - 1)
+        def down(self):
+            self.index = min(len(self.items) - 1, self.index + 1)
+        def pageUp(self):
+            self.index = max(0, self.index - 10)
+        def pageDown(self):
+            self.index = min(len(self.items) - 1, self.index + 10)
     class ActionMap:
         def __init__(self, contexts, actions, *args):
             self.actions = actions

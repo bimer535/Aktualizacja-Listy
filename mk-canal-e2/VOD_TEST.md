@@ -1,4 +1,4 @@
-# MK Canal+ E2 0.5.5 — test VOD
+# MK Canal+ E2 0.5.6 — test VOD i wybór jakości
 
 Pomysł i projekt: **MK**.
 
@@ -6,6 +6,35 @@ Osobny pakiet testowy z katalogiem VOD. Aktualizator zwykłej wersji nadal wskaz
 0.4.0. Po potwierdzeniu filmu i odcinka na dekoderze można opublikować kolejną
 wersję dla wszystkich. Nie deklarujemy jeszcze działającego odtwarzania VOD
 na koncie użytkownika.
+
+## Wersja 0.5.6: jakość obrazu/dźwięku i licencja konkretnego medium
+
+Po OK na kanale lub materiale VOD wyświetla się lista wariantów z manifestu.
+Każda pozycja pokazuje język, sumaryczny bitrate obrazu i dźwięku w bitach/s,
+rozdzielczość, kodeki i liczbę klatek/s (jeżeli manifest ją podaje).
+Różne bitrate i klatkaże tej samej rozdzielczości pozostają osobnymi pozycjami;
+AAC (`mp4a`) oraz Dolby (`ec-3`/`ac-3`) także. Lista nie przesądza o licencji:
+jeżeli usługa odmówi wybranego wariantu, odtwarzanie go nie uruchomi.
+
+↑/↓ wybiera pozycję, OK odtwarza, EXIT anuluje. W trakcie TV CH+/CH− lub ↑/↓
+zmienia kanał bez opuszczania odtwarzacza i bez ponownego okna jakości.
+Dopasowanie na nowym kanale zachowuje język i kodeki, jeśli są dostępne,
+dobiera najbliższą rozdzielczość nieprzekraczającą wybranej (jeśli istnieje),
+a następnie klatkaż i bitrate. Powrót do listy i ponowne OK otwiera wybór od nowa.
+Wybrana reprezentacja audio i wideo zostaje zachowana także w odświeżanym MPD.
+
+W 0.5.5 manifest i inicjalizacje filmu zostały pobrane, ale licencja nadal zwróciła
+HTTP 403. W 0.5.6 żądanie view zachowuje kompletny opis oferty podany przez serwer,
+bez dopisywania contentType z innego pola, i prosi o dołączenie mediów. Jeżeli
+odpowiedź zawiera licencję konkretnego medium, klient łączy ją z jego manifestem,
+zamiast używać adresu ogólnego dla view. Nadal obsługuje osobny odczyt @medias,
+gdy odpowiedź nie zawiera mediów. Nie zmienia protokołu licencji kanałów TV.
+
+Nie potwierdzono jeszcze, że te różnice odpowiadają za odmowę 403 na dekoderze.
+Nie deklarujemy działającego VOD. Testy na sztucznych odpowiedziach sprawdzają
+powiązanie manifest/licencja i zachowanie pól oferty, wybór bitratów/klatkaży,
+AAC/Dolby, zapping, anulowanie i odświeżanie manifestu. Kod jest niezależny od
+E2iPlayera. Menu i rzeczywisty obraz/dźwięk wymagają próby na SF8008.
 
 ## Wersja 0.5.5: żądanie licencji i kod odmowy
 
@@ -109,8 +138,8 @@ pokazują teraz również kod HTTP. Odtwarzanie VOD wymaga osobnego potwierdzeni
 ## Instalacja na dotychczasowym SF8008 / OpenATV 7.x
 
 ```sh
-wget -O /tmp/MK_Canal_E2_0.5.5.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.5.ipk
-opkg install /tmp/MK_Canal_E2_0.5.5.ipk
+wget -O /tmp/MK_Canal_E2_0.5.6.ipk https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-canal-e2/packages/MK_Canal_E2_0.5.6.ipk
+opkg install /tmp/MK_Canal_E2_0.5.6.ipk
 ```
 
 Zrestartuj interfejs Enigma2. Sesja CANAL+ i dane dotychczasowej wtyczki
@@ -133,8 +162,8 @@ Dostęp jest sprawdzany dla zalogowanego abonamentu przy uruchomieniu materiału
 Wtyczka nie wykonuje zakupu ani wypożyczenia. Nie odtwarza materiałów z zewnętrznych
 aplikacji, do których CANAL+ jedynie odsyła.
 
-Jakość jest ograniczona do 1080p oraz do jakości przyznanej przez usługę, tak jak
-w dotychczasowym odtwarzaczu. Obsługiwany jest pojedynczy okres DASH; materiał
+Menu pokazuje warianty manifestu do 4320p. Faktyczne odtwarzanie zależy od
+przyznanej licencji i możliwości sprzętu; obecność wariantu nie gwarantuje obrazu. Obsługiwany jest pojedynczy okres DASH; materiał
 z wieloma okresami jest odrzucany, aby nie uruchamiać tylko fragmentu filmu.
 Nie dodano zapamiętywania miejsca, synchronizacji profili, napisów, zmiany języka,
 ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
@@ -142,7 +171,7 @@ ulubionych ani funkcji zakupowych z pełnej aplikacji CANAL+.
 ## Co zostało sprawdzone
 
 Sprawdzono rzeczywiste publiczne odpowiedzi strony CANAL+ dla filmów, serialu,
-sezonu i odcinków. Lokalnie przechodzą 74 testy lokalne (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
+sezonu i odcinków. Lokalnie przechodzą 82 testy (w tym narzędzia deweloperskie): normalizacja katalogu, wybór
 właściwej strony z danych SSR, nawigacja sezonów, kursory, wyszukiwanie z bieżącej
 konfiguracji, błędy, anulowanie zadań i UTF-8, odrębne ścieżki TV/VOD, kontrakt
 HAPI na kontrolowanych odpowiedziach oraz dotychczasowe EPG i aktualizacje.

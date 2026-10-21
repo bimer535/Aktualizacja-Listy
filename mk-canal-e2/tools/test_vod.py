@@ -183,7 +183,7 @@ class PlaybackApiTests(unittest.TestCase):
         def request(url, payload=None, method='GET', binary=False):
             calls.append((url, payload, method))
             if '/playset/' in url: return {'available': [option]}
-            if url == '/conso/view': return {'@medias': '/media/1', '@licence': '/license/1'}
+            if url == '/conso/view?include=medias': return {'@medias': '/media/1', '@licence': '/license/1'}
             return [{'files': [{'distribURL': 'https://cdn.example/film.mpd'}]}]
         mpd = ET.fromstring('<MPD><Period /></MPD>')
         with patch.object(client, 'request', side_effect=request), patch.object(stream, 'resolve_mpd', return_value=(mpd, 'https://cdn.example/film.mpd')):
@@ -191,7 +191,8 @@ class PlaybackApiTests(unittest.TestCase):
         self.assertIs(root, mpd)
         self.assertEqual(licence, api.HAPI + '/license/1')
         self.assertEqual([c[2] for c in calls], ['GET', 'PUT', 'GET'])
-        self.assertEqual(calls[1][1]['contentType'], option['distMode'])
+        self.assertEqual(calls[1][1], option)
+        self.assertNotIn('contentType', calls[1][1])
         self.assertFalse(any('purchase' in c[0] for c in calls))
 
     def test_no_offer_does_not_start_view_or_request_license(self):

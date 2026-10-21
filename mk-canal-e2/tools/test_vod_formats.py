@@ -19,6 +19,32 @@ def offer(drm, delivery):
 
 
 class VodFormatTests(unittest.TestCase):
+    def test_embedded_media_uses_own_licence_and_preserves_complete_offer(self):
+        selected = dict(offer('DRM_WIDEVINE', 'DASH'), serviceField='SERVER-DESCRIPTOR')
+        client = api.VodApi({'passToken': 'PRIVATE'}, '11111111')
+        client.request = Mock(side_effect=[{'available': [selected]}, {
+            '@licence': '/view/licence', 'medias': [
+                {'@licence': '/media/licence?x=1&x=2', 'files': [
+                    {'type': 'video', 'mimeType': 'application/dash+xml', 'distribURL': 'https://cdn.example/movie'}]}]}])
+        with patch.object(stream, 'resolve_mpd', return_value=(ET.fromstring('<MPD><Period/></MPD>'),
+                                                             'https://cdn.example/movie')):
+            _, _, licence = client.resolve('1_2')
+        self.assertEqual(licence, api.HAPI + '/media/licence?x=1&x=2')
+        self.assertEqual(client.request.call_count, 2)
+        self.assertEqual(client.request.call_args.args, ('/conso/view?include=medias', selected, 'PUT'))
+        self.assertTrue(client.diagnostic['view_includes_medias'])
+        self.assertEqual(client.diagnostic['licence_reference_source'], 'media')
+
+    def test_multiple_media_licences_never_become_detached_from_their_manifest(self):
+        medias = [{'@licence': '/license/one', 'files': [{'distribURL': 'https://cdn.example/a.ism'}]},
+                  {'@licence': '/license/two', 'files': [{'distribURL': 'https://cdn.example/b.mpd'}]}]
+        result = api.manifest_licence_pairs(medias, api.HAPI + '/view')
+        self.assertEqual(result[0], ('https://cdn.example/b.mpd', api.HAPI + '/license/two', 'media'))
+        self.assertEqual(result[1][1], api.HAPI + '/license/one')
+        with self.assertRaisesRegex(stream.StreamError, 'vod_invalid_api_reference'):
+            api.manifest_licence_pairs([{'@licence': 'https://other.example/steal',
+                                        'files': [{'distribURL': 'https://cdn.example/b.mpd'}]}])
+
     def test_widevine_dash_is_selected_instead_of_common_encryption_smooth(self):
         smooth = offer('DRM_COMMON_ENCRYPTION', 'SMOOTHSTREAMING')
         dash = offer('DRM_WIDEVINE', 'DASH')

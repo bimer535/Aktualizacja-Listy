@@ -6,19 +6,17 @@ swojego abonamentu. W repozytorium nie ma danych logowania ani kluczy DRM.
 
 ![Logo MK Canal+ E2](src/CanalE2Test/logo.svg)
 
-## Test filmów i seriali: 0.5.5
+## Test filmów i seriali oraz wybór jakości: 0.5.6
 
-Osobny [pakiet testowy VOD 0.5.5](VOD_TEST.md) dodaje katalog, sezony, odcinki,
-opisy i wyszukiwanie. Wersja 0.5.5 zachowuje parametry adresu licencji
-i dodaje bezpieczny odczyt kodu odmowy HTTP. Test 0.5.4 dotarł do licencji (403);
-odtwarzanie filmu nadal wymaga potwierdzenia. Wersja 0.5.4 poprawia wybór wariantów Widevine/DASH
-i rozpoznawanie adresów po typie pliku. Smooth Streaming nadal wymaga osobnej
-obsługi; odtwarzanie VOD nie jest jeszcze potwierdzone na dekoderze. Wersja 0.5.3 poprawia adresy manifestów z parametrami,
-ujednolica nagłówki VOD i rozszerza diagnostykę błędu 503. Wersja 0.5.2 dodaje przełączanie TV przez CH+/CH− i ↑/↓
-oraz diagnostykę VOD w zwykłym raporcie. Wersja 0.5.1 poprawia nagłówek HTTP powodujący błąd 403
-na SF8008. Katalog sprawdzono na danych CANAL+; odtwarzanie VOD
-wymaga jeszcze próby na dekoderze. Automatyczne aktualizacje nadal wskazują
-wersję 0.4.0. Instrukcje i ograniczenia znajdują się w podanym dokumencie.
+[Pakiet testowy 0.5.6](VOD_TEST.md) dodaje przed odtworzeniem TV i VOD listę
+wariantów z manifestu: rozdzielczość, bitrate, liczbę klatek, język i kodeki.
+AAC i Dolby są osobnymi pozycjami. Przy CH+/CH− i ↑/↓ dobierana jest najbliższa
+jakość kolejnego kanału, bez ponownego okna wyboru.
+
+VOD zachowuje pełny opis wariantu z playsetu i łączy adres manifestu z licencją
+tego samego medium. Poprzedni test 0.5.5 potwierdził manifest DASH i odmowę
+licencji HTTP 403. Skuteczność poprawki i nowe menu wymagają próby na dekoderze.
+Automatyczny aktualizator zwykłej wersji nadal wskazuje 0.4.0.
 
 ## Instalacja
 

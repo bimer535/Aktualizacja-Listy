@@ -79,8 +79,9 @@ class ManifestServer(ThreadingHTTPServer):
     daemon_threads = True
 
 
-def start_manifest_server(mpd_url, root, height, on_error, video_reference=None, http=None):
-    initial, expected = runtime.filtered_manifest(root, mpd_url, height, video_reference=video_reference)
+def start_manifest_server(mpd_url, root, height, on_error, video_reference=None, http=None, audio_reference=None):
+    initial, expected = runtime.filtered_manifest(root, mpd_url, height, video_reference=video_reference,
+                                                 audio_reference=audio_reference)
     endpoint = "/" + secrets.token_hex(16) + "/manifest.mpd"
     first = [initial]
     lock = threading.Lock()
@@ -100,7 +101,7 @@ def start_manifest_server(mpd_url, root, height, on_error, video_reference=None,
                     else:
                         raw, final = (http if http is not None else stream.Http()).read(mpd_url)
                         current = ET.fromstring(raw)
-                        body, _ = runtime.filtered_manifest(current, final, height, expected, video_reference)
+                        body, _ = runtime.filtered_manifest(current, final, height, expected, video_reference, audio_reference)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/dash+xml")
                 self.send_header("Cache-Control", "no-store")
@@ -171,6 +172,9 @@ def main():
     source.add_argument("--channel")
     source.add_argument("--vod")
     parser.add_argument("--height", type=int, default=1080)
+    quality_args = parser.add_mutually_exclusive_group()
+    quality_args.add_argument("--choose-quality", action="store_true")
+    quality_args.add_argument("--quality-preference", type=json.loads)
     args = parser.parse_args()
     if ((args.channel is not None and not re.fullmatch(r"[0-9]{1,12}", args.channel))
             or (args.vod is not None and not re.fullmatch(r"[0-9]{1,15}(?:_[0-9]{1,10})?", args.vod))
@@ -218,7 +222,13 @@ def main():
                 "init_live_response": response, "channels": entries})
             emit("resolve_stream", channel=selected["name"])
             root, mpd_url = stream.resolve_mpd(http, stream.entry_url(selected, out))
-        video, audio = runtime.select_tracks(root, args.height)
+        manual_quality = args.choose_quality or args.quality_preference is not None
+        if manual_quality:
+            import quality
+            video, audio = quality.choose(root, emit, sys.stdin, args.quality_preference)
+            args.height = video['height']
+        else:
+            video, audio = runtime.select_tracks(root, args.height)
         emit("inspect_initialization", requested_max_height=args.height, selected_video_height=video["height"],
              selected_audio_language=audio["lang"] if audio["lang"] in ("pl", "pol", "pl-pl", "en", "eng", "und", "") else "other")
         runtime.inspect_track_initialization(http, video, mpd_url)
@@ -239,6 +249,8 @@ def main():
         options = runtime.licensed_video_options(root, args.height, keys.keys())
         emit("check_video_quality", licensed_video_heights=sorted({item["height"] for item in options}))
         if video["kids"] - keys.keys():
+            if manual_quality:
+                raise stream.StreamError("selected_quality_not_licensed")
             replacement = None
             for candidate in options:
                 # MPD is a candidate index; always verify the actual selected init.
@@ -263,7 +275,8 @@ def main():
         server, manifest_url = start_manifest_server(mpd_url, root, args.height,
                                                     lambda reason: events.put((reason, None)),
                                                     video_reference=runtime.track_reference(video),
-                                                    http=http if args.vod else None)
+                                                    http=http if args.vod else None,
+                                                    audio_reference=runtime.track_reference(audio))
         environment = os.environ.copy()
         environment["LD_LIBRARY_PATH"] = str(binary.parent.parent / "lib")
         # FFmpeg dictionary syntax: kid=key:kid=key. Keys stay in process memory;

@@ -61,7 +61,8 @@ def number(value):
         return 0
 
 
-def select_tracks(root, height, video_predicate=None):
+def track_groups(root):
+    """Keep every advertised rendition; representation IDs stay in the worker."""
     root_pssh, root_kids = own_pssh(root), own_kids(root)
     for pi, period in enumerate(node for node in root if tag(node) == "Period"):
         videos, audios = [], []
@@ -79,6 +80,7 @@ def select_tracks(root, height, video_predicate=None):
                 item = {"root": root, "period": period, "adaptation": adaptation, "rep": rep,
                         "period_index": pi, "adaptation_index": ai, "rep_index": ri,
                         "id": rep.get("id"), "height": number(attrs.get("height")),
+                        "width": number(attrs.get("width")), "frame_rate": attrs.get("frameRate", ""),
                         "bandwidth": number(attrs.get("bandwidth")), "codec": codec,
                         "lang": attrs.get("lang", "").lower(),
                         "pssh": own_pssh(rep) or ap, "kids": own_kids(rep) or ak}
@@ -88,12 +90,19 @@ def select_tracks(root, height, video_predicate=None):
                     audios.append(item)
         if not videos:
             continue
+        yield videos, audios
+
+
+def select_tracks(root, height, video_predicate=None, audio_predicate=None):
+    for videos, audios in track_groups(root):
         options = [x for x in videos if 0 < x["height"] <= height]
         if video_predicate is not None:
             options = [x for x in options if video_predicate(x)]
         if not options:
             raise StreamError("requested_resolution_unavailable")
         video = max(options, key=lambda x: (x["height"], x["codec"].startswith("avc"), x["bandwidth"]))
+        if audio_predicate is not None:
+            audios = [x for x in audios if audio_predicate(x)]
         if not audios:
             raise StreamError("audio_track_missing")
         audio = max(audios, key=lambda x: (x["lang"] in ("pl", "pol", "pl-pl"),
@@ -249,11 +258,12 @@ def licensed_video_options(root, maximum_height, key_ids):
     return sorted(choices.values(), key=lambda item: (item["height"], item["codec"].startswith("avc"), item["bandwidth"]), reverse=True)
 
 
-def filtered_manifest(root, final_url, height, expected=None, video_reference=None):
+def filtered_manifest(root, final_url, height, expected=None, video_reference=None, audio_reference=None):
     if root.tag.startswith("{"):
         ET.register_namespace("", root.tag[1:].split("}", 1)[0])
     predicate = None if video_reference is None else lambda item: reference_matches(item, video_reference)
-    video, audio = select_tracks(root, height, video_predicate=predicate)
+    audio_predicate = None if audio_reference is None else lambda item: reference_matches(item, audio_reference)
+    video, audio = select_tracks(root, height, video_predicate=predicate, audio_predicate=audio_predicate)
     identity = tuple((x["id"], x["height"], x["codec"], tuple(sorted(x["kids"]))) for x in (video, audio))
     if expected is not None and identity != expected:
         raise StreamError("stream_tracks_changed_restart_required")
