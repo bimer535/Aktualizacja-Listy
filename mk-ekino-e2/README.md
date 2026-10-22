@@ -1,8 +1,27 @@
-# MK Ekino E2 0.2.0
+# MK Ekino E2 0.2.1
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.1
+
+- MENU → **Autor i kontakt**: „Projekt i rozwój wtyczki: MK”, adres
+  **bimer55@wp.pl**, wskazówki do zgłoszenia błędu i kod QR otwierający e-mail.
+  Kod jest statycznym PNG 264×264, bez pobierania z Internetu. Ponowne generowanie:
+  zainstaluj qrcode/Pillow w środowisku budowania i uruchom tools/build_contact_qr.py.
+  Biblioteki generatora nie są potrzebne na dekoderze.
+- Podczas filmu **OK przełącza pauzę i odtwarzanie**. Obsługa ma priorytet nad
+  natywnym unPauseService/toggleShow i wykonuje jedno przełączenie po puszczeniu
+  przycisku. Używa natywnego stanu odtwarzacza, więc współpracuje także z osobnym
+  przyciskiem PAUSE. Przy pauzie pokazuje pasek odtwarzania.
+- INFO nadal otwiera licencję. Informacje o źródłach i autorach kodu GPL zachowano.
+
+Sprawdzono mapowanie make/break OK zgodne z openatv/enigma2 26c24da,
+data/keymap.xml oraz InfoBarSeek w InfoBarGenerics.py. Testy obejmują pełne dwa
+naciśnięcia OK, przełączenie z pauzy ustawionej innym klawiszem i zamknięcie ekranu
+kontaktu podczas dekodowania QR. Obsługa na rzeczywistym pilocie wymaga testu
+po instalacji.
 
 ## Zmiany 0.2.0
 
@@ -199,11 +218,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.2.0, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.2.0.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.2.1, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.2.1.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.2.0.ipk
+opkg install /tmp/MK_Ekino_E2_0.2.1.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła

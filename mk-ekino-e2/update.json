@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.0",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.0.ipk",
-  "size": 212890,
-  "sha256": "bac72e0e884ea401b78560f5153e0c0a3b310be166ec27bc6412038c3f5419cd",
-  "notes": "Kontynuuj oglądanie, ulubione, następny odcinek i duże kafelki. Domyślnie: player, polski język, najlepsza jakość. MENU: ustawienia i ulubione."
+  "version": "0.2.1",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.1.ipk",
+  "size": 214230,
+  "sha256": "95e1db4a55b06d1c7fcefecba09231a586b8bcce960b992d33c283e8f798e972",
+  "notes": "MENU → Autor i kontakt: MK, bimer55@wp.pl i kod QR do e-maila. Podczas filmu OK przełącza pauzę i odtwarzanie."
 }
