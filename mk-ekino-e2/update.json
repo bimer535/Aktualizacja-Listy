@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.1.9",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.9.ipk",
-  "size": 205582,
-  "sha256": "c1c3d3c349709d1f766ad5d308948208f86370f7903899e74ae756297a30e044",
-  "notes": "Ukryto Upzone i Wrzucaj na listach źródeł filmów oraz odcinków. Pozostałe źródła i odtwarzanie bez zmian."
+  "version": "0.2.0",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.0.ipk",
+  "size": 212890,
+  "sha256": "bac72e0e884ea401b78560f5153e0c0a3b310be166ec27bc6412038c3f5419cd",
+  "notes": "Kontynuuj oglądanie, ulubione, następny odcinek i duże kafelki. Domyślnie: player, polski język, najlepsza jakość. MENU: ustawienia i ulubione."
 }

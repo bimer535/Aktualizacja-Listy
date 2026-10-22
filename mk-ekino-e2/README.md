@@ -1,8 +1,45 @@
-# MK Ekino E2 0.1.9
+# MK Ekino E2 0.2.0
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.0
+
+- **Kontynuuj oglądanie** w menu głównym. Pozycja filmu/odcinka zapisywana co
+  15 sekund i przy zamknięciu; ponowne otwarcie proponuje wznowienie. Wpisy są
+  powiązane z trwałym adresem katalogu, a nie zmieniającym się adresem strumienia.
+  Odtwarzacz czeka na możliwość przewijania i potwierdza zmianę pozycji.
+  Strumienie bez obsługi seek mogą wymagać odtwarzania od początku.
+- **Ulubione** w menu głównym. Na filmie, serialu lub odcinku: MENU → dodaj/usuń
+  z ulubionych. Zapis lokalny, bez logowania.
+- **Następny odcinek**: po naturalnym zakończeniu odcinka pytanie o uruchomienie
+  kolejnego; przechodzi także do następnego sezonu. Podczas odcinka niebieski
+  wywołuje tę samą propozycję. Krótkie przerwanie transmisji nie jest uznawane
+  za obejrzenie całego odcinka. Na listach obejrzane pozycje oznacza ✓.
+- **Domyślny automat**: otwarcie filmu wybiera najpierw player (potem VOE/MIX,
+  gdy brak playera), polską ścieżkę i największą dostępną rozdzielczość, następnie
+  najwyższy bitrate. Gdy serwer nie opisuje języka, nie zakładamy polskiego audio.
+  Wielościeżkowe MP4 dostają dodatkową próbę wyboru polskiego audio w odtwarzaczu.
+  Automat nie przełącza sam źródła po błędzie; można wybrać inne z listy.
+  MENU → Automat wyłącza automat i przywraca ręczny wybór źródła/jakości.
+- **Opcjonalne kafelki**: MENU → Widok. Cztery duże okładki 200×300 z tytułem
+  i oceną; ←/→ wybiera pozycję, ↑/↓ lub CH−/CH+ zmienia stronę kafelków,
+  OK otwiera, MENU wraca do listy, EXIT do poprzedniej kategorii.
+  Maksymalnie dwa pobrania okładek równolegle, w osobnym procesie.
+- Widoczne źródła ograniczono do player, VOE i MIX zgodnie z preferencją użytkownika.
+
+Dane są zapisywane w /etc/mk-ekino-e2/library.json (0600). Limit: 100 ulubionych
+oraz 200 ostatnich pozycji odtwarzania. Aktualizacja ich nie usuwa. INFO nadal
+pokazuje informacje i licencję; niebieski w przeglądarce aktualizuje wtyczkę.
+Domyślny widok to lista; włączone kafelki i tryb automatu są zapamiętywane.
+
+Weryfikacja: testy lokalne obejmują trwały zapis, wznowienie i API seek w jednostkach
+90 kHz, wybór języka/jakości, EOF i kolejny sezon, oczekiwanie na zamknięcie
+starego procesu odtwarzania oraz cykl życia kafelków i pobierania okładek.
+API odtwarzacza porównano z openatv/enigma2 26c24da, InfoBar.py i InfoBarGenerics.py.
+Nowe funkcje wymagają jeszcze sprawdzenia na rzeczywistym SF8008; testy lokalne
+nie potwierdzają obsługi przewijania przez każdy serwer wideo.
 
 ## Zmiany 0.1.9
 
@@ -162,11 +199,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.9, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.9.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.2.0, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.2.0.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.9.ipk
+opkg install /tmp/MK_Ekino_E2_0.2.0.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
@@ -203,7 +240,7 @@ python3 /tmp/mk_ekino_source_probe.py
 ```
 
 Test używa zainstalowanych modułów MK Ekino, wyszukuje przykładowy tytuł i bada
-widoczne źródła shvid, VOE oraz MixDrop (Upzone i Wrzucaj są pomijane). Raport `/tmp/mk_ekino_sources_report.json`
+widoczne źródła VOE oraz MixDrop (pozostali dostawcy testu są pomijani). Raport `/tmp/mk_ekino_sources_report.json`
 zawiera etapy HTTP, nazwy hostów i rozpoznane formaty strony. Nie zapisuje
 pełnych adresów źródeł, cookies, kluczy ani kont. Nie zmienia konfiguracji.
 Po znalezieniu wariantu wykonuje ograniczony odczyt do 2048 bajtów z serwera
