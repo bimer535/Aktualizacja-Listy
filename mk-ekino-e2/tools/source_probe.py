@@ -35,6 +35,8 @@ def page_features(body):
         'hls_field':r'["\']?hls["\']?\s*:',
         'file_field':r'["\']?file["\']?\s*:',
         'voe_payload':r'application/json',
+        'upzone_payload':r'cnc\s*\(|atob\s*\(',
+        'upzone_transfer_limit':r'transfer[\s\S]{0,180}wyczerpan',
         'hls_manifest':r'^\s*#EXTM3U',
     }
     return [key for key,pattern in markers.items() if re.search(pattern,text,re.I)]
@@ -115,8 +117,8 @@ def save_report(report):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--query',default='Król dopalaczy')
-    parser.add_argument('--providers',default='wrzucaj,shvid,voe,mix');args=parser.parse_args()
-    wanted=[p for p in args.providers.split(',') if p in ('wrzucaj','shvid','voe','mix')]
+    parser.add_argument('--providers',default='upzone,wrzucaj,shvid,voe,mix');args=parser.parse_args()
+    wanted=[p for p in args.providers.split(',') if p in ('upzone','wrzucaj','shvid','voe','mix')]
     report={'test':'additional_sources_v1','account_files_read':False,'configuration_changed':False,
             'video_playback_tested':False,'checks':[]}
     try:

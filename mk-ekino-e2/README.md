@@ -1,8 +1,25 @@
-# MK Ekino E2 0.1.7
+# MK Ekino E2 0.1.8
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.8
+
+- Dodano próbną obsługę Upzone: przejście ze strony pliku do /embed/,
+  odczyt zakodowanego adresu i przekazanie MP4 lub wariantów HLS do dotychczasowego
+  odtwarzacza. Wysyłane są nagłówki User-Agent, Referer i Origin odtwarzacza.
+- Odczyt adresu działa w Pythonie bez E2iPlayera, zewnętrznego silnika JS i bez
+  wykonywania skryptów pobranych ze strony. Zgodność z publicznym dekoderem
+  upzonecc.byte sprawdzono w Duktape 2.7 dla wszystkich 256 wartości bajtów
+  i czterech przykładowych adresów. Referencje i wektory są w katalogu reference.
+- Osobne komunikaty dla blokady dostępu, wyczerpanego darmowego transferu lub
+  wymaganego premium oraz nierozpoznanego odtwarzacza. Obsługa nie omija blokady
+  ani ograniczenia transferu; nie dodano logowania do konta premium Upzone.
+- source_probe.py przyjmuje teraz --providers upzone i nadal sprawdza rzeczywiste
+  bajty wideo. Lokalny test sieciowy zatrzymał się na HTTP 403 na stronie Ekino.
+  Odtwarzanie Upzone na dekoderze pozostaje niepotwierdzone.
+- Użytkownik potwierdził obraz i dźwięk z VOE, MIX oraz player w 0.1.7 na SF8008.
 
 ## Zmiany 0.1.7
 
@@ -137,11 +154,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.7, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.7.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.8, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.8.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.7.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.8.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
@@ -157,9 +174,10 @@ hasha i wyszukiwaniu wyniku. Zbudowaną bibliotekę ARM sprawdzono w emulatorze 
 Lokalny pomiar na komputerze potwierdza przyspieszenie samych obliczeń; nie jest
 pomiarem SF8008 ani pełnego czasu otwierania filmu. Nie mamy liczbowego pomiaru porównawczego prywatnego E2i. Sieć i serwer nadal mogą wydłużać pierwszą weryfikację.
 
-VOE sprawdzono na kontrolowanych odpowiedziach, w tym przez rzeczywisty serializer
-nagłówków HTTP. Na SF8008 MixDrop przeszedł ograniczony odczyt danych wideo
-(MEDIA_REACHABLE), ale nie potwierdzono jeszcze obrazu i dźwięku w MoviePlayer. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
+Użytkownik potwierdził działanie VOE, MIX i player w 0.1.7 na SF8008.
+Upzone w 0.1.8 sprawdzono na kontrolowanych odpowiedziach i porównano dekoder
+ciągu znaków z publicznym oryginałem. Test sieciowy z tej maszyny zatrzymał się
+na HTTP 403 na Ekino, więc odtwarzanie Upzone na dekoderze wymaga sprawdzenia. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
 aktualizacji i błędy sumy kontrolnej, wersji oraz instalatora, obsługę EXIT, odrzucenie starej
 weryfikacji, zakresy MP4, HLS, wybraną ścieżkę audio, anulowanie oraz API okien
 OpenATV 7.4. Nie zastępują testu nowego pakietu na urządzeniu.
@@ -178,7 +196,7 @@ python3 /tmp/mk_ekino_source_probe.py
 ```
 
 Test używa zainstalowanych modułów MK Ekino, wyszukuje przykładowy tytuł i bada
-wrzucaj, shvid, VOE oraz MixDrop. Raport `/tmp/mk_ekino_sources_report.json`
+Upzone, wrzucaj, shvid, VOE oraz MixDrop. Raport `/tmp/mk_ekino_sources_report.json`
 zawiera etapy HTTP, nazwy hostów i rozpoznane formaty strony. Nie zapisuje
 pełnych adresów źródeł, cookies, kluczy ani kont. Nie zmienia konfiguracji.
 Po znalezieniu wariantu wykonuje ograniczony odczyt do 2048 bajtów z serwera
@@ -201,9 +219,11 @@ weryfikacji może oznaczać użycie ważnego wyniku z pamięci podręcznej.
 ## Źródła i licencja
 
 GPL-3.0, pełna treść w `src/MKEkinoE2/LICENSE`. Metody parserBYSE, parserVOESX,
-parserMIXDROP pochodzą z publicznej paczki e2iplayer-2026.10.18.05.zip.
+parserMIXDROP, parserSST oraz przepływ Upzone pochodzą z publicznej paczki e2iplayer-2026.10.18.05.zip.
 Zachowano komentarze i podziękowania. parserBYSE ma dodatkowo opcjonalny moduł
 obliczeniowy, pomiary czasu oraz odnowienie odrzuconej weryfikacji.
+Oryginalny przepływ Upzone: `reference/public_upzone_method.txt`; wektory
+dekodera: `reference/upzone_vectors.json`. Przeniesiono dekoder do Pythona.
 Metadane pochodzenia: `reference/SOURCE.json`. Pozostałe części to klient i adaptery MK.
 Nie użyto kodu prywatnego PE2I. Runtime kompilatora w module ARM: licencja MIT,
 pełny tekst w `src/MKEkinoE2/THIRD_PARTY.txt`.
