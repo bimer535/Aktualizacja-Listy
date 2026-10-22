@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.1.8",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.8.ipk",
-  "size": 205564,
-  "sha256": "5a7612f85b7735104f3cbe21ba2e4efd7886e30182ad6796b551d29df34bcf28",
-  "notes": "Próbna obsługa Upzone: odczyt adresu filmu w Pythonie, MP4/HLS, komunikaty o blokadzie i limicie transferu. Wymaga sprawdzenia na dekoderze."
+  "version": "0.1.9",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.9.ipk",
+  "size": 205582,
+  "sha256": "c1c3d3c349709d1f766ad5d308948208f86370f7903899e74ae756297a30e044",
+  "notes": "Ukryto Upzone i Wrzucaj na listach źródeł filmów oraz odcinków. Pozostałe źródła i odtwarzanie bez zmian."
 }

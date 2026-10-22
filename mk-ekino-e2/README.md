@@ -1,8 +1,16 @@
-# MK Ekino E2 0.1.8
+# MK Ekino E2 0.1.9
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.9
+
+Ukryto Upzone i Wrzucaj na listach źródeł filmów oraz odcinków seriali na prośbę
+użytkownika, który potwierdził brak działania także w oryginalnej wtyczce.
+Pozostałe źródła, ich kolejność i numeracja odnośników pozostają bez zmian.
+Filtrowanie odbywa się przed utworzeniem pozycji menu; kod resolverów zachowano
+w archiwum. Narzędzie source_probe pomija dostawców ukrytych na liście źródeł.
 
 ## Zmiany 0.1.8
 
@@ -154,11 +162,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.8, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.8.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.9, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.9.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.8.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.9.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
@@ -175,9 +183,8 @@ Lokalny pomiar na komputerze potwierdza przyspieszenie samych obliczeń; nie jes
 pomiarem SF8008 ani pełnego czasu otwierania filmu. Nie mamy liczbowego pomiaru porównawczego prywatnego E2i. Sieć i serwer nadal mogą wydłużać pierwszą weryfikację.
 
 Użytkownik potwierdził działanie VOE, MIX i player w 0.1.7 na SF8008.
-Upzone w 0.1.8 sprawdzono na kontrolowanych odpowiedziach i porównano dekoder
-ciągu znaków z publicznym oryginałem. Test sieciowy z tej maszyny zatrzymał się
-na HTTP 403 na Ekino, więc odtwarzanie Upzone na dekoderze wymaga sprawdzenia. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
+Użytkownik potwierdził brak poprawnych linków Upzone i brak działania Wrzucaj
+także w oryginalnej wtyczce. Oba źródła ukryto w 0.1.9. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
 aktualizacji i błędy sumy kontrolnej, wersji oraz instalatora, obsługę EXIT, odrzucenie starej
 weryfikacji, zakresy MP4, HLS, wybraną ścieżkę audio, anulowanie oraz API okien
 OpenATV 7.4. Nie zastępują testu nowego pakietu na urządzeniu.
@@ -196,7 +203,7 @@ python3 /tmp/mk_ekino_source_probe.py
 ```
 
 Test używa zainstalowanych modułów MK Ekino, wyszukuje przykładowy tytuł i bada
-Upzone, wrzucaj, shvid, VOE oraz MixDrop. Raport `/tmp/mk_ekino_sources_report.json`
+widoczne źródła shvid, VOE oraz MixDrop (Upzone i Wrzucaj są pomijane). Raport `/tmp/mk_ekino_sources_report.json`
 zawiera etapy HTTP, nazwy hostów i rozpoznane formaty strony. Nie zapisuje
 pełnych adresów źródeł, cookies, kluczy ani kont. Nie zmienia konfiguracji.
 Po znalezieniu wariantu wykonuje ograniczony odczyt do 2048 bajtów z serwera
