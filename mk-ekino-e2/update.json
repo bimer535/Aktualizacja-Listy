@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.1.5",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.5.ipk",
-  "size": 155582,
-  "sha256": "21d8b5586565957c4a0b4f82ea7055cfae236eedf68ba06cbfd5386cce2c4d35",
-  "notes": "Naprawa widoczności menu i tekstów: panele tła nie zasłaniają już listy, tytułów i opisów w nowym wyglądzie."
+  "version": "0.1.6",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.6.ipk",
+  "size": 204134,
+  "sha256": "4661d2cc3fc790bba67915c7246c3dec10e3403046ecf409f2f81f34f1e9811e",
+  "notes": "Nowa czytelna ikona MK Ekino oraz większe okładki 200×300 i szerszy panel szczegółów."
 }

@@ -1,8 +1,26 @@
-# MK Ekino E2 0.1.5
+# MK Ekino E2 0.1.6
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.6
+
+- Nowa własna ikona MK Ekino: duże białe MK, turkusowy symbol odtwarzania,
+  ciemne tło i niewielkie marginesy. Prawdziwy kolor RGB PNG 256×256, skalowany
+  proporcjonalnie z kwadratowego projektu 1254×1254. Zastępuje poprzednią ikonę
+  Ekino z odbiciem i dużym pustym obszarem. Rozmiar pola ikony w menu nadal
+  zależy od aktywnego skinu OpenATV; nie modyfikujemy globalnego menu wtyczek.
+- Okładka w panelu szczegółów powiększona z 136×204 do 200×300 — ponad dwa razy
+  większa powierzchnia (2,16×). Panel szczegółów poszerzono, a listę dostosowano
+  do pozostałego miejsca. Zachowane proporcje 2:3 i skalowanie do rzeczywistego
+  rozmiaru widgetu w aktualnej rozdzielczości.
+- Zachowane jawne warstwy 0/1/2 z poprawki 0.1.5. Katalog, źródła i odtwarzanie
+  nie otrzymały zmian funkcjonalnych w tym wydaniu.
+
+Nowy znak przygotowano narzędziem generowania obrazów OpenAI. Opis projektu
+znajduje się w reference/icon_design.txt. Pełne grafiki mogą być pomniejszane
+przez skin; większa rozdzielczość pliku nie wymusza większego pola w menu.
 
 ## Zmiany 0.1.5
 
@@ -103,11 +121,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.5, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.5.ipk` do `/tmp` dekodera:
+Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.6, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.6.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.5.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.6.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
@@ -148,7 +166,7 @@ weryfikacji może oznaczać użycie ważnego wyniku z pamięci podręcznej.
 ## Źródła i licencja
 
 GPL-3.0, pełna treść w `src/MKEkinoE2/LICENSE`. Metody parserBYSE, parserVOESX,
-parserMIXDROP i ikona pochodzą z publicznej paczki e2iplayer-2026.10.18.05.zip.
+parserMIXDROP pochodzą z publicznej paczki e2iplayer-2026.10.18.05.zip.
 Zachowano komentarze i podziękowania. parserBYSE ma dodatkowo opcjonalny moduł
 obliczeniowy, pomiary czasu oraz odnowienie odrzuconej weryfikacji.
 Metadane pochodzenia: `reference/SOURCE.json`. Pozostałe części to klient i adaptery MK.
