@@ -1,8 +1,22 @@
-# MK Ekino E2 0.1.4
+# MK Ekino E2 0.1.5
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.5
+
+Naprawiono nakładanie paneli tła na menu i teksty w 0.1.4. Zgłoszony zrzut ekranu
+pokazywał licznik 1/5, czyli wczytane menu, ale jego nazwy i nagłówek pozostawały
+zasłonięte. OpenATV tworzy elementy additionalWidgets (eLabel) po komponentach
+GUIComponent, niezależnie od kolejności zapisanej w skinie. Przy tej samej warstwie
+później utworzone tło przykrywało listę i etykiety. Ustawiono jawne warstwy: tła 0,
+lista i teksty 1, okładka 2. Pobieranie katalogu i odtwarzanie pozostają bez zmian.
+
+Dodano test układu odtwarzający zasłonięcie w 0.1.4 i sprawdzający, że wszystkie
+przecinające się elementy tła pozostają poniżej nazwanych widgetów w 0.1.5.
+Na 0.1.4 przyciski w stopce były widoczne, więc aktualizację można otworzyć
+niebieskim przyciskiem. Zainstaluj 0.1.5 i uruchom ponownie interfejs Enigma2.
 
 ## Zmiany 0.1.4
 
@@ -89,11 +103,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.4, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.4.ipk` do `/tmp` dekodera:
+Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.5, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.5.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.4.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.5.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
