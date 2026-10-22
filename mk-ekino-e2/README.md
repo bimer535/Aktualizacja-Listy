@@ -1,8 +1,39 @@
-# MK Ekino E2 0.1.3
+# MK Ekino E2 0.1.4
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.4
+
+- Nowy ciemny układ z akcentem turkusowym, czytelniejszą listą, panelem oceny,
+  opisu i okładki. Licznik wskazuje zaznaczoną pozycję. Wszystko działa natywnie
+  w Enigmie; bez przeglądarki i dodatkowego środowiska odtwarzania.
+- Miniatury Ekino pobierane są dopiero po zatrzymaniu zaznaczenia na pozycji,
+  w osobnym procesie. Pamięć podręczna w /tmp przechowuje do 64 plików po 256 KiB.
+  Brak lub błąd okładki nie blokuje katalogu ani filmu.
+- Każda nowa lista rozpoczyna się od pierwszej pozycji. Powrót EXIT przywraca
+  zaznaczenie w poprzedniej liście.
+- Osobne odnośniki tego samego dostawcy nie są już pomijane; kolejne mają numer.
+  Identyfikatory sesji nie są zapisywane, a wybrany odnośnik odtwarzamy po świeżym
+  pobraniu strony filmu.
+- Poprawiono odczyt spakowanych ciągów JS MixDrop z cytatami oraz zakłóceń VOE,
+  zwykłych adresów HLS i nagłówków końcowej domeny. Rozpakowywanie nie wykonuje JS.
+- Dodano próbny parser SST/HTML5/Playerjs dla wrzucaj i shvid. Nie jest to gwarancja
+  obsługi wszystkich ich odtwarzaczy. Upzone nadal nie jest obsługiwane.
+
+**Stan dodatkowych źródeł:** podczas sprawdzenia normalnych odnośników Ekino dla
+VOE, MixDrop, wrzucaj i shvid serwer zwrócił HTTP 403 / Cloudflare, zanim możliwe
+było otwarcie ich odtwarzaczy. Nie potwierdzamy odtwarzania tych źródeł na żywo.
+Poprawki parserów sprawdzono na kontrolowanych odpowiedziach. Wtyczka wyświetla
+teraz czytelną przyczynę odmowy, zamiast sugerować, że brak jest wariantów filmu.
+Działanie może różnić się pomiędzy źródłami, tytułami i połączeniami użytkowników.
+W raporcie /tmp/mk_ekino_report.json jest też nazwa wybranego dostawcy.
+
+Nowy wygląd wymaga sprawdzenia na rzeczywistym SF8008. Testy obejmują API okien
+OpenATV 7.4, granice elementów skinu, wybór pozycji, obsługę EXIT oraz cykl pobrania
+okładki, zmianę zaznaczenia i zamknięcie okna podczas pracy w tle. Biblioteka ARM
+przyspieszająca player pozostaje identyczna jak w działającej 0.1.2/0.1.3.
 
 ## Zmiany 0.1.3
 
@@ -58,10 +89,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-Przenieś `MK_Ekino_E2_0.1.3.ipk` do `/tmp` dekodera:
+Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.4, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.4.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.3.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.4.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła

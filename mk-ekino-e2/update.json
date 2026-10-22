@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.1.3",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.3.ipk",
-  "size": 152444,
-  "sha256": "83598586cff624fced8407a4f90ddcb97695b1c48871e18361c72d712af89177",
-  "notes": "EXIT kończy film i wraca do Ekino. Oceny i liczba głosów z Ekino. Niebieski: aktualizacja wtyczki."
+  "version": "0.1.4",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.4.ipk",
+  "size": 155566,
+  "sha256": "d0ff23046ddfe923f8db66493988217f1917832d875721bc30d6867f08c3eeba",
+  "notes": "Nowy wygląd z okładkami, oceną i opisem. Nowe listy zaczynają się od pierwszej pozycji. Poprawki VOE i MixDrop, próbna obsługa wrzucaj/shvid; serwer może blokować dodatkowe źródła."
 }
