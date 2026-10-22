@@ -150,6 +150,24 @@ OpenATV 7.4. Nie zastępują testu nowego pakietu na urządzeniu.
 Zachowano poprawki 0.1.1: metoda związana z ekranem w onLayoutFinish, bez kolizji
 z dict.items(), odłączanie callbacków przed usunięciem stanu ekranu przez OpenATV.
 
+## Test dodatkowych źródeł na dekoderze
+
+Jeżeli player działa, a inne źródła nie, jednorazowy test można wykonać bez
+instalowania nowej wersji wtyczki:
+
+```sh
+wget -O /tmp/mk_ekino_source_probe.py https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/tools/source_probe.py
+python3 /tmp/mk_ekino_source_probe.py
+```
+
+Test używa zainstalowanych modułów MK Ekino, wyszukuje przykładowy tytuł i bada
+wrzucaj, shvid, VOE oraz MixDrop. Raport `/tmp/mk_ekino_sources_report.json`
+zawiera etapy HTTP, nazwy hostów i rozpoznane formaty strony. Nie zapisuje
+pełnych adresów źródeł, cookies, kluczy ani kont. Nie zmienia konfiguracji.
+Po znalezieniu wariantu wykonuje ograniczony odczyt do 2048 bajtów z serwera
+wideo. `MEDIA_REACHABLE` potwierdza dostęp do bajtów wideo; nie jest potwierdzeniem
+obrazu i dźwięku w natywnym odtwarzaczu. `BLOCKED` oznacza odmowę na danym etapie.
+
 ## Dane i diagnostyka
 
 Historia: `/etc/mk-ekino-e2/history.json`. Krótka weryfikacja źródła:
