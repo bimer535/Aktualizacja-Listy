@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.1",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.1.ipk",
-  "size": 214230,
-  "sha256": "95e1db4a55b06d1c7fcefecba09231a586b8bcce960b992d33c283e8f798e972",
-  "notes": "MENU → Autor i kontakt: MK, bimer55@wp.pl i kod QR do e-maila. Podczas filmu OK przełącza pauzę i odtwarzanie."
+  "version": "0.2.2",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.2.ipk",
+  "size": 214528,
+  "sha256": "ab564187e7aa649acf72733b6fe450b5104f063ce8c9d753e6822e0671e05eaf",
+  "notes": "Żółty: przełączanie lista/kafelki. Stała podpowiedź MENU: opcje, ulubione i kontakt. MENU działa także w kafelkach; odświeżanie przeniesiono do opcji."
 }

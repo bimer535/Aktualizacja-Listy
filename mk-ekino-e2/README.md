@@ -1,8 +1,23 @@
-# MK Ekino E2 0.2.1
+# MK Ekino E2 0.2.2
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.2
+
+- **Żółty: Lista / kafelki** zamiast odświeżania. W liście otwiera kafelki,
+  w kafelkach wraca do listy, zachowując zaznaczoną pozycję. Ustawienie jest
+  zapisywane. W menu kategorii żółty ustawia preferencję kolejnej listy filmów.
+- Stała podpowiedź **MENU: opcje, ulubione i kontakt**, widoczna także po zmianie
+  tekstu statusu. Kafelki mają dodatkową podpowiedź o żółtym i MENU.
+- MENU w kafelkach otwiera opcje wybranej pozycji. Zamknięcie opcji lub ekranu
+  kontaktu/licencji wraca do kafelków. Odświeżanie listy przeniesiono do MENU.
+- Napisy pozostawiono poza tym wydaniem zgodnie z decyzją użytkownika.
+
+Sprawdzenie lokalne: testy GUI, funkcji oglądania i warstw skinu; dodatkowo cykl
+żółty → kafelki → żółty → lista z zachowaniem pozycji, MENU z kafelków i powrót
+po anulowaniu oraz usunięcie ostatniej pozycji z ulubionych bez podwójnego okna.
 
 ## Zmiany 0.2.1
 
@@ -213,16 +228,16 @@ z rzeczywistego pliku IPK, co zapobiega rozbieżności wersji i sumy kontrolnej.
 
 Filmy według kategorii, języka i roku; seriale, sezony i odcinki; wyszukiwanie;
 lokalna historia; wybór źródła, języka i jakości z manifestu. Zielony: wyszukaj,
-żółty: odśwież, niebieski: aktualizacja. INFO/MENU: informacje i licencja. Odtwarzanie przez MoviePlayer.
+żółty: lista/kafelki, niebieski: aktualizacja. MENU: opcje i odświeżanie. INFO/MENU: informacje i licencja. Odtwarzanie przez MoviePlayer.
 Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu.
 
 ## Instalacja
 
-W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.2.1, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.2.1.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.2.2, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.2.2.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.2.1.ipk
+opkg install /tmp/MK_Ekino_E2_0.2.2.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
