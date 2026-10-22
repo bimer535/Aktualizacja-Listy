@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.1.6",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.6.ipk",
-  "size": 204134,
-  "sha256": "4661d2cc3fc790bba67915c7246c3dec10e3403046ecf409f2f81f34f1e9811e",
-  "notes": "Nowa czytelna ikona MK Ekino oraz większe okładki 200×300 i szerszy panel szczegółów."
+  "version": "0.1.7",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.1.7.ipk",
+  "size": 204274,
+  "sha256": "2f1024912a40b6de79a2a890d4e8c47352d4991a303bf092a69a999cd13c3226",
+  "notes": "Naprawa błędu TypeError przy otwieraniu VOE: metadane napisów nie trafiają do nagłówków HTTP. MIX przeszedł test dostępu do danych wideo na SF8008."
 }

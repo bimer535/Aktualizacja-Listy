@@ -1,8 +1,24 @@
-# MK Ekino E2 0.1.6
+# MK Ekino E2 0.1.7
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.1.7
+
+- Naprawiono TypeError w VOE podczas pobierania manifestu HLS. Metadane adresu
+  zawierały listę napisów external_sub_tracks, przekazywaną omyłkowo jako nagłówek
+  HTTP. Teraz zapytanie zawiera tylko tekstowe User-Agent, Referer, Origin i Accept;
+  informacje o napisach pozostają w metadanych wariantów odtwarzania.
+- Test regresji odtwarza ten błąd prawdziwym serializerem nagłówków Python 3.12,
+  zarówno dla pustej, jak i niepustej listy napisów. Sprawdza pobranie wariantów
+  HLS i zachowanie napisów oraz nagłówków Referer/Origin po poprawce.
+- Test użytkownika na SF8008 potwierdził MEDIA_REACHABLE dla MIX (MixDrop) przy
+  filmie „Król dopalaczy”: odczytano bajty wideo z serwera. Nie potwierdza to jeszcze
+  obrazu i dźwięku w MoviePlayer. MIX można już wybrać na liście źródeł.
+- W tym samym teście wrzucaj zwróciło HTTP 521, a shvid nie zwróciło wariantów.
+  Obsługa tych przypadków nie została potwierdzona. VOE po poprawce wymaga testu
+  na dekoderze. Upzone nadal nie jest obsługiwane.
 
 ## Zmiany 0.1.6
 
@@ -54,7 +70,7 @@ niebieskim przyciskiem. Zainstaluj 0.1.5 i uruchom ponownie interfejs Enigma2.
 - Dodano próbny parser SST/HTML5/Playerjs dla wrzucaj i shvid. Nie jest to gwarancja
   obsługi wszystkich ich odtwarzaczy. Upzone nadal nie jest obsługiwane.
 
-**Stan dodatkowych źródeł:** podczas sprawdzenia normalnych odnośników Ekino dla
+**Stan podczas wydania 0.1.4 (zaktualizowany powyżej w 0.1.7):** podczas sprawdzenia normalnych odnośników Ekino dla
 VOE, MixDrop, wrzucaj i shvid serwer zwrócił HTTP 403 / Cloudflare, zanim możliwe
 było otwarcie ich odtwarzaczy. Nie potwierdzamy odtwarzania tych źródeł na żywo.
 Poprawki parserów sprawdzono na kontrolowanych odpowiedziach. Wtyczka wyświetla
@@ -121,11 +137,11 @@ Nie jest wymagane logowanie do Ekino. Dostępność źródeł zależy od serwisu
 
 ## Instalacja
 
-Na działającej 0.1.3 wybierz niebieski → OK → zainstaluj 0.1.6, a następnie
-zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.6.ipk` do `/tmp` dekodera:
+W wersji 0.1.3 lub nowszej wybierz niebieski → OK → zainstaluj 0.1.7, a następnie
+zrestartuj interfejs Enigma2. Ręcznie: przenieś `MK_Ekino_E2_0.1.7.ipk` do `/tmp` dekodera:
 
 ```sh
-opkg install /tmp/MK_Ekino_E2_0.1.6.ipk
+opkg install /tmp/MK_Ekino_E2_0.1.7.ipk
 ```
 
 Zrestartuj interfejs Enigma2, otwórz MK Ekino E2 i sprawdź ten sam film ze źródła
@@ -141,8 +157,9 @@ hasha i wyszukiwaniu wyniku. Zbudowaną bibliotekę ARM sprawdzono w emulatorze 
 Lokalny pomiar na komputerze potwierdza przyspieszenie samych obliczeń; nie jest
 pomiarem SF8008 ani pełnego czasu otwierania filmu. Nie mamy liczbowego pomiaru porównawczego prywatnego E2i. Sieć i serwer nadal mogą wydłużać pierwszą weryfikację.
 
-VOE i MixDrop sprawdzono na kontrolowanych odpowiedziach, bez potwierdzenia
-rzeczywistego odtwarzania na dekoderze. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
+VOE sprawdzono na kontrolowanych odpowiedziach, w tym przez rzeczywisty serializer
+nagłówków HTTP. Na SF8008 MixDrop przeszedł ograniczony odczyt danych wideo
+(MEDIA_REACHABLE), ale nie potwierdzono jeszcze obrazu i dźwięku w MoviePlayer. Nowe oceny porównano z bieżącym HTML Ekino. Testy lokalne obejmują cykl
 aktualizacji i błędy sumy kontrolnej, wersji oraz instalatora, obsługę EXIT, odrzucenie starej
 weryfikacji, zakresy MP4, HLS, wybraną ścieżkę audio, anulowanie oraz API okien
 OpenATV 7.4. Nie zastępują testu nowego pakietu na urządzeniu.
