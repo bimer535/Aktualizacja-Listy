@@ -1,0 +1,9 @@
+{
+  "applicationId": "pl.mk.ekino.tv",
+  "version": "0.1.0",
+  "versionCode": 1,
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.0.apk",
+  "size": 37350794,
+  "sha256": "d877d082d8dab148a328d4638d0e89ddc84134af4083b0a1b1039bc1d3462b56",
+  "notes": "Pierwsza wersja MK Ekino TV: katalog z E2, Player/VOE/Mix, filtry, kafelki, oceny, ulubione, wznawianie i następny odcinek."
+}
