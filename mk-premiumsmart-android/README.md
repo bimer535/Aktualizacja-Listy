@@ -1,11 +1,27 @@
-# MK PremiumSmart TV 0.1.0
+# MK PremiumSmart TV 0.1.1
 
 Pierwsza testowa aplikacja MK na Android TV, bez konta PremiumSmart.
 Android 7.0+ (API 24), ARM 32- i 64-bitowy. Pakiet pl.mk.premiumsmart.tv.
 Może być zainstalowana obok aplikacji eu.premiumsmart.tv.
-Podpisany instalator APK (około 36 MB) został przekazany osobno w czacie.
-Publikacja pliku APK na GitHub nie została ukończona. Aktualizacja w aplikacji
-będzie dostępna po opublikowaniu APK i update.json; obecnie instalacja jest ręczna.
+Podpisany APK przekazano osobno w czacie. Publikacja APK i manifestu aktualizacji
+na GitHub nie jest ukończona; tę wersję należy zainstalować ręcznie na poprzedniej.
+
+## Zmiany 0.1.1
+
+- Natywny transport wideo Media3/OkHttp zamiast przesyłania filmu przez Pythona.
+  Obsługa HTTP/2, połączeń wielokrotnego użytku, zakresów bajtów i przewijania MP4.
+- Jawny format HLS również dla adresów bez rozszerzenia oraz manifestów/segmentów
+  serwowanych przez hosting z nietypowymi końcówkami lub Content-Type.
+- Oryginalna playlista HLS pozwala adaptować jakość do łącza i obsługi dekodera.
+  Tryb automatyczny ogranicza górną rozdzielczość do najlepszego wybranego wariantu;
+  ręczny wybór ogranicza rozdzielczość i preferuje najwyższy obsługiwany bitrate.
+- Nagłówki i cookies sesji źródła trafiają do natywnego transportu. Cookies mają
+  zachowane ograniczenia domeny, hosta, ścieżki, HTTPS i terminu ważności.
+- Bufor docelowy 30–90 sekund, próg startu 3 s i wznowienia po buforowaniu 6 s,
+  z limitem docelowym danych 64 MiB. Alternatywny dekoder przy błędzie inicjalizacji.
+- Widoczny stan buforowania; komunikaty odtwarzacza zawierają kod błędu i HTTP,
+  bez adresów wideo, cookies ani tokenów.
+- Archiwum źródeł zawiera również brakujący wcześniej app/build.gradle.
 
 ## Funkcje
 
@@ -51,14 +67,19 @@ Wypróbuj także Vidara, jeśli inny serwer jest niedostępny.
 - Zbudowany podpisany APK release, poprawny podpis v2 i v3; osobny klucz MK.
 - Android Lint: 0 błędów. Ostrzeżenia obejmują m.in. teksty wyłącznie po polsku,
   celowy układ poziomy TV i nowsze dostępne wersje bibliotek.
-- 19 testów Python: katalog, źródła, języki, stronicowanie, historia,
-  ulubione, wznawianie i ukończenie, ustawienia, jawny start źródła, lokalny relay.
+- 24 testy Python: katalog, źródła, języki, stronicowanie, historia,
+  ulubione, wznawianie i ukończenie, ustawienia, jawny start źródła, format HLS bez rozszerzenia, przekierowania i deskryptory natywne.
+- 3 testy Java: ograniczenia cookies domena/host/ścieżka/HTTPS, segmenty na
+  subdomenach oraz wymiana i wygasanie cookies odpowiedzi.
 - Cztery wektory Java Pow zgodne bit w bit z oryginalnym kodem C MK;
   osobno sprawdzono przerwanie obliczeń.
-- Test na żywo bez konta: pobranie 52 pozycji dla rocznika 2026 / Lektor PL,
-  dwa warianty Vidara oraz próbka MPEG-TS przez lokalny przekaźnik HTTP aplikacji.
-- Nie potwierdzono jeszcze uruchomienia interfejsu, obrazu i dźwięku na Nokii
-  ani innym fizycznym urządzeniu Android TV. To wersja do pierwszego testu.
+- Test na żywo bez konta: pobranie 51 pozycji dla rocznika 2026 / Lektor PL,
+  dwa warianty Vidara i próbka MPEG-TS (HTTP 206, 65 536 bajtów).
+  VidsST zwracał HTTP 503, a StreamTape stronę Site Unavailable. Abyss
+  zwrócił warianty, ale pobranie próbki z tego środowiska otrzymało HTTP 403.
+- Użytkownik uruchomił wersję 0.1.0 na Android TV: działał Byse, Abyss klatkował.
+  Poprawiona wersja 0.1.1 wymaga ponownego sprawdzenia obrazu i dźwięku na Nokii;
+  nie deklarujemy działania niedostępnych serwerów źródeł.
 
 ## Dane i połączenia
 
@@ -67,19 +88,20 @@ Historia, ulubione i postęp są w prywatnym katalogu aplikacji. Krótkotrwały
 cache weryfikacji źródeł jest zapisywany w prywatnym cache, z uprawnieniami 0600.
 Nie ma wspólnego serwera MK, komputera pośredniczącego ani zależności od Enigmy.
 
-Odtwarzacz Media3 łączy się tylko z lokalnym przekaźnikiem 127.0.0.1 na
-losowym porcie i z losowym tokenem. Przekaźnik zachowuje nagłówki i sesję źródła,
-wybrane audio/wideo oraz względne linki HLS. Pozostałe połączenia są HTTPS.
+Odtwarzacz Media3 pobiera wideo, playlisty i napisy bezpośrednio przez HTTPS
+korzystając z OkHttp. Python obsługuje katalog i uzyskanie adresu źródła,
+ale nie przenosi bajtów filmu. Natywny klient zachowuje nagłówki źródła oraz
+domenowe cookies sesji; są one trzymane wyłącznie w pamięci odtwarzania.
 Sesje i tymczasowe adresy filmów nie są wyświetlane w interfejsie ani raportach.
 Kopia chmurowa i przenoszenie danych są wyłączone w manifeście.
 
 ## Budowanie i źródła
 
 JDK 17, Android SDK 35 / Build Tools 35.0.0, Python 3.11 i Gradle 8.11.1.
-AGP 8.9.2, Chaquopy 16.1.0, PyCryptodome 3.21.0, Media3 1.6.1.
+AGP 8.9.2, Chaquopy 16.1.0, PyCryptodome 3.21.0, Media3 1.6.1, OkHttp 4.12.0.
 
 ```sh
-./gradlew :app:assembleDebug :app:lintDebug
+./gradlew :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
 python3 -m unittest discover -s tests -q
 ```
 
@@ -90,7 +112,7 @@ osobno, prywatnie; nie ma go w repozytorium ani archiwum kodu.
 Zmiana klucza podpisu uniemożliwia aktualizację wcześniej zainstalowanej aplikacji.
 
 Całość kodu, zasoby, wrapper Gradle, testy i oryginalne referencje są w pliku
-MK_PremiumSmart_TV_0.1.0_source.zip. Narzędzia pobrane do budowania nie są
+MK_PremiumSmart_TV_0.1.1_source.zip. Narzędzia pobrane do budowania nie są
 dołączane do źródeł ani do APK, poza runtime Android/Python wymaganym w aplikacji.
 
 GPL-3.0-only dla kodu MK i publicznych adapterów E2i. Licencje zależności w
