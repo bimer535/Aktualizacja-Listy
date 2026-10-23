@@ -1,8 +1,20 @@
-# MK Ekino E2 0.2.7
+# MK Ekino E2 0.2.8
 
-Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
+Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV oraz Zgemma H9 / OpenPLi 9.2.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.8 — uruchamianie filmu na OpenPLi 9.2
+
+- Poprawiono TypeError: unexpected keyword argument 'fromMovieSelection',
+  zgłoszony w logu OpenPLi 9.2 / Enigma 65dc393 na Zgemma H9.
+- Przed inicjalizacją odtwarzacza sprawdzamy jego sygnaturę. Parametr
+  fromMovieSelection=False trafia do OpenATV, a jest pomijany dla OpenPLi,
+  którego MoviePlayer przyjmuje session, service, slist, lastservice, infobar.
+- Konstruktor uruchamiany jest raz, bez ponawiania po TypeError.
+  Zachowano poprawkę nazw fragmentów HLS i instalację zależności z 0.2.7.
+- Testy regresji używają konstruktorów o sygnaturach obu systemów.
+  Uruchomienie na fizycznym odbiorniku OpenPLi wymaga sprawdzenia użytkownika.
 
 ## Zmiany 0.2.7 — automatyczna instalacja odtwarzacza
 

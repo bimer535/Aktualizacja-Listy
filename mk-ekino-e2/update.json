@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.7",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.7.ipk",
-  "size": 217430,
-  "sha256": "2271b38efa5bfa779ec58708ee2406d492f0576da6f67540c37eae467fc8d4eb",
-  "notes": "Instalator pobiera ServiceApp i exteplayer3 jako zależności z repozytorium systemu. Na nowej instalacji eKino domyślnie używa exteplayer3 (5002). Zapisany wybór pozostaje bez zmian. Po instalacji wymagany restart GUI."
+  "version": "0.2.8",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.8.ipk",
+  "size": 217650,
+  "sha256": "69433b132d9d4faad7ac0ce5aa9323972be439920afc51c5fee132370c161151",
+  "notes": "Poprawka awarii OpenPLi 9.2 przy uruchamianiu filmu: parametr fromMovieSelection jest przekazywany tylko odtwarzaczom, które go obsługują. Zachowano obsługę OpenATV, poprawkę HLS oraz zależności ServiceApp i exteplayer3."
 }
