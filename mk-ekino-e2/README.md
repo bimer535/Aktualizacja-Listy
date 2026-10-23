@@ -1,8 +1,30 @@
-# MK Ekino E2 0.2.2
+# MK Ekino E2 0.2.3
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.3
+
+- HLS jest rozpoznawany po treści #EXTM3U także wtedy, gdy hosting nie podaje
+  rozszerzenia .m3u8 ani poprawnego Content-Type. Adresy zasobów w takiej
+  playliście są przepisywane na lokalny przekaźnik.
+- Lokalne adresy playlist audio/wideo mają rozszerzenie .m3u8. Nie przekazujemy
+  nagłówka Range dla znanych playlist, aby nie pobierać ich w urwanych częściach.
+- Fragmenty MPEG-TS i MP4 mają prawidłowy typ MIME również przy błędnym typie
+  text/css lub image/* zwracanym przez CDN. Czytanie danych używa read1,
+  gdy jest dostępne, zamiast czekać na zapełnienie całego bloku 64 KiB.
+- Względne adresy wariantów i audio są liczone od adresu playlisty po
+  przekierowaniu HTTP. Błąd po rozpoczęciu transmisji nie dopisuje strony HTML
+  do fragmentu filmu.
+- /tmp/mk_ekino_report.json jest odświeżany podczas odtwarzania. Zawiera
+  selected_variant i relay: liczbę żądań, playlist, przesłanych bajtów,
+  błędów oraz ostatni HTTP status i typ treści. Nie zapisuje adresów strumieni,
+  tokenów ani cookies. RELAY_READY nadal nie oznacza potwierdzenia obrazu.
+
+Sprawdzenie: 89 testów lokalnych, w tym prawdziwe żądania HTTP do przekaźnika
+z playlistą bez rozszerzenia, segmentami o błędnym MIME i błędem upstream 403.
+Nie potwierdzono obrazu na fizycznym dekoderze; wydanie wymaga próby odbiornika.
 
 ## Zmiany 0.2.2
 
