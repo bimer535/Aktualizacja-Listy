@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkpremiumsmarte2",
-  "version": "0.1.0",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-e2/packages/MK_PremiumSmart_E2_0.1.0.ipk",
-  "size": 213656,
-  "sha256": "845d38fb1d35512bcbce123825cb9d703ab12dd63b05cfe56cc547fe5e5eb09d",
-  "notes": "Pierwsze wydanie MK PremiumSmart E2: filmy i seriale, wybór rocznika i wersji (Lektor PL/AI, dubbing), kafelki, ulubione i wznawianie. Osobna wtyczka, bez E2i."
+  "version": "0.1.1",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-e2/packages/MK_PremiumSmart_E2_0.1.1.ipk",
+  "size": 218832,
+  "sha256": "eea932840e32762adb97cdd636b4b2390436536b6527da32f2fedfe144400543",
+  "notes": "Film czeka na OK na wybranym źródle. Osobne parsery Vidara, VidsST i Abyss; czytelne błędy połączenia. Nowa kwadratowa ikona MK PremiumSmart i informacja w miejscu pustej okładki. Po instalacji uruchom ponownie interfejs Enigma2."
 }

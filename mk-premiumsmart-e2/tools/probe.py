@@ -35,10 +35,13 @@ def media_check(client,option):
     return result
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--year');parser.add_argument('--version',default='Lektor PL');parser.add_argument('--media',action='store_true');parser.add_argument('--provider',choices=['byse','streamtape','voe','mix']);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--year');parser.add_argument('--version',default='Lektor PL');parser.add_argument('--media',action='store_true');parser.add_argument('--provider',choices=['byse','vidara','vidsst','abyss','streamtape','voe','mix']);parser.add_argument('--title-id',type=int);args=parser.parse_args()
     client=resolver.Http();report={'video_playback_tested':False,'account_files_read':False}
     try:
-        entries=catalogue.browse(client,{'action':'movies','kind':'filmy','year':args.year,'version':args.version,'order':'release_date:desc'})
+        if args.title_id:
+            if args.title_id<1:raise ValueError('invalid_title_id')
+            entries=[{'action':'sources','title':'Film','url':catalogue.API+'titles/'+str(args.title_id),'version':args.version,'year':'' ,'language_version':args.version}]
+        else:entries=catalogue.browse(client,{'action':'movies','kind':'filmy','year':args.year,'version':args.version,'order':'release_date:desc'})
         movies=[entry for entry in entries if entry.get('action')=='sources']
         report.update(status='CATALOGUE_OK',movie_count=len(movies),years=sorted(set(e['year'] for e in movies)),versions=sorted(set(e['language_version'] for e in movies)))
         if movies:

@@ -1,4 +1,11 @@
-# MK PremiumSmart E2 0.1.0
+# MK PremiumSmart E2 0.1.1
+
+Wersja 0.1.1: kwadratowa ikona z napisem MK PremiumSmart oraz czytelna informacja
+„Wybierz film lub serial — tutaj pojawi się okładka” w pustym polu okładki w menu.
+Film otwiera listę źródeł i czeka na OK. Naprawiono rozpoznawanie Vidary (własne
+API StreamUp zamiast Byse), dodano parsery VidsST i Abyss oraz komunikaty o błędach
+połączenia i niedostępności serwera. Zapisane ustawienie automatu dotyczy teraz
+wyłącznie wyboru jakości po ręcznym wskazaniu źródła.
 
 Samodzielna wtyczka Enigma2 / Python 3 dla Octagon SF8008 i OpenATV 7.x,
 oparta na publicznym hoście premiumsmart.eu oraz interfejsie MK Ekino E2 0.2.2.
@@ -25,9 +32,9 @@ Nie wymaga instalacji E2iPlayera ani MK Ekino. Nie modyfikuje MK Ekino ani MK Ca
   historia, ulubione i kontynuowanie oglądania. Wznawianie zależy od obsługi seek
   przez strumień; pozycja jest zapisywana pod adresem katalogu, a nie strumienia.
 - Okładki i oceny z danych serwisu. Lista i cztery duże kafelki.
-- Źródła: Byse/Vidara, VOE, MixDrop, StreamTape (bez wykonywania JS) oraz
-  bezpośrednie MP4/HLS lub proste HTML5. Odtwarzacze wymagające innych resolverów,
-  np. niektóre warianty Abyss/FlyFile, mogą nie zwrócić wariantów. Dostępność
+- Źródła: Byse, Vidara/StreamUp, VidsST, Abyss, VOE, MixDrop, StreamTape
+  (bez wykonywania JS) oraz bezpośrednie MP4/HLS lub proste HTML5.
+  Odtwarzacze wymagające innych resolverów, np. FlyFile, mogą nie zwrócić wariantów. Dostępność
   zależy od serwisu, źródła i sieci. Testy lokalne nie potwierdzają obrazu na TV.
 
 ## Pilot
@@ -37,15 +44,16 @@ i wraca do wtyczki. Zielony: wyszukaj. Żółty: lista / kafelki. Niebieski
 w przeglądarce: aktualizacja; podczas odcinka: następny odcinek.
 MENU: opcje, ulubione, odświeżanie, widok, tryb automatyczny, Autor i kontakt.
 INFO: informacje i licencja. Kontakt: MK, bimer55@wp.pl, kod QR do e-maila.
-Domyślny automat preferuje Lektor PL i Byse oraz najlepszą dostępną jakość.
-Można go wyłączyć w MENU i wybierać źródło/jakość ręcznie.
+Źródła są uporządkowane z preferencją Lektor PL i Byse. Film rusza dopiero po OK
+na źródle. Domyślnie wybierana jest najlepsza dostępna jakość i polska ścieżka;
+w MENU można włączyć ręczny wybór języka i jakości.
 
 ## Instalacja
 
-Pobierz MK_PremiumSmart_E2_0.1.0.ipk do /tmp dekodera:
+Pobierz MK_PremiumSmart_E2_0.1.1.ipk do /tmp dekodera:
 
 ```sh
-opkg install /tmp/MK_PremiumSmart_E2_0.1.0.ipk
+opkg install /tmp/MK_PremiumSmart_E2_0.1.1.ipk
 ```
 
 Uruchom ponownie interfejs Enigma2. Pakiet wymaga enigma2, Python 3, ctypes,
@@ -68,10 +76,17 @@ jednego filmu z 2020 przeszła weryfikację serwera, ale CDN zwrócił stronę H
 „Site Unavailable” zamiast manifestu. Dla innego filmu Byse i StreamTape nie
 zwróciły wariantów. Przyczyna różnicy między sieciami nie została potwierdzona.
 To pierwsze wydanie testowe: nie potwierdzono obrazu i dźwięku na rzeczywistym
-SF8008. 35 testów lokalnych sprawdza katalog, filtry, interfejs i aktualizator.
+SF8008. 39 testów lokalnych sprawdza katalog, filtry, interfejs i aktualizator.
 Osobno udostępniono tools/probe.py, który sprawdza katalog oraz opcjonalnie
 warianty i ograniczony odczyt danych wideo.
 MEDIA_REACHABLE oznacza bajty wideo, nie potwierdzenie pracy natywnego odtwarzacza.
+
+Weryfikacja 0.1.1 dla „Łączy nas krew” (id 1195929): Vidara zwróciła dwa
+warianty HLS; ograniczony odczyt segmentu potwierdził MPEG-TS, HTTP 206.
+VidsST zwrócił HTTP 503, StreamTape stronę „Site Unavailable”. Abyss udostępnił
+dane odtwarzacza, ale próba odczytu wideo zakończyła się HTTP 403. Są to wyniki
+z sieci testowej; dostępność na dekoderze może być inna. Film z Byse działa
+według potwierdzenia użytkownika. Nie zmieniono parsera Byse.
 
 ```sh
 wget -O /tmp/mk_premiumsmart_probe.py https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-e2/tools/probe.py
@@ -92,6 +107,8 @@ Nie zawiera prywatnego PE2I ani jego loadera.
 
 Budowanie: python3 tools/build_ipk.py. Testy: python3 -m unittest discover -s tests -v.
 Budowanie biblioteki ARM: tools/build_native.py (Zig 0.14.1, tylko w środowisku budowania).
-Runtime kompilatora: MIT, THIRD_PARTY.txt. Ikona MK i QR kontaktu wykorzystane
-z własnych materiałów MK Ekino; QR to mailto:bimer55@wp.pl.
+Runtime kompilatora: MIT, THIRD_PARTY.txt. Ikona MK PremiumSmart powstała przez
+edycję własnej ikony MK w narzędziu imagegen: zastąpienie napisu EKINO dwoma
+wierszami PREMIUM i SMART, z zachowaniem MK, turkusowego przycisku i ramki.
+Plik ikony: src/MKPremiumSmartE2/icon.png. QR to mailto:bimer55@wp.pl.
 Pełny kod, testy i referencje są publikowane w sąsiednim pliku _source.zip.
