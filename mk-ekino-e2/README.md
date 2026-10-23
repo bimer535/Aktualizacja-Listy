@@ -1,8 +1,23 @@
-# MK Ekino E2 0.2.5
+# MK Ekino E2 0.2.6
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.6 — poprawka nazw zasobów HLS
+
+- Lokalne adresy fragmentów HLS mają rozszerzenia mediów zamiast samych liczb.
+  Nowszy FFmpeg odrzucał nazwy /0, /1 przez allowed_segment_extensions,
+  zanim próbował pobrać jakiekolwiek dane filmu. Playlisty pozostają .m3u8,
+  MPEG-TS ma .ts, fMP4 z EXT-X-MAP ma .m4s, plik inicjalizacji .mp4,
+  a zasoby wskazane przez EXT-X-KEY .key.
+- Rozpoznane rozszerzenia audio/wideo są zachowywane. Zasoby o maskowanych
+  nazwach CSS/obrazów otrzymują lokalnie rozszerzenie mediów. Upstream URL
+  pozostaje niezmieniony; nie wyłączamy kontroli rozszerzeń w FFmpeg.
+- Odtworzono problem na rzeczywistym FFmpeg 8.0: poprzedni relay kończył się
+  błędem allowed_segment_extensions i zerem bajtów mediów. Po poprawce ten
+  sam test odczytuje strumienie H.264 i AAC. Dodatkowo testujemy fMP4 i
+  zachowanie zasobów playlisty. Fizyczny SF8008 wymaga próby użytkownika.
 
 ## Zmiany 0.2.5 — diagnostyka przerwanego startu
 

@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.5",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.5.ipk",
-  "size": 217042,
-  "sha256": "de98b2c44482c02a8b0c8fbc7e2a57a505a885db8e30f1787480ca2287710ce2",
-  "notes": "Wydanie diagnostyczne: komunikat przy przerwaniu przed startem filmu, raport odtwarzacza /tmp/mk_ekino_player.json i końcowe statystyki przekaźnika. Nie potwierdzono naprawy obrazu na dekoderze."
+  "version": "0.2.6",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.6.ipk",
+  "size": 217408,
+  "sha256": "26150ba4d7965e3075bec2462db953b5653ef0670a94bd3ff2e1fa06b17b9025",
+  "notes": "Poprawka HLS dla nowszego FFmpeg/exteplayer3: lokalne fragmenty mają rozszerzenia .ts/.m4s zamiast adresów bez rozszerzenia. Usuwa odtworzony błąd allowed_segment_extensions przed pobraniem filmu."
 }
