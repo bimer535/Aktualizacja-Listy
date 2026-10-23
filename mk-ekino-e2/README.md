@@ -1,8 +1,22 @@
-# MK Ekino E2 0.2.4
+# MK Ekino E2 0.2.5
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.5 — diagnostyka przerwanego startu
+
+- Natychmiastowy sygnał EOF z odtwarzacza pokazuje komunikat o przerwanym
+  uruchomieniu filmu zamiast samego cichego powrotu do listy.
+- /tmp/mk_ekino_player.json zapisuje etap, typ odtwarzacza, czas od startu,
+  pozycję i długość, dostępne wymiary oraz kategorię błędu zgłoszonego przez
+  natywny serwis Enigmy. Nie zapisuje treści błędu, adresów, cookies ani tokenów.
+- Przekaźnik zapisuje raport przed przekazaniem adresu GUI oraz po zamknięciu
+  (RELAY_STOPPED), aby nie tracić statystyk sesji krótszej niż dwie sekundy.
+- To wydanie diagnostyczne; nie potwierdzono naprawy obrazu na fizycznym dekoderze.
+
+Po próbie filmu odczytaj oba raporty:
+`cat /tmp/mk_ekino_player.json /tmp/mk_ekino_report.json`.
 
 ## Zmiany 0.2.4
 

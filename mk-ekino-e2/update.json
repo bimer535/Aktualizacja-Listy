@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.4",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.4.ipk",
-  "size": 215780,
-  "sha256": "57245b4a04ae7071efce8cf634d5325d0b297bcbf796a5f0d61201b2ae236a01",
-  "notes": "MENU: wybór odtwarzacza standardowego (4097) lub exteplayer3 (5002) tylko dla MK Ekino. exteplayer3 wymaga ServiceApp i restartu GUI. Raport zawiera wybrany typ odtwarzacza."
+  "version": "0.2.5",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.5.ipk",
+  "size": 217042,
+  "sha256": "de98b2c44482c02a8b0c8fbc7e2a57a505a885db8e30f1787480ca2287710ce2",
+  "notes": "Wydanie diagnostyczne: komunikat przy przerwaniu przed startem filmu, raport odtwarzacza /tmp/mk_ekino_player.json i końcowe statystyki przekaźnika. Nie potwierdzono naprawy obrazu na dekoderze."
 }
