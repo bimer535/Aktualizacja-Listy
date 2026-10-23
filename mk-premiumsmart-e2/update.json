@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkpremiumsmarte2",
-  "version": "0.1.1",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-e2/packages/MK_PremiumSmart_E2_0.1.1.ipk",
-  "size": 218832,
-  "sha256": "eea932840e32762adb97cdd636b4b2390436536b6527da32f2fedfe144400543",
-  "notes": "Film czeka na OK na wybranym źródle. Osobne parsery Vidara, VidsST i Abyss; czytelne błędy połączenia. Nowa kwadratowa ikona MK PremiumSmart i informacja w miejscu pustej okładki. Po instalacji uruchom ponownie interfejs Enigma2."
+  "version": "0.1.2",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-e2/packages/MK_PremiumSmart_E2_0.1.2.ipk",
+  "size": 228510,
+  "sha256": "89346dafd73a0bab04faf8fcb93728f42194850daade5759031142ae684b6ec3",
+  "notes": "Nowa kwadratowa ikona MK. Działanie odtwarzania pozostaje bez zmian. Po aktualizacji uruchom ponownie interfejs Enigma2."
 }

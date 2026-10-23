@@ -1,3 +1,16 @@
+# MK PremiumSmart TV 0.1.3
+
+Nowa zielona kwadratowa ikona MK PremiumSmart. Jest to aktualizacja zasobów
+podpisanego APK 0.1.2; zachowuje jego odtwarzanie i alternatywny odtwarzacz.
+Podpis jest zgodny z poprzednimi wersjami.
+
+Aktualizator pobiera APK w 30 częściach i sprawdza sumy SHA-256. Pełny plik
+APK udostępniono osobno do ręcznej instalacji. Numer wersji: 0.1.3, kod: 4.
+Zestaw odtwarzający zmianę zasobów: packages/MK_PremiumSmart_TV_0.1.3_icon_update.zip.
+Nie zastępuje go starsze archiwum pełnych źródeł 0.1.1.
+
+Poniżej historyczna dokumentacja 0.1.1.
+
 # MK PremiumSmart TV 0.1.1
 
 Pierwsza testowa aplikacja MK na Android TV, bez konta PremiumSmart.

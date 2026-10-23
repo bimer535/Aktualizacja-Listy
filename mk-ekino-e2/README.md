@@ -406,3 +406,6 @@ następnie `python3 tools/build_native.py`. Kompilator nie jest potrzebny na dek
 Pakiet: `python3 tools/build_ipk.py`. Testy: `python3 -m unittest discover -s tests -v`
 (wymagają gcc oraz PyCryptodome). Sprawdzenie ARM: `python3 tools/check_arm_pow.py`
 (wymaga pyelftools i unicorn). Biblioteka jest freestanding, bez zależności od libc.
+
+### 0.2.9
+Nowa ikona MK z zachowaniem kwadratowych proporcji; bez zmian w odtwarzaniu.

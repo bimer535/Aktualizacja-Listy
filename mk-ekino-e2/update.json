@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.8",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.8.ipk",
-  "size": 217650,
-  "sha256": "69433b132d9d4faad7ac0ce5aa9323972be439920afc51c5fee132370c161151",
-  "notes": "Poprawka awarii OpenPLi 9.2 przy uruchamianiu filmu: parametr fromMovieSelection jest przekazywany tylko odtwarzaczom, które go obsługują. Zachowano obsługę OpenATV, poprawkę HLS oraz zależności ServiceApp i exteplayer3."
+  "version": "0.2.9",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.9.ipk",
+  "size": 228154,
+  "sha256": "0c1c2482b54119aad7f7a8492b9ff719a1a6e1fe4852b3cddd88e9d4fd75e326",
+  "notes": "Nowa kwadratowa ikona MK. Działanie odtwarzania pozostaje bez zmian. Po aktualizacji uruchom ponownie interfejs Enigma2."
 }

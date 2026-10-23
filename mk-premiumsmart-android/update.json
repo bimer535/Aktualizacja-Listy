@@ -1,0 +1,161 @@
+{
+  "applicationId": "pl.mk.premiumsmart.tv",
+  "version": "0.1.3",
+  "versionCode": 4,
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk",
+  "size": 38465349,
+  "sha256": "b4dde79dcfcda38005214ba26ced6abcd28ac62c241bb1601f1d9f821d5da066",
+  "notes": "Nowa kwadratowa ikona MK. Zachowano dotychczasowe działanie aplikacji i odtwarzania.",
+  "parts": [
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part01",
+      "size": 1310720,
+      "sha256": "34f005a7a234174dea9cf464a47544a55b4d6062afad3731e30e0014267627f3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part02",
+      "size": 1310720,
+      "sha256": "6fab01f50b6f0126d80717d7cf31487b069233f5526b9aef6f35561dae461710"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part03",
+      "size": 1310720,
+      "sha256": "99269b73a946e4b89696c603c10b1982b98347bdd583de0400a32f08d9b03ad5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part04",
+      "size": 1310720,
+      "sha256": "ded332532f143d30131557d8ab5a230b114409d82c1eedebcb59b87100d42152"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part05",
+      "size": 1310720,
+      "sha256": "eb0c01829c86a12e3ac0527b7fc4c628d31fb2b2f42840a7a7ddf72426bc41db"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part06",
+      "size": 1310720,
+      "sha256": "b6052e61dab7d9180350676a0e046a0864d130db95d6e73f791c18f79bdcd890"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part07",
+      "size": 1310720,
+      "sha256": "58fbb56ad421815b799359e6d4adc4fc1bfc4eeb73801f46935aed36a3d5db7a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part08",
+      "size": 1310720,
+      "sha256": "12878e2d2bfad6145ee973777afb366a160f653fc0f2661182acaab1690842cf"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part09",
+      "size": 1310720,
+      "sha256": "1bff592c0bdee352defc30bac01b83832909b3abe78b6fc4c3087a6b6e243f28"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part10",
+      "size": 1310720,
+      "sha256": "15debf365073eb53eec9167fa32b6f26f8fd35094094fd3eafc61f79ebe54872"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part11",
+      "size": 1310720,
+      "sha256": "0215dfe135b308a3ae93b826a1b87251d551118f7c1f99c7e86151e00db9f7b2"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part12",
+      "size": 1310720,
+      "sha256": "ded5b2fd3e689020dd053dbbc54e7e79a347931b1283ab7b6f6cb6308332304d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part13",
+      "size": 1310720,
+      "sha256": "54c6c3ce90ed568281dd63f81db1698a734d8edc979654e899085fc770bf106f"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part14",
+      "size": 1310720,
+      "sha256": "a50ef75eea5234e6f5392cbafba78ad9a6672a2af4552c729de0b667d9518b23"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part15",
+      "size": 1310720,
+      "sha256": "dfd72531e740cea6507c7cbfe4040b264aeec7027d771bbedb00961cb575e457"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part16",
+      "size": 1310720,
+      "sha256": "355475b329e82bbc3010b399c98640e9f655b2f1b40fddc3fb4c6b707ef34a4a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part17",
+      "size": 1310720,
+      "sha256": "68c9b5d987e9571500c370fcf118c8da3b8ded477a3c0073ee1fa09beb73ed01"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part18",
+      "size": 1310720,
+      "sha256": "ee21dbb9739f86769fb004efe7d0fc4b2da73781043d8f1c2b2f1042cf5629dd"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part19",
+      "size": 1310720,
+      "sha256": "a68f13dd3f366cffd198706c4d75c81cd4d97f8d9cfcde7858fb754694a935a9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part20",
+      "size": 1310720,
+      "sha256": "21fd2d2d2d232e1f8df7867993ffe2fb53d5550bca44c15e9d1564afd33a1af8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part21",
+      "size": 1310720,
+      "sha256": "5a5b7652f7f932fdc5333cb7f978da45e37256c1b4003aa146a15e3573471077"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part22",
+      "size": 1310720,
+      "sha256": "ba680c5fb8ce3add9a17a0cc01c5df1926ae07acfd89c4a260e6b6febd4a5ef3"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part23",
+      "size": 1310720,
+      "sha256": "88ad2c57b73731fc6a6d23a7d03eb97efefbb78a7b41af6b5b9d747923203ee9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part24",
+      "size": 1310720,
+      "sha256": "2897d92f9ce7fd7b7e6ae80cdfc046f080e7fcf94abbadbefd29d8c4e39f81ea"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part25",
+      "size": 1310720,
+      "sha256": "d40e9a6139e6854d409875d6496c2fdbb85868cf7406ece71f29ce9f69bf19fc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part26",
+      "size": 1310720,
+      "sha256": "61f918d009cf51f7f704e05b225e5523e3525dee847351e37a96e738c48066a0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part27",
+      "size": 1310720,
+      "sha256": "d68b95210cb48826cac54edcd114018dd5fbfa41333f2de31bfe5c22cc71a0c8"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part28",
+      "size": 1310720,
+      "sha256": "45aed6e235904733335bb6b747cfb6feba880c3889cb8ce54e55df776f755037"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part29",
+      "size": 1310720,
+      "sha256": "51afffdf095893ef6ccda48b5750f5eeae6235a9ddd800a6f3a17945e7549a6b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-premiumsmart-android/packages/MK_PremiumSmart_TV_0.1.3.apk.part30",
+      "size": 454469,
+      "sha256": "960942d456c4e5d23cc0e54f8a6b66f290e71271b4c46180a8f4ccd0a1328363"
+    }
+  ]
+}

@@ -112,3 +112,6 @@ edycję własnej ikony MK w narzędziu imagegen: zastąpienie napisu EKINO dwoma
 wierszami PREMIUM i SMART, z zachowaniem MK, turkusowego przycisku i ramki.
 Plik ikony: src/MKPremiumSmartE2/icon.png. QR to mailto:bimer55@wp.pl.
 Pełny kod, testy i referencje są publikowane w sąsiednim pliku _source.zip.
+
+### 0.1.2
+Nowa ikona MK z zachowaniem kwadratowych proporcji; bez zmian w odtwarzaniu.

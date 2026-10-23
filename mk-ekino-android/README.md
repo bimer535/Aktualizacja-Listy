@@ -1,3 +1,7 @@
+# MK eKino TV 0.1.2
+
+Nowa turkusowa ikona MK eKino. Kod odtwarzania i aktualizacji zachowany z 0.1.1.
+
 # MK Ekino TV 0.1.1
 
 Samodzielna aplikacja na Android TV 7.0+ dla urządzeń ARM 32/64-bit,
