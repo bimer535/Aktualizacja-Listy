@@ -1,8 +1,24 @@
-# MK Ekino E2 0.2.3
+# MK Ekino E2 0.2.4
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.4
+
+- MENU → Odtwarzacz: standardowy (4097) lub exteplayer3 (5002).
+  Preferencja dotyczy wyłącznie MK Ekino i jest zapisywana lokalnie.
+  Domyślnie pozostaje 4097. Nie zmieniamy globalnej konfiguracji ServiceApp.
+- Do wariantu 5002 zainstaluj z feedu odbiornika:
+  `opkg update && opkg install enigma2-plugin-systemplugins-serviceapp`.
+  Uruchom ponownie GUI, potem wybierz exteplayer3 w MENU wtyczki.
+  Brak ServiceApp lub exteplayer3 powoduje czytelny komunikat przed pobraniem źródła.
+- Raport diagnostyczny zapisuje playback_service; przesłanie danych przez relay
+  nadal nie potwierdza zdekodowania obrazu. To test alternatywnego odtwarzacza,
+  a nie potwierdzenie naprawy czarnego ekranu na fizycznym dekoderze.
+
+Sprawdzenie: testy ustawień, przekazania typu 5002 i brakujących zależności,
+plus pełny dotychczasowy zestaw testów lokalnych. Odtwarzanie wymaga próby odbiornika.
 
 ## Zmiany 0.2.3
 

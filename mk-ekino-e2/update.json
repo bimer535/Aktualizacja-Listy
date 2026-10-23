@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.3",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.3.ipk",
-  "size": 215326,
-  "sha256": "6b43301a75e1e5b86ae072b423191ae285f2fe2a4b919cace9343489a2d64e1c",
-  "notes": "Poprawione przekazywanie HLS: playlisty bez rozszerzenia, typy danych wideo i adresy po przekierowaniu. Raport zawiera pobrane bajty, błędy HTTP i parametry wariantu."
+  "version": "0.2.4",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.4.ipk",
+  "size": 215780,
+  "sha256": "57245b4a04ae7071efce8cf634d5325d0b297bcbf796a5f0d61201b2ae236a01",
+  "notes": "MENU: wybór odtwarzacza standardowego (4097) lub exteplayer3 (5002) tylko dla MK Ekino. exteplayer3 wymaga ServiceApp i restartu GUI. Raport zawiera wybrany typ odtwarzacza."
 }
