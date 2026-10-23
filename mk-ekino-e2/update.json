@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.6",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.6.ipk",
-  "size": 217408,
-  "sha256": "26150ba4d7965e3075bec2462db953b5653ef0670a94bd3ff2e1fa06b17b9025",
-  "notes": "Poprawka HLS dla nowszego FFmpeg/exteplayer3: lokalne fragmenty mają rozszerzenia .ts/.m4s zamiast adresów bez rozszerzenia. Usuwa odtworzony błąd allowed_segment_extensions przed pobraniem filmu."
+  "version": "0.2.7",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.7.ipk",
+  "size": 217430,
+  "sha256": "2271b38efa5bfa779ec58708ee2406d492f0576da6f67540c37eae467fc8d4eb",
+  "notes": "Instalator pobiera ServiceApp i exteplayer3 jako zależności z repozytorium systemu. Na nowej instalacji eKino domyślnie używa exteplayer3 (5002). Zapisany wybór pozostaje bez zmian. Po instalacji wymagany restart GUI."
 }

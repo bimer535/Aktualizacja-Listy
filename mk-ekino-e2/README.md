@@ -1,8 +1,23 @@
-# MK Ekino E2 0.2.6
+# MK Ekino E2 0.2.7
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
 Pakiet i katalog instalacji są niezależne od MK Canal+ E2.
+
+## Zmiany 0.2.7 — automatyczna instalacja odtwarzacza
+
+- Pakiet IPK wymaga enigma2-plugin-systemplugins-serviceapp oraz exteplayer3.
+  Menedżer opkg pobiera brakujące zależności z repozytorium danego systemu.
+  Nie pobieramy cudzych plików binarnych ani nie uruchamiamy skryptów instalacji z WWW.
+- Nowa instalacja bez zapisanego wyboru używa exteplayer3 (5002). Istniejący
+  wybór 4097 lub 5002 pozostaje bez zmian. Globalne ustawienia ServiceApp
+  i odtwarzanie w innych wtyczkach nie są modyfikowane.
+- Po instalacji uruchom ponownie GUI, aby Enigma załadowała ServiceApp.
+- Wymagany jest internet i działające repozytorium z tymi pakietami.
+  Przed pierwszą instalacją IPK w Telnecie odśwież indeksy: `opkg update`.
+  Zależności nie są wbudowane w IPK. Jeśli system nie udostępnia ServiceApp
+  lub exteplayer3, opkg zgłosi brak zależności.
+- Zachowano poprawkę HLS z 0.2.6, której działanie na SF8008 potwierdził użytkownik.
 
 ## Zmiany 0.2.6 — poprawka nazw zasobów HLS
 
