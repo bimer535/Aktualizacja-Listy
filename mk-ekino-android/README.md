@@ -1,8 +1,30 @@
-# MK Ekino TV 0.1.0
+# MK Ekino TV 0.1.1
 
 Samodzielna aplikacja na Android TV 7.0+ dla urządzeń ARM 32/64-bit,
 np. Nokia 8810. Pakiet: pl.mk.ekino.tv. Może działać obok MK PremiumSmart TV.
 Nie wymaga komputera, dekodera Enigma, ServiceApp ani konta eKino.
+
+## Zmiany 0.1.1
+
+- Domyślnie wypełnienie ekranu bez pasów generowanych przez dopasowanie
+  proporcji filmu. Zachowuje proporcje, przycina boki obrazu.
+- Przycisk Obraz oraz żółty na pilocie podczas filmu przełączają
+  Wypełnij / Dopasuj. Dopasuj pokazuje cały kadr. Wybór jest zapisywany.
+  Pasy zakodowane bezpośrednio w obrazie filmu mogą nadal być widoczne.
+- Aktualizacje z GitHub: MENU → Sprawdź aktualizację lub niebieski.
+  Pobieranie z postępem i anulowaniem. Sprawdzamy aplikację, wersję,
+  rozmiary i SHA-256 całego APK oraz fragmentów i zgodność podpisu z
+  zainstalowaną aplikacją. Instalację zatwierdza użytkownik w Androidzie.
+- Plik APK jest publikowany w 51 fragmentach w packages/. Aplikacja pobiera
+  je kolejno i zapisuje gotowy APK w prywatnym cache. Fragmenty mają osobne
+  sumy kontrolne. Nie wymagają ręcznego łączenia przy aktualizacji w aplikacji.
+- Przejście z 0.1.0 wymaga jednorazowej ręcznej instalacji 0.1.1 z czatu;
+  stara wersja aktualizatora nie obsługuje plików podzielonych na fragmenty.
+  Podpis pozostaje ten sam i dane użytkownika są zachowane.
+- 18 testów Python, 10 testów Java (w tym uszkodzone/niepełne fragmenty,
+  błędne adresy, suma całego APK i anulowanie), Android Lint bez błędów.
+  Użytkownik potwierdził działanie filmów w 0.1.0; nowy tryb obrazu wymaga
+  sprawdzenia na urządzeniu.
 
 ## Funkcje
 
@@ -30,16 +52,15 @@ Po otwarciu nowej listy zaznaczenie trafia na pierwszą pozycję.
 
 ## Instalacja
 
-Pobierz podpisany MK_Ekino_TV_0.1.0.apk i otwórz go w menedżerze plików
+Pobierz podpisany MK_Ekino_TV_0.1.1.apk i otwórz go w menedżerze plików
 na przystawce Android TV. Zezwól temu menedżerowi na instalowanie aplikacji,
 jeśli Android zapyta. Uruchom MK Ekino TV z menu aplikacji.
 APK jest udostępniony osobno w czacie; źródła są w tym repozytorium.
 
 Aktualizacje korzystają z osobnego manifestu mk-ekino-android/update.json.
 Instalację kolejnego APK zawsze zatwierdza użytkownik w instalatorze Androida.
-Nie opublikowano binarnego APK pod adresem GitHub z manifestu pierwszej wersji;
-pierwszy instalator pobierz z czatu. Sprawdzenie wersji działa niezależnie,
-a kolejne wydanie wymaga publikacji odpowiadającego mu APK.
+Manifest wskazuje fragmenty instalatora dostępne w packages/. Użyj wbudowanej
+aktualizacji z wersji 0.1.1 lub nowszej. Pierwszą instalację wykonaj APK z czatu.
 
 ## Działanie i prywatność
 
