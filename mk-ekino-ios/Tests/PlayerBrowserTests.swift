@@ -29,6 +29,31 @@ final class PlayerBrowserTests: XCTestCase {
         XCTAssertEqual(context.objectForKeyedSubscript("clicks")?.toInt32(), 0)
         XCTAssertNil(context.exception)
     }
+    func testLateMediaReadinessAttemptsPlaybackOnlyOnce() {
+        let context = JSContext()!
+        context.evaluateScript("""
+        var starts=0,handlers={};
+        var video={currentSrc:'',readyState:0,paused:true,ended:false,
+          addEventListener:(event,callback)=>{handlers[event]=callback;}};
+        """)
+        context.evaluateScript("(" + ProviderPlaybackScript.autoStart + ")(video,()=>{starts++;});")
+        XCTAssertEqual(context.objectForKeyedSubscript("starts")?.toInt32(), 0)
+        context.evaluateScript("video.currentSrc='film';video.readyState=1;handlers.loadedmetadata();handlers.canplay();handlers.canplay();")
+        XCTAssertEqual(context.objectForKeyedSubscript("starts")?.toInt32(), 1)
+        XCTAssertNil(context.exception)
+    }
+    func testReadinessDoesNotRestartVideoPausedAfterPlaying() {
+        let context = JSContext()!
+        context.evaluateScript("""
+        var starts=0,handlers={};
+        var video={currentSrc:'film',readyState:1,paused:false,ended:false,
+          addEventListener:(event,callback)=>{handlers[event]=callback;}};
+        """)
+        context.evaluateScript("(" + ProviderPlaybackScript.autoStart + ")(video,()=>{starts++;});")
+        context.evaluateScript("video.paused=true;handlers.canplay();")
+        XCTAssertEqual(context.objectForKeyedSubscript("starts")?.toInt32(), 0)
+        XCTAssertNil(context.exception)
+    }
     func testAllowedPageAndPopupSchemes() {
         XCTAssertTrue(ProviderNavigation.permits(URL(string: "https://example.org/verify")))
         XCTAssertTrue(ProviderNavigation.permits(URL(string: "about:blank")))

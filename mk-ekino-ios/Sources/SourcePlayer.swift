@@ -116,6 +116,7 @@ struct PlayerWebView: UIViewRepresentable {
           v.addEventListener('playing',()=>{playbackStarted=true;});let last=0;let sought=false;
           const resume=()=>{if(!sought && v.duration>0){sought=true;const n=\(start);if(n>10&&n<v.duration-15){try{v.currentTime=n;}catch(e){}}}};
           v.addEventListener('loadedmetadata',resume);resume();
+          (\(ProviderPlaybackScript.autoStart))(v,startVideo);
           const report=(force=false)=>{const now=Date.now();if(!force&&now-last<5000)return;last=now;
             if(Number.isFinite(v.currentTime)&&Number.isFinite(v.duration)&&v.duration>0){
               window.webkit.messageHandlers.mkProgress.postMessage({seconds:v.currentTime,duration:v.duration,playing:!v.paused});}};

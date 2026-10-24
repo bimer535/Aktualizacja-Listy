@@ -53,4 +53,4 @@ Dodatkowe okna i przekierowania głównego odtwarzacza ograniczono do hostów wy
 ### 1.0.4
 - Recreates the catalogue scroll container after navigation, back, refresh or layout change.
 - Shows title and source/episode button above a smaller poster in movie details.
-- Playback engine and provider interaction requirements are unchanged from 1.0.3.
+- Attempts playback once actual video becomes ready; provider verification still requires the user.

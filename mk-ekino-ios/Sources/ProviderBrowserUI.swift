@@ -96,6 +96,22 @@ struct ProviderNavigationPolicy {
 /// A playback request touches only video elements with media already attached.
 /// It does not click overlays, verification controls, or advertising elements.
 enum ProviderPlaybackScript {
+    // Try once when actual media becomes ready, including media attached after
+    // the user's initial tap. Never activate a verification button or overlay.
+    static let autoStart = """
+    (video,start)=>{
+      let attempted=!video.paused || video.ended;
+      const ready=()=>{
+        if(attempted || !video.currentSrc || video.readyState<1 || !video.paused || video.ended)return;
+        attempted=true;start();
+      };
+      video.addEventListener('playing',()=>{attempted=true;});
+      video.addEventListener('loadedmetadata',ready);
+      video.addEventListener('canplay',ready);
+      ready();
+    }
+    """
+
     static let start = """
     (()=>{
       let started=0;
