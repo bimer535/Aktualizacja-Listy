@@ -30,6 +30,33 @@ enum ProviderNavigation {
         }
     }
 }
+/// Only the selected provider and its catalogue wrapper may replace the player
+/// or open a visible auxiliary window. Resource/subframe loads are unaffected.
+struct ProviderNavigationPolicy {
+    let hosts: Set<String>
+    init(player: URL, source: String, referer: String) {
+        hosts = Set([player.host, URL(string: source)?.host, URL(string: referer)?.host]
+            .compactMap { $0?.lowercased() })
+    }
+    func trustedHost(_ host: String?) -> Bool {
+        guard let host = host?.lowercased() else { return false }
+        return hosts.contains { host == $0 || host.hasSuffix("." + $0) }
+    }
+    func permitsTopLevel(_ url: URL?) -> Bool {
+        guard let url, ProviderNavigation.permits(url) else { return false }
+        if url.scheme?.lowercased() == "https" { return trustedHost(url.host) }
+        if url.scheme?.lowercased() == "blob" {
+            return trustedHost(URL(string: String(url.absoluteString.dropFirst(5)))?.host)
+        }
+        return ["about:blank", "about:srcdoc"].contains(url.absoluteString.lowercased())
+    }
+    func permitsPopup(_ url: URL?) -> Bool {
+        // Empty/blank popups are commonly opened before their advertising
+        // destination is assigned. Do not display an unclassified window.
+        guard let url, url.scheme?.lowercased() == "https" else { return false }
+        return ProviderNavigation.permits(url) && trustedHost(url.host)
+    }
+}
 @MainActor final class ProviderWindowController: UIViewController {
     let browser: WKWebView
     var onClose: (() -> Void)?

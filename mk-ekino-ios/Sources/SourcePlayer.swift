@@ -140,7 +140,15 @@ struct PlayerWebView: UIViewRepresentable {
         var active = true
         var popups: [ProviderWindowController] = []
         let dialogs = ProviderDialogs()
-        init(_ parent: PlayerWebView) { self.parent = parent }
+        let navigationPolicy: ProviderNavigationPolicy
+        init(_ parent: PlayerWebView) {
+            self.parent = parent
+            navigationPolicy = ProviderNavigationPolicy(player: parent.request.url, source: parent.request.source.url, referer: parent.request.referer)
+        }
+        func blockedExternalWindow() {
+            guard active else { return }
+            parent.state.message = "Zablokowano dodatkowe okno spoza źródła filmu. Naciśnij ▶ w odtwarzaczu, aby kontynuować."
+        }
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             guard active else { return }
             parent.state.loading = false
@@ -157,6 +165,15 @@ struct PlayerWebView: UIViewRepresentable {
         }
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
             guard active, ProviderNavigation.permits(navigationAction.request.url) else { decisionHandler(.cancel); return }
+            if navigationAction.targetFrame?.isMainFrame != false,
+               !navigationPolicy.permitsTopLevel(navigationAction.request.url) {
+                decisionHandler(.cancel)
+                blockedExternalWindow()
+                if let popup = popups.first(where: { $0.browser === webView }) {
+                    DispatchQueue.main.async { popup.closeWindow() }
+                }
+                return
+            }
             decisionHandler(.allow)
         }
         func stop() {
@@ -171,7 +188,9 @@ struct PlayerWebView: UIViewRepresentable {
             return controller
         }
         func openPopup(configuration: WKWebViewConfiguration, address: URL?, presenter: UIViewController) -> WKWebView? {
-            guard active, popups.count < 3, ProviderNavigation.permits(address), !(presenter is UIAlertController) else { return nil }
+            guard active else { return nil }
+            guard navigationPolicy.permitsPopup(address) else { blockedExternalWindow(); return nil }
+            guard popups.isEmpty, !(presenter is UIAlertController) else { return nil }
             // The supplied configuration keeps window.opener, cookies and process pool.
             let popup = ProviderWindowController(configuration: configuration, address: address)
             popup.browser.navigationDelegate = self; popup.browser.uiDelegate = self
