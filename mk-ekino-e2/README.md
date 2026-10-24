@@ -421,3 +421,12 @@ Pakiet: `python3 tools/build_ipk.py`. Testy: `python3 -m unittest discover -s te
 ### 0.2.9
 Nowa ikona MK z zachowaniem kwadratowych proporcji; bez zmian w odtwarzaniu.
 
+
+
+## 0.2.11 — widoczna oś czasu na OpenATV i OpenPLi
+
+Pasek przewijania z czasem docelowym, długością i rzeczywistą pozycją. Kółko lewo/prawo: skoki -10/+10 s. Przyciski << i >>: wybór pozycji na osi czasu w tempie x2/x4/x8/x16/x32/x64; OK lub PLAY zatwierdza i wznawia film. Bez przyspieszonego podglądu obrazu. Zrestartuj interfejs Enigma2 po aktualizacji.
+
+Podczas wyboru pozycji film jest wstrzymany. Tempo dotyczy przesuwania znacznika na osi czasu; aplikacja wysyła żądanie zmiany pozycji po zatwierdzeniu. Pozwala to uniknąć wielu równoczesnych żądań segmentów HLS. Pasek pokazuje osobno czas docelowy i czas zgłoszony przez odtwarzacz, także podczas buforowania. Wskaźnik znika 5 sekund po skoku lub zatwierdzeniu. Skórka paska skaluje się do rozdzielczości interfejsu.
+
+Testy automatyczne obejmują mapy klawiszy obu obrazów, tempo/zmianę kierunku, granice filmu, zatwierdzanie, pauzę, błędy usługi i zamknięcie ekranu. Nie wykonano testu na fizycznym dekoderze.

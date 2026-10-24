@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.10",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.10.ipk",
-  "size": 230144,
-  "sha256": "b95b6ac667d3f36e76d35211f4bb54aae33417c05661d9dced064a46eab4719c",
-  "notes": "Przewijanie na OpenPLi i OpenATV: kółko lewo/prawo i przyciski ⏪/⏩ wykonują skoki po 10 sekund; długie ⏪/⏩ po 60 sekund. Ochrona przed skokiem poza koniec filmu. Po aktualizacji uruchom ponownie interfejs Enigma2."
+  "version": "0.2.11",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.11.ipk",
+  "size": 231898,
+  "sha256": "d303922673bd0cc9079f43806de652a51fae529d8ddf2ddb9091ab0f40175bf8",
+  "notes": "Pasek przewijania z czasem docelowym, długością i rzeczywistą pozycją. Kółko lewo/prawo: skoki -10/+10 s. Przyciski << i >>: wybór pozycji na osi czasu w tempie x2/x4/x8/x16/x32/x64; OK lub PLAY zatwierdza i wznawia film. Bez przyspieszonego podglądu obrazu. Zrestartuj interfejs Enigma2 po aktualizacji."
 }

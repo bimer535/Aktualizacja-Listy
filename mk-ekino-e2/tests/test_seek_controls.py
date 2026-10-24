@@ -28,8 +28,7 @@ class SeekControlsTests(unittest.TestCase):
         self.helper = __import__(self.player.__class__.__mro__[1].__module__, fromlist=['time'])
 
     def test_both_controls_use_time_seek_without_native_fast_winding(self):
-        for action, delta in [('left', -10), ('right', 10), ('seekBack', -10), ('seekFwd', 10),
-                              ('seekBackManual', -60), ('seekFwdManual', 60)]:
+        for action, delta in [('left', -10), ('right', 10)]:
             with self.subTest(action=action):
                 self.player._mk_seek_target = None
                 self.seek.seekTo.reset_mock()
@@ -110,13 +109,13 @@ class SeekControlsTests(unittest.TestCase):
     def test_ok_exit_and_numeric_keys_are_not_in_private_seek_context(self):
         mapping = ET.parse(ROOT/'src/MKEkinoE2/seek_keymap.xml').find('map')
         self.assertEqual(self.actions.contexts, [mapping.attrib['context']])
-        self.assertFalse({k.attrib['id'] for k in mapping} & {'KEY_OK', 'KEY_EXIT', 'KEY_PAUSE', 'KEY_PLAY', 'KEY_1', 'KEY_3', 'KEY_6', 'KEY_9'})
+        self.assertFalse({k.attrib['id'] for k in mapping} & {'KEY_OK', 'KEY_EXIT', 'KEY_1', 'KEY_3', 'KEY_6', 'KEY_9'})
 
     def test_real_image_bindings_dispatch_one_jump_for_each_short_press(self):
         images = json.loads((ROOT/'tests/seek_keymaps.json').read_text())['maps']
         private = [dict(key.attrib, context=self.actions.contexts[0]) for key in ET.parse(ROOT/'src/MKEkinoE2/seek_keymap.xml').find('map')]
         for image, native in images.items():
-            for key, delta in [('KEY_LEFT', -10), ('KEY_RIGHT', 10), ('KEY_REWIND', -10), ('KEY_FASTFORWARD', 10)]:
+            for key, delta in [('KEY_LEFT', -10), ('KEY_RIGHT', 10)]:
                 with self.subTest(image=image, key=key):
                     self.player._mk_seek_target = None; self.seek.seekTo.reset_mock()
                     native_called = []
@@ -128,12 +127,95 @@ class SeekControlsTests(unittest.TestCase):
         private = [dict(key.attrib, context=self.actions.contexts[0]) for key in ET.parse(ROOT/'src/MKEkinoE2/seek_keymap.xml').find('map')]
         images = json.loads((ROOT/'tests/seek_keymaps.json').read_text())['maps']
         for image, native in images.items():
+          for events in (['m', 'b'], ['m', 'l', 'b']):
             for key, delta in [('KEY_REWIND', -60), ('KEY_FASTFORWARD', 60)]:
                 with self.subTest(image=image, key=key):
-                    self.player._mk_seek_target = None; self.seek.seekTo.reset_mock()
-                    native_called=[]; self.dispatch(private,native,key,['m','l','b'],native_called)
-                    self.assertEqual([c.args[0] for c in self.seek.seekTo.call_args_list], [(300 + delta) * 90000])
+                    self.player._mk_seek_target = None; self.player._mk_scrub_speed = 0; self.seek.seekTo.reset_mock()
+                    native_called=[]; self.dispatch(private,native,key,events,native_called)
+                    self.seek.seekTo.assert_not_called()
+                    self.assertEqual(self.player._mk_scrub_speed, 2 if delta > 0 else -2)
                     self.assertEqual(native_called, [])
+
+
+    def test_scrub_speed_selection_and_commit_with_ok(self):
+        with patch.object(self.helper.time, 'monotonic', return_value=100):
+            self.actions.actions['seekFwd']()
+        self.assertEqual(self.player._mk_scrub_speed, 2)
+        self.seek.seekTo.assert_not_called()
+        self.assertEqual(self.player.seekstate, self.player.SEEK_STATE_PAUSE)
+        with patch.object(self.helper.time, 'monotonic', return_value=105):
+            self.player.mk_seek_refresh()
+            self.actions.actions['seekFwd']()
+        self.assertEqual(self.player._mk_scrub_speed, 4)
+        self.assertIn('x4', self.player._mk_seek_display_mode)
+        self.assertEqual(self.player._mk_seek_display_target, 310 * 90000)
+        with patch.object(self.helper.time, 'monotonic', return_value=110):
+            self.player.mk_toggle_pause()
+        self.seek.seekTo.assert_called_once_with(330 * 90000)
+        self.assertEqual(self.player._mk_scrub_speed, 0)
+        self.assertEqual(self.player.seekstate, self.player.SEEK_STATE_PLAY)
+
+    def test_scrub_bounds_reverse_and_speed_cap(self):
+        with patch.object(self.helper.time, 'monotonic', return_value=100):
+            for _ in range(9): self.actions.actions['seekFwd']()
+        self.assertEqual(self.player._mk_scrub_speed, 64)
+        with patch.object(self.helper.time, 'monotonic', return_value=200):
+            self.player.mk_seek_refresh()
+        self.assertEqual(self.player._mk_seek_display_target, 3599 * 90000)
+        with patch.object(self.helper.time, 'monotonic', return_value=200):
+            self.actions.actions['seekBack']()
+        self.assertEqual(self.player._mk_scrub_speed, -2)
+        with patch.object(self.helper.time, 'monotonic', return_value=4000):
+            self.player.mk_seek_refresh()
+        self.assertEqual(self.player._mk_seek_display_target, 0)
+
+    def test_jump_osd_shows_target_and_actual_separately(self):
+        self.player.mk_jump(10)
+        dialog = self.session.instantiateDialog.return_value
+        mode, target, length, actual, selecting = dialog.update.call_args.args
+        self.assertIn('+10', mode)
+        self.assertEqual((target, length, actual, selecting), (310*90000, 3600*90000, 300*90000, False))
+        self.seek.getPlayPosition.return_value = (0, 311 * 90000)
+        self.player.mk_seek_refresh()
+        self.assertEqual(dialog.update.call_args.args[3], 311 * 90000)
+        with patch.object(self.helper.time, 'monotonic', return_value=self.player._mk_seek_visible_until + 1):
+            self.player.mk_seek_refresh()
+        dialog.hide.assert_called()
+
+    def test_overlay_skin_and_timecodes(self):
+        self.helper.getDesktop.return_value.size.return_value.width.return_value = 1920
+        self.helper.getDesktop.return_value.size.return_value.height.return_value = 1080
+        dialog = self.helper.SeekStatus(self.session)
+        ET.fromstring(dialog.skin)
+        dialog.update('Skok +10 s', 3661 * 90000, 7200 * 90000, 3600 * 90000, False)
+        self.assertIn('01:01:01 / 02:00:00', dialog['position'].text)
+        self.assertIn('01:00:00', dialog['position'].text)
+        dialog['progress'].setValue.assert_called_with(50)
+        dialog.update('Wybór pozycji >> x4', 0, None, None, True)
+        self.assertIn('--:--:--', dialog['position'].text)
+        self.assertIn('OK / PLAY', dialog['hint'].text)
+
+    def test_scrub_cleanup_and_service_loss(self):
+        self.player.mk_scrub(1)
+        self.player.mk_seek_cleanup()
+        self.assertEqual(self.player._mk_scrub_speed, 0)
+        self.assertNotIn(self.player.mk_seek_refresh, self.player._mk_seek_timer.callback)
+        self.session.deleteDialog.assert_called_once()
+        self.player.mk_scrub(1)
+        self.service.seek.return_value = None
+        self.assertTrue(self.player.mk_scrub_finish())
+        self.session.open.assert_called()
+
+    def test_play_and_pause_commit_and_dpad_returns_to_time_jumps(self):
+        with patch.object(self.helper.time, 'monotonic', return_value=100): self.player.mk_scrub(1)
+        with patch.object(self.helper.time, 'monotonic', return_value=105): self.player.mk_seek_pause()
+        self.assertEqual(self.player.seekstate, self.player.SEEK_STATE_PAUSE)
+        self.assertEqual(self.player._mk_scrub_speed, 0)
+        self.player.mk_seek_play()
+        self.assertEqual(self.player.seekstate, self.player.SEEK_STATE_PLAY)
+        self.player.mk_scrub(1)
+        self.player.mk_seek_forward()
+        self.assertEqual(self.player._mk_scrub_speed, 0)
 
     def dispatch(self, private, native, key, events, native_called):
         # OpenPLi lib/actions/action.cpp: all bindings record make/long first,

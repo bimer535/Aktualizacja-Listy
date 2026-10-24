@@ -10,7 +10,7 @@ import time
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='0.2.10'
+VERSION='0.2.11'
 PACKAGE='enigma2-plugin-extensions-mkekinoe2'
 PREFIX='usr/lib/enigma2/python/Plugins/Extensions/MKEkinoE2/'
 
@@ -45,7 +45,7 @@ def main():
     manifest={'package':PACKAGE,'version':VERSION,
               'url':'https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/'+package.name,
               'size':len(data),'sha256':hashlib.sha256(data).hexdigest(),
-              'notes':'Przewijanie na OpenPLi i OpenATV: kółko lewo/prawo i przyciski ⏪/⏩ wykonują skoki po 10 sekund; długie ⏪/⏩ po 60 sekund. Ochrona przed skokiem poza koniec filmu. Po aktualizacji uruchom ponownie interfejs Enigma2.'}
+              'notes':'Pasek przewijania z czasem docelowym, długością i rzeczywistą pozycją. Kółko lewo/prawo: skoki -10/+10 s. Przyciski << i >>: wybór pozycji na osi czasu w tempie x2/x4/x8/x16/x32/x64; OK lub PLAY zatwierdza i wznawia film. Bez przyspieszonego podglądu obrazu. Zrestartuj interfejs Enigma2 po aktualizacji.'}
     manifest_file=output/'update.json';manifest_file.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     source=output/('MK_Ekino_E2_'+VERSION+'_source.zip')
     with zipfile.ZipFile(source,'w',compression=zipfile.ZIP_DEFLATED) as archive:

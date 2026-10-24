@@ -77,6 +77,7 @@ def load_ui():
         def getData(self):return 'decoded-picture'
     modules={
         'keymapparser':{'readKeymap':Mock()},
+        'Components.ProgressBar':{'ProgressBar':Mock},
         'Components.ActionMap':{'ActionMap':Actions},
         'Components.Label':{'Label':Label},'Components.MenuList':{'MenuList':Menu},
         'Components.ScrollLabel':{'ScrollLabel':Label},
@@ -86,7 +87,7 @@ def load_ui():
         'Screens.InfoBar':{'MoviePlayer':Player},
         'Screens.MessageBox':{'MessageBox':type('MessageBox',(),{'TYPE_ERROR':1,'TYPE_YESNO':2,'TYPE_INFO':3})},
         'Screens.VirtualKeyBoard':{'VirtualKeyBoard':type('VirtualKeyBoard',(),{})},
-        'enigma':{'eTimer':Timer,'eServiceReference':Ref,'eConsoleAppContainer':Container,'ePicLoad':PicLoad}}
+        'enigma':{'getDesktop':Mock(),'eTimer':Timer,'eServiceReference':Ref,'eConsoleAppContainer':Container,'ePicLoad':PicLoad}}
     for name,attrs in modules.items():
         mod=types.ModuleType(name);mod.__dict__.update(attrs);sys.modules[name]=mod
     spec=importlib.util.spec_from_file_location('mk_ekino_plugin_test',ROOT/'src/MKEkinoE2/plugin.py')
