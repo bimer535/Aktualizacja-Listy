@@ -1,4 +1,4 @@
-# MK eKino iOS — 1.0.0 beta
+# MK eKino iOS — 1.0.1 beta
 
 Niezależne wydanie MK na iPhone i iPad. Autor wydania: **MK**, kontakt **bimer55@wp.pl**. Układ graficzny przeniesiony stylistycznie z epremki.eu eKino, ale osobna identyfikacja MK i przekazana turkusowa ikona. iOS 16+, bundle `pl.mk.ekino.ios`.
 
@@ -25,7 +25,7 @@ Alternatywnie na Macu: Xcode + XcodeGen, następnie `bash tools/build-ios.sh`.
 1. Zainstaluj **AltServer / AltStore Classic** zgodnie z aktualnym poradnikiem: https://faq.altstore.io/altstore-classic/how-to-install-altstore-windows . Nie chodzi o AltStore PAL.
 2. Podłącz iPhone do Windowsa i zainstaluj AltStore. Konto Apple wpisujesz lokalnie w AltServer, nigdy w czacie ani w GitHub Secrets.
 3. W razie potrzeby włącz Tryb dewelopera na iPhonie.
-4. Pobierz ZIP artefaktu `MK_Ekino_iOS_1.0.0` z udanego przebiegu GitHub Actions. Wypakuj IPA, udostępnij do AltStore / dodaj przez zakładkę My Apps (+).
+4. Pobierz ZIP artefaktu `MK_Ekino_iOS_1.0.1` z udanego przebiegu GitHub Actions. Wypakuj IPA, udostępnij do AltStore / dodaj przez zakładkę My Apps (+).
 5. AltStore podpisuje aplikację Twoim kontem. Darmowe profile wygasają po 7 dniach; wymagają odświeżania. AltServer musi być dostępny do odnawiania, nie do oglądania filmów.
 
 Aktualizacje wymagają ponownego podpisania i instalacji IPA. iOS nie oferuje tej aplikacji androidowego samodzielnego instalatora APK z GitHuba.
@@ -33,3 +33,8 @@ Aktualizacje wymagają ponownego podpisania i instalacji IPA. iOS nie oferuje te
 ## Licencje
 
 GPL-3.0-only. Natywny port koncepcji katalogu MK eKino / epremki, wcześniejsza baza E2iPlayer; zachowano informację o pochodzeniu. Nie dołączono prywatnego E2iPlayera ani danych konta. SwiftSoup 2.13.9 (MIT), źródła/licencja pobierane przez Swift Package Manager. Ikona dostarczona przez właściciela projektu. Wersja oficjalnie niezwiązana z serwisem eKino.
+
+
+## Poprawki 1.0.1
+
+Dodatkowe okna WebKit są wyświetlane z paskiem zamknięcia, w konfiguracji dostarczonej przez WebKit (z zachowaniem window.opener i sesji). Dodano dialogi JavaScript alert/confirm/prompt z oznaczeniem domeny, zamykanie i anulowanie przy wyjściu, właściwy Referer ostatniej strony osadzającej oraz diagnostykę dotknięcia i błędów skryptu bez zapisywania adresów/tokenów. Nie automatyzuje ani nie omija weryfikacji człowieka. Zgodność Player na fizycznym iPhonie nadal wymaga testu.

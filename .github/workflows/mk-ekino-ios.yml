@@ -33,7 +33,7 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: MK_Ekino_iOS_1.0.0
+          name: MK_Ekino_iOS_1.0.1
           path: |
             mk-ekino-ios/dist/*.ipa
             mk-ekino-ios/dist/SHA256SUMS.txt
@@ -47,3 +47,4 @@ jobs:
           path: mk-ekino-ios/TestResults.xcresult
           if-no-files-found: ignore
           retention-days: 7
+

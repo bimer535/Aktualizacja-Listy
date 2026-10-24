@@ -105,7 +105,7 @@ struct CinemaView: View {
         let menu = [Entry(title: "Odkrywaj", action: "main")] + Catalogue.home().filter { $0.action != "versions" }
         return Group {
             if vertical {
-                VStack(alignment: .leading, spacing: 9) { ForEach(menu) { navButton($0) }; Spacer(); Text("MK • 1.0.0 beta").font(.caption).foregroundStyle(.secondary).padding() }.padding(.horizontal, 12)
+                VStack(alignment: .leading, spacing: 9) { ForEach(menu) { navButton($0) }; Spacer(); Text("MK • 1.0.1 beta").font(.caption).foregroundStyle(.secondary).padding() }.padding(.horizontal, 12)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: 9) { ForEach(menu) { navButton($0) } }.padding(.horizontal, 20) }
             }
@@ -175,7 +175,7 @@ struct CinemaView: View {
         NavigationStack {
             ScrollView { VStack(alignment: .leading, spacing: 22) {
                 Image("Brand").resizable().scaledToFit().frame(height: 150).frame(maxWidth: .infinity)
-                Text("MK eKino • iOS 1.0.0 beta").font(.title2.bold())
+                Text("MK eKino • iOS 1.0.1 beta").font(.title2.bold())
                 Text("Autor wydania: MK")
                 Link("Kontakt: bimer55@wp.pl", destination: URL(string: "mailto:bimer55@wp.pl")!)
                 Text("Niezależne wydanie MK, z układem inspirowanym epremki. Wersja testowa: odtwarzacze źródłowe działają przez WebKit. Dostępność, jakość, napisy i reklamy zależą od źródła. Wznowienie wymaga odtwarzacza HTML5, który udostępnia postęp.")
@@ -195,9 +195,9 @@ struct CinemaView: View {
             loadTask = Task { @MainActor in
                 defer { if activeLoad == loadID { busy = false } }
                 do {
-                    let url = try await catalogue.playerURL(entry)
+                    let location = try await catalogue.playerURL(entry)
                     try Task.checkCancellation()
-                    playback = PlaybackRequest(entry: parent, source: entry, url: url, resume: library.resume(parent))
+                    playback = PlaybackRequest(entry: parent, source: entry, url: location.url, resume: library.resume(parent), referer: location.referer)
                 } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
             }
         } else { load(entry) }
@@ -226,3 +226,4 @@ struct CinemaView: View {
         }
     }
 }
+

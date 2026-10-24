@@ -23,6 +23,11 @@ enum CatalogueError: LocalizedError {
     var errorDescription: String? { if case .message(let text) = self { return text }; return nil }
 }
 
+struct PlayerLocation {
+    let url: URL
+    let referer: String
+}
+
 actor Catalogue {
     static let base = "https://ekino.ws/"
     private let session: URLSession
@@ -190,7 +195,7 @@ actor Catalogue {
     }
     // Follows only the ordinary links provided by the website. The final provider
     // runs its own player in WebKit. No DRM, CAPTCHA or subscription bypass.
-    func playerURL(_ source: Entry) async throws -> URL {
+    func playerURL(_ source: Entry) async throws -> PlayerLocation {
         guard ["player", "voe", "mix"].contains(source.provider), !source.key.isEmpty else { throw CatalogueError.message("Nieprawidłowe źródło.") }
         let key = source.key.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
         var url = Self.base + "watch/f/" + source.provider + "/" + key
@@ -198,7 +203,7 @@ actor Catalogue {
         for _ in 0..<6 {
             guard visited.insert(url).inserted, let address = URL(string: url), let host = address.host else { break }
             let wrapper = host == "ekino.ws" || host == "ekino.link" || host.hasSuffix(".ekino.link")
-            if !wrapper { return address }
+            if !wrapper { return PlayerLocation(url: address, referer: parent) }
             let (text, final) = try await fetch(url, referer: parent)
             let doc = try SwiftSoup.parse(text)
             let frame = try doc.select("iframe[src]").first()?.attr("src") ?? ""
@@ -210,3 +215,4 @@ actor Catalogue {
         throw CatalogueError.message("Nie udało się otworzyć odtwarzacza źródłowego.")
     }
 }
+

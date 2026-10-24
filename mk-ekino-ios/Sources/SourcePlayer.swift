@@ -9,6 +9,7 @@ struct PlaybackRequest: Identifiable {
     var source: Entry
     var url: URL
     var resume: Double
+    var referer = ""
 }
 @MainActor final class PlayerState: ObservableObject {
     @Published var loading = true
@@ -68,10 +69,10 @@ struct SourcePlayer: View {
         nextBusy = true; defer { nextBusy = false }
         do {
             guard let entry = nextEntry else { return }
-            let url = try await catalogue.playerURL(source)
+            let location = try await catalogue.playerURL(source)
             state.loading = true; state.confirmed = false; state.failed = false
             state.message = "Uruchamianie następnego odcinka…"
-            request = PlaybackRequest(entry: entry, source: source, url: url, resume: library.resume(entry))
+            request = PlaybackRequest(entry: entry, source: source, url: location.url, resume: library.resume(entry), referer: location.referer)
         } catch { state.message = error.localizedDescription; state.confirmed = false }
     }
 }
@@ -87,10 +88,16 @@ struct PlayerWebView: UIViewRepresentable {
         config.allowsAirPlayForMediaPlayback = true
         config.allowsPictureInPictureMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
+        config.preferences.javaScriptCanOpenWindowsAutomatically = false
         config.userContentController.add(context.coordinator, name: "mkProgress")
         let start = request.resume.isFinite ? max(0, request.resume) : 0
         let script = """
-        (()=>{const seen=new WeakSet();const attach=()=>{document.querySelectorAll('video').forEach(v=>{
+        (()=>{
+          const reportUI=event=>window.webkit.messageHandlers.mkProgress.postMessage({event});
+          document.addEventListener('click',e=>{if(e.isTrusted)reportUI('tap');},true);
+          window.addEventListener('unhandledrejection',()=>reportUI('script_failure'));
+          window.addEventListener('error',e=>{if(e.error)reportUI('script_failure');});
+          const seen=new WeakSet();const attach=()=>{document.querySelectorAll('video').forEach(v=>{
           if(seen.has(v))return;seen.add(v);let last=0;let sought=false;
           const resume=()=>{if(!sought && v.duration>0){sought=true;const n=\(start);if(n>10&&n<v.duration-15){try{v.currentTime=n;}catch(e){}}}};
           v.addEventListener('loadedmetadata',resume);resume();
@@ -109,7 +116,7 @@ struct PlayerWebView: UIViewRepresentable {
         view.scrollView.backgroundColor = .black
         state.webView = view
         var initial = URLRequest(url: request.url)
-        initial.setValue(request.source.url, forHTTPHeaderField: "Referer")
+        initial.setValue(request.referer.isEmpty ? request.source.url : request.referer, forHTTPHeaderField: "Referer")
         // Transfer catalogue cookies before the first player request.
         let cookies = HTTPCookieStorage.shared.cookies ?? []
         Task { @MainActor [weak view] in
@@ -122,7 +129,7 @@ struct PlayerWebView: UIViewRepresentable {
     }
     func updateUIView(_ view: WKWebView, context: Context) {}
     static func dismantleUIView(_ view: WKWebView, coordinator: Coordinator) {
-        coordinator.active = false
+        coordinator.stop()
         view.evaluateJavaScript("document.querySelectorAll('video').forEach(v=>v.pause())", completionHandler: nil)
         view.stopLoading(); view.loadHTMLString("", baseURL: nil)
         view.configuration.userContentController.removeScriptMessageHandler(forName: "mkProgress")
@@ -131,11 +138,13 @@ struct PlayerWebView: UIViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
         var parent: PlayerWebView
         var active = true
+        var popups: [ProviderWindowController] = []
+        let dialogs = ProviderDialogs()
         init(_ parent: PlayerWebView) { self.parent = parent }
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             guard active else { return }
             parent.state.loading = false
-            parent.state.message = "Jeśli film nie ruszył, naciśnij ▶ w odtwarzaczu. Jakość i napisy wybierzesz w jego ustawieniach."
+            if popups.isEmpty { parent.state.message = "Naciśnij ▶ w odtwarzaczu źródłowym. Jeśli po kliknięciu nic nie rusza, sprawdź komunikat poniżej lub wybierz inne źródło." }
         }
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { failed(error) }
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { failed(error) }
@@ -147,15 +156,83 @@ struct PlayerWebView: UIViewRepresentable {
             parent.state.loading = false; parent.state.failed = true; parent.state.confirmed = false; parent.state.message = error.localizedDescription
         }
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            guard active, let url = navigationAction.request.url, ["https", "about", "blob"].contains(url.scheme ?? "") else { decisionHandler(.cancel); return }
+            guard active, ProviderNavigation.permits(navigationAction.request.url) else { decisionHandler(.cancel); return }
             decisionHandler(.allow)
         }
+        func stop() {
+            active = false
+            dialogs.cancelAll()
+            for popup in popups.reversed() { popup.shutdown(); popup.navigationController?.dismiss(animated: false) }
+            popups.removeAll()
+        }
+        func presenter(for webView: WKWebView) -> UIViewController? {
+            var controller = webView.window?.rootViewController
+            while let next = controller?.presentedViewController, !next.isBeingDismissed { controller = next }
+            return controller
+        }
+        func openPopup(configuration: WKWebViewConfiguration, address: URL?, presenter: UIViewController) -> WKWebView? {
+            guard active, popups.count < 3, ProviderNavigation.permits(address), !(presenter is UIAlertController) else { return nil }
+            // The supplied configuration keeps window.opener, cookies and process pool.
+            let popup = ProviderWindowController(configuration: configuration, address: address)
+            popup.browser.navigationDelegate = self; popup.browser.uiDelegate = self
+            popup.onClose = { [weak self, weak popup] in
+                guard let self, let popup else { return }
+                popup.shutdown(); self.popups.removeAll { $0 === popup }
+                if self.active { self.parent.state.message = "Wrócono do odtwarzacza. Jeśli film nie ruszył, naciśnij ponownie ▶." }
+            }
+            popups.append(popup)
+            parent.state.message = "Źródło otworzyło dodatkowe okno. Po zakończeniu wróć przyciskiem Zamknij okno."
+            let navigation = UINavigationController(rootViewController: popup)
+            navigation.isModalInPresentation = true
+            presenter.present(navigation, animated: true)
+            return popup.browser
+        }
         func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-            // Unsolicited pop-up windows are not opened. Provider media stays in its frame.
-            return nil
+            guard let host = presenter(for: webView) else { return nil }
+            return openPopup(configuration: configuration, address: navigationAction.request.url, presenter: host)
+        }
+        func webViewDidClose(_ webView: WKWebView) {
+            guard let popup = popups.first(where: { $0.browser === webView }) else { return }
+            popup.closeWindow()
+        }
+        func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+            guard active, let presenter = presenter(for: webView), !(presenter is UIAlertController) else { completionHandler(); return }
+            let id = dialogs.insert { completionHandler() }
+            let alert = UIAlertController(title: "Komunikat strony: " + (frame.request.url?.host ?? "źródło"), message: String(message.prefix(1000)), preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in self?.dialogs.finish(id) })
+            presenter.present(alert, animated: true)
+        }
+        func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+            guard active, let presenter = presenter(for: webView), !(presenter is UIAlertController) else { completionHandler(false); return }
+            let id = dialogs.insert { completionHandler(false) }
+            let alert = UIAlertController(title: "Pytanie strony: " + (frame.request.url?.host ?? "źródło"), message: String(message.prefix(1000)), preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Anuluj", style: .cancel) { [weak self] _ in self?.dialogs.finish(id) })
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in self?.dialogs.finish(id, accepted: { completionHandler(true) }) })
+            presenter.present(alert, animated: true)
+        }
+        func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+            guard active, let presenter = presenter(for: webView), !(presenter is UIAlertController) else { completionHandler(nil); return }
+            let id = dialogs.insert { completionHandler(nil) }
+            let alert = UIAlertController(title: "Pole strony: " + (frame.request.url?.host ?? "źródło"), message: String(prompt.prefix(1000)), preferredStyle: .alert)
+            alert.addTextField { $0.text = defaultText }
+            alert.addAction(UIAlertAction(title: "Anuluj", style: .cancel) { [weak self] _ in self?.dialogs.finish(id) })
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak alert] _ in self?.dialogs.finish(id, accepted: { completionHandler(alert?.textFields?.first?.text) }) })
+            presenter.present(alert, animated: true)
         }
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             guard active, let value = message.body as? [String: Any] else { return }
+            if let event = value["event"] as? String, !parent.state.confirmed {
+                if event == "tap" {
+                    parent.state.message = "Dotknięcie odebrane przez stronę. Oczekiwanie na uruchomienie wideo…"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+                        guard let self, self.active, !self.parent.state.confirmed, self.popups.isEmpty, !self.parent.state.failed else { return }
+                        self.parent.state.message = "Źródło odebrało dotknięcie, ale nie uruchomiło wideo. Spróbuj innego źródła (VOE/Mix) lub ponów."
+                    }
+                } else if event == "script_failure" {
+                    parent.state.message = "Strona źródła zgłosiła błąd skryptu. Jeśli film nie ruszy, wybierz VOE albo Mix."
+                }
+                return
+            }
             if value["error"] as? Bool == true { failed(CatalogueError.message("Źródło zgłosiło błąd wideo. Wróć i wybierz inne źródło.")); return }
             guard let seconds = value["seconds"] as? Double, let duration = value["duration"] as? Double,
                   seconds.isFinite, duration.isFinite, seconds >= 0, duration > 0 else { return }
@@ -164,3 +241,4 @@ struct PlayerWebView: UIViewRepresentable {
         }
     }
 }
+
