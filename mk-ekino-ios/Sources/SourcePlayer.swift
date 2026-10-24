@@ -17,6 +17,9 @@ struct PlaybackRequest: Identifiable {
     @Published var failed = false
     @Published var confirmed = false
     weak var webView: WKWebView?
+    func startVideo() {
+        webView?.evaluateJavaScript("window.postMessage({mkVideoAction:'play'}, '*')", completionHandler: nil)
+    }
     func retry() { failed = false; loading = true; webView?.reload() }
 }
 struct SourcePlayer: View {
@@ -40,9 +43,12 @@ struct SourcePlayer: View {
                 }
                 Button { state.retry() } label: { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }.accessibilityLabel("Ponów")
             }.padding(.horizontal, 14).background(Theme.panel)
-            if state.loading { ProgressView().padding(10) }
             if !state.confirmed {
-                Text(state.message).font(.caption).foregroundStyle(state.failed ? .orange : .secondary).padding(12).frame(maxWidth: .infinity)
+                Button { state.startVideo() } label: { Label("Odtwórz wideo", systemImage: "play.fill").frame(minHeight: 44) }
+            }
+            if state.loading { ProgressView().frame(height: 24) }
+            if !state.confirmed {
+                Text(state.message).font(.caption).foregroundStyle(state.failed ? .orange : .secondary).lineLimit(3).padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 66)
             }
             PlayerWebView(request: request, state: state) { seconds, duration in library.record(request.entry, seconds: seconds, duration: duration) }.id(request.id)
         }.background(.black).preferredColorScheme(.dark)
@@ -84,7 +90,7 @@ struct PlayerWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
-        config.allowsInlineMediaPlayback = false
+        config.allowsInlineMediaPlayback = true
         config.allowsAirPlayForMediaPlayback = true
         config.allowsPictureInPictureMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -97,8 +103,17 @@ struct PlayerWebView: UIViewRepresentable {
           document.addEventListener('click',e=>{if(e.isTrusted)reportUI('tap');},true);
           window.addEventListener('unhandledrejection',()=>reportUI('script_failure'));
           window.addEventListener('error',e=>{if(e.error)reportUI('script_failure');});
+          const startVideo=()=>{ \(ProviderPlaybackScript.start); };
+          window.addEventListener('message',e=>{
+            if(e.data && e.data.mkVideoAction==='play'){
+              startVideo(); document.querySelectorAll('iframe').forEach(f=>{try{f.contentWindow.postMessage({mkVideoAction:'play'},'*');}catch(_){}});
+            }
+          });
+          let playbackStarted=false;
+          document.addEventListener('click',e=>{if(e.isTrusted && !playbackStarted)startVideo();},false);
           const seen=new WeakSet();const attach=()=>{document.querySelectorAll('video').forEach(v=>{
-          if(seen.has(v))return;seen.add(v);let last=0;let sought=false;
+          if(seen.has(v))return;seen.add(v);v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+          v.addEventListener('playing',()=>{playbackStarted=true;});let last=0;let sought=false;
           const resume=()=>{if(!sought && v.duration>0){sought=true;const n=\(start);if(n>10&&n<v.duration-15){try{v.currentTime=n;}catch(e){}}}};
           v.addEventListener('loadedmetadata',resume);resume();
           const report=(force=false)=>{const now=Date.now();if(!force&&now-last<5000)return;last=now;

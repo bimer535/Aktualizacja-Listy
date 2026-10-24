@@ -193,6 +193,33 @@ actor Catalogue {
         let (text, final) = try await fetch(url)
         return try Self.cards(text, page: final)
     }
+    // Resolve the provider's ordinary same-film redirect before constructing the
+    // WebKit host policy. Never trust an unrelated popup or a different film ID.
+    static func voeRedirect(_ text: String, page: URL) -> URL? {
+        guard text.contains("const currentUrl") else { return nil }
+        let value = first(#"window\.location\.href\s*=\s*['"]([^'"]+)['"]"#, text)
+        guard let target = URL(string: value, relativeTo: page)?.absoluteURL,
+              target.scheme == "https", target.host != nil,
+              target.user == nil, target.password == nil,
+              page.path.range(of: #"^/e/[A-Za-z0-9]+/?$"#, options: .regularExpression) != nil,
+              target.path == page.path, target.fragment == nil else { return nil }
+        return target
+    }
+    private func voeLocation(_ initial: URL, referer: String) async -> PlayerLocation {
+        var address = initial; var parent = referer; var visited = Set<String>()
+        for _ in 0..<5 {
+            guard visited.insert(address.absoluteString).inserted else { break }
+            do {
+                let (text, final) = try await fetch(address.absoluteString, referer: parent)
+                guard let landed = URL(string: final), landed.scheme == "https",
+                      landed.user == nil, landed.password == nil else { break }
+                if landed != address { parent = address.absoluteString; address = landed }
+                guard let next = Self.voeRedirect(text, page: address), !visited.contains(next.absoluteString) else { break }
+                parent = address.absoluteString; address = next
+            } catch { break } // Let WebKit display the provider's own error/verification.
+        }
+        return PlayerLocation(url: address, referer: parent)
+    }
     // Follows only the ordinary links provided by the website. The final provider
     // runs its own player in WebKit. No DRM, CAPTCHA or subscription bypass.
     func playerURL(_ source: Entry) async throws -> PlayerLocation {
@@ -203,7 +230,10 @@ actor Catalogue {
         for _ in 0..<6 {
             guard visited.insert(url).inserted, let address = URL(string: url), let host = address.host else { break }
             let wrapper = host == "ekino.ws" || host == "ekino.link" || host.hasSuffix(".ekino.link")
-            if !wrapper { return PlayerLocation(url: address, referer: parent) }
+            if !wrapper {
+                if source.provider == "voe" { return await voeLocation(address, referer: parent) }
+                return PlayerLocation(url: address, referer: parent)
+            }
             let (text, final) = try await fetch(url, referer: parent)
             let doc = try SwiftSoup.parse(text)
             let frame = try doc.select("iframe[src]").first()?.attr("src") ?? ""

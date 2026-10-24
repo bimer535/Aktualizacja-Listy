@@ -1,8 +1,34 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import XCTest
 import WebKit
+import JavaScriptCore
 @testable import MKEkino
 final class PlayerBrowserTests: XCTestCase {
+    func testVOEAliasKeepsTheSameFilmAndRejectsAdDestinations() {
+        let page = URL(string: "https://voe.sx/e/abc123")!
+        let ordinary = "const currentUrl = window.location.href; window.location.href = 'https://alias.example/e/abc123';"
+        XCTAssertEqual(Catalogue.voeRedirect(ordinary, page: page)?.host, "alias.example")
+        XCTAssertNil(Catalogue.voeRedirect(ordinary.replacingOccurrences(of: "/e/abc123'", with: "/ad'"), page: page))
+        XCTAssertNil(Catalogue.voeRedirect(ordinary.replacingOccurrences(of: "https://alias", with: "http://alias"), page: page))
+        XCTAssertNil(Catalogue.voeRedirect(ordinary.replacingOccurrences(of: "https://alias", with: "https://user:pass@alias"), page: page))
+        XCTAssertNil(Catalogue.voeRedirect(ordinary.replacingOccurrences(of: "const currentUrl", with: "const adURL"), page: page))
+        XCTAssertNil(Catalogue.voeRedirect(ordinary, page: URL(string: "https://voe.sx/advertising")!))
+    }
+    func testManualPlayOnlyStartsAttachedPausedVideo() {
+        let context = JSContext()!
+        context.evaluateScript("""
+        var plays=0, clicks=0;
+        var make=(src,ready,paused,ended)=>({currentSrc:src,readyState:ready,paused,ended,play:()=>{plays++;return Promise.resolve();}});
+        var document={querySelectorAll:()=>[
+          make('https://media.example/film.m3u8',1,true,false),
+          make('',0,true,false),make('film',1,false,false),make('film',1,true,true)
+        ]};
+        """)
+        XCTAssertEqual(context.evaluateScript(ProviderPlaybackScript.start)?.toInt32(), 1)
+        XCTAssertEqual(context.objectForKeyedSubscript("plays")?.toInt32(), 1)
+        XCTAssertEqual(context.objectForKeyedSubscript("clicks")?.toInt32(), 0)
+        XCTAssertNil(context.exception)
+    }
     func testAllowedPageAndPopupSchemes() {
         XCTAssertTrue(ProviderNavigation.permits(URL(string: "https://example.org/verify")))
         XCTAssertTrue(ProviderNavigation.permits(URL(string: "about:blank")))

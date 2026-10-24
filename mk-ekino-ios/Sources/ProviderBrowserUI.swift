@@ -92,3 +92,19 @@ struct ProviderNavigationPolicy {
         browser.loadHTMLString("", baseURL: nil)
     }
 }
+
+/// A playback request touches only video elements with media already attached.
+/// It does not click overlays, verification controls, or advertising elements.
+enum ProviderPlaybackScript {
+    static let start = """
+    (()=>{
+      let started=0;
+      document.querySelectorAll('video').forEach(v=>{
+        if(v.currentSrc && v.readyState>0 && v.paused && !v.ended){
+          try { const result=v.play(); if(result && result.catch)result.catch(()=>{}); started++; } catch(_){}
+        }
+      });
+      return started;
+    })()
+    """
+}
