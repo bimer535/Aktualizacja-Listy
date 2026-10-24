@@ -27,6 +27,7 @@ struct CinemaView: View {
     @State private var playback: PlaybackRequest?
     @State private var loadTask: Task<Void, Never>?
     @State private var activeLoad = UUID()
+    @State private var pageRevision = UUID()
     private let catalogue = Catalogue()
     var body: some View {
         GeometryReader { geometry in
@@ -37,10 +38,8 @@ struct CinemaView: View {
                     header
                     if !wide { navigation(vertical: false).padding(.bottom, 14) }
                     HStack(alignment: .top, spacing: 20) {
-                        ScrollViewReader { proxy in
-                            ScrollView {
+                        CatalogueScrollView(revision: pageRevision) {
                                 VStack(alignment: .leading, spacing: 20) {
-                                    Color.clear.frame(height: 1).id("top")
                                     if current.action == "main" { hero }
                                     HStack {
                                         Text(current.title).font(.title2.bold())
@@ -57,8 +56,6 @@ struct CinemaView: View {
                                         LazyVStack(spacing: 12) { ForEach(rows) { entry in listRow(entry) } }
                                     }
                                 }.padding(.horizontal, 20).padding(.bottom, 30)
-                            }
-                            .onChange(of: current.id) { _ in proxy.scrollTo("top", anchor: .top) }
                         }
                         if wide, let selected { detail(selected).frame(width: 270).padding(.trailing, 24) }
                     }
@@ -95,7 +92,7 @@ struct CinemaView: View {
             Spacer(minLength: 0)
             Button { search = true } label: { Image(systemName: "magnifyingglass").font(.title3).frame(width: 44, height: 44) }.accessibilityLabel("Szukaj")
             Menu {
-                Button(library.tiles ? "Widok listy" : "Widok kafelków", systemImage: "square.grid.2x2") { library.tiles.toggle() }
+                Button(library.tiles ? "Widok listy" : "Widok kafelków", systemImage: "square.grid.2x2") { library.tiles.toggle(); pageRevision = UUID() }
                 Button("Odśwież", systemImage: "arrow.clockwise") { load(current, push: false) }
                 Button("O aplikacji", systemImage: "info.circle") { info = true }
             } label: { Image(systemName: "ellipsis.circle").font(.title3).frame(width: 44, height: 44) }.accessibilityLabel("Opcje")
@@ -105,7 +102,7 @@ struct CinemaView: View {
         let menu = [Entry(title: "Odkrywaj", action: "main")] + Catalogue.home().filter { $0.action != "versions" }
         return Group {
             if vertical {
-                VStack(alignment: .leading, spacing: 9) { ForEach(menu) { navButton($0) }; Spacer(); Text("MK • 1.0.3 beta").font(.caption).foregroundStyle(.secondary).padding() }.padding(.horizontal, 12)
+                VStack(alignment: .leading, spacing: 9) { ForEach(menu) { navButton($0) }; Spacer(); Text("MK • 1.0.4 beta").font(.caption).foregroundStyle(.secondary).padding() }.padding(.horizontal, 12)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: 9) { ForEach(menu) { navButton($0) } }.padding(.horizontal, 20) }
             }
@@ -158,13 +155,13 @@ struct CinemaView: View {
     }
     private func detail(_ entry: Entry) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            poster(entry).aspectRatio(2 / 3, contentMode: .fit).clipShape(RoundedRectangle(cornerRadius: 20)).frame(maxWidth: 300).frame(maxWidth: .infinity)
             Text(entry.title).font(.title2.bold())
             Text(entry.subtitle).foregroundStyle(Theme.cyan)
             HStack {
                 Button { selected = nil; load(entry) } label: { Label(entry.action == "seasons" ? "Odcinki" : "Wybierz źródło", systemImage: "play.fill").frame(minHeight: 44) }.buttonStyle(.borderedProminent)
                 Button { library.toggle(entry) } label: { Image(systemName: library.contains(entry) ? "heart.fill" : "heart").frame(width: 44, height: 44) }.buttonStyle(.bordered).accessibilityLabel("Ulubione")
             }
+            poster(entry).frame(width: 160, height: 240).clipped().clipShape(RoundedRectangle(cornerRadius: 16)).frame(maxWidth: .infinity)
             Text(entry.desc.isEmpty ? "Opis nie jest dostępny w katalogu." : entry.desc).font(.body).foregroundStyle(.white.opacity(0.8))
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -175,7 +172,7 @@ struct CinemaView: View {
         NavigationStack {
             ScrollView { VStack(alignment: .leading, spacing: 22) {
                 Image("Brand").resizable().scaledToFit().frame(height: 150).frame(maxWidth: .infinity)
-                Text("MK eKino • iOS 1.0.3 beta").font(.title2.bold())
+                Text("MK eKino • iOS 1.0.4 beta").font(.title2.bold())
                 Text("Autor wydania: MK")
                 Link("Kontakt: bimer55@wp.pl", destination: URL(string: "mailto:bimer55@wp.pl")!)
                 Text("Niezależne wydanie MK, z układem inspirowanym epremki. Wersja testowa: odtwarzacze źródłowe działają przez WebKit. Dostępność, jakość, napisy i reklamy zależą od źródła. Wznowienie wymaga odtwarzacza HTML5, który udostępnia postęp.")
@@ -208,7 +205,7 @@ struct CinemaView: View {
     }
     private func back() {
         loadTask?.cancel(); activeLoad = UUID(); busy = false
-        guard let last = stack.popLast() else { return }; current = last.0; rows = last.1
+        guard let last = stack.popLast() else { return }; current = last.0; rows = last.1; pageRevision = UUID()
     }
     private func load(_ entry: Entry, push: Bool = true) {
         loadTask?.cancel(); let loadID = UUID(); activeLoad = loadID; busy = true
@@ -221,7 +218,7 @@ struct CinemaView: View {
                 else { next = try await catalogue.browse(entry) }
                 try Task.checkCancellation()
                 if push { stack.append((current, rows)) }
-                current = entry; rows = next
+                current = entry; rows = next; pageRevision = UUID()
             } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
         }
     }
