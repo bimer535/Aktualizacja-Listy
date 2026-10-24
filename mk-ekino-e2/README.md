@@ -1,4 +1,15 @@
-# MK Ekino E2 0.2.8
+# MK Ekino E2 0.2.10
+
+## Zmiany 0.2.10 — przewijanie OpenPLi / OpenATV
+
+- Lewo/prawo na kółku oraz krótki ⏪/⏩: skok o 10 sekund. Długie ⏪/⏩: skok o 60 sekund.
+- Bez wywoływania nieobsługiwanego trybu x2/x4 w ServiceApp; własny kontekst klawiszy niezależny od map OpenPLi i OpenATV, bez podwójnego skoku przy naciśnięciu i puszczeniu kółka.
+- Szybkie kolejne naciśnięcia kumulują skoki mimo opóźnionego odczytu pozycji. Ograniczenie do początku i sekundy przed końcem zapobiega zatrzymaniu ServiceApp.
+- Pauza pozostaje pauzą; ręczny skok przerywa ponawiane automatyczne wznowienie. OK/pauza, EXIT i cyfry zachowują obsługę.
+- Gdy usługa nie udostępnia seek albo odrzuca komendę, pojawia się krótki komunikat, bez awarii interfejsu. Nie można zagwarantować seek dla serwera, który go nie obsługuje.
+- PremiumSmart: zgodny konstruktor MoviePlayer również dla OpenPLi (pominięcie fromMovieSelection, gdy nie jest obsługiwane).
+- Weryfikacja lokalna: testy usług i map klawiszy OpenPLi 9.2/OpenATV; test fizycznych dekoderów wymaga potwierdzenia użytkownika.
+
 
 Samodzielna wtyczka Enigma2 z Pythonem 3 dla Octagon SF8008 / OpenATV oraz Zgemma H9 / OpenPLi 9.2.
 Nie wymaga E2iPlayera, jego prywatnego loadera ani modułów PE2I.
@@ -409,3 +420,4 @@ Pakiet: `python3 tools/build_ipk.py`. Testy: `python3 -m unittest discover -s te
 
 ### 0.2.9
 Nowa ikona MK z zachowaniem kwadratowych proporcji; bez zmian w odtwarzaniu.
+

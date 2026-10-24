@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.9",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.9.ipk",
-  "size": 228154,
-  "sha256": "0c1c2482b54119aad7f7a8492b9ff719a1a6e1fe4852b3cddd88e9d4fd75e326",
-  "notes": "Nowa kwadratowa ikona MK. Działanie odtwarzania pozostaje bez zmian. Po aktualizacji uruchom ponownie interfejs Enigma2."
+  "version": "0.2.10",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.10.ipk",
+  "size": 230144,
+  "sha256": "b95b6ac667d3f36e76d35211f4bb54aae33417c05661d9dced064a46eab4719c",
+  "notes": "Przewijanie na OpenPLi i OpenATV: kółko lewo/prawo i przyciski ⏪/⏩ wykonują skoki po 10 sekund; długie ⏪/⏩ po 60 sekund. Ochrona przed skokiem poza koniec filmu. Po aktualizacji uruchom ponownie interfejs Enigma2."
 }

@@ -1,4 +1,15 @@
-# MK PremiumSmart E2 0.1.1
+# MK PremiumSmart E2 0.1.3
+
+## Zmiany 0.1.3 — przewijanie OpenPLi / OpenATV
+
+- Lewo/prawo na kółku oraz krótki ⏪/⏩: skok o 10 sekund. Długie ⏪/⏩: skok o 60 sekund.
+- Bez wywoływania nieobsługiwanego trybu x2/x4 w ServiceApp; własny kontekst klawiszy niezależny od map OpenPLi i OpenATV, bez podwójnego skoku przy naciśnięciu i puszczeniu kółka.
+- Szybkie kolejne naciśnięcia kumulują skoki mimo opóźnionego odczytu pozycji. Ograniczenie do początku i sekundy przed końcem zapobiega zatrzymaniu ServiceApp.
+- Pauza pozostaje pauzą; ręczny skok przerywa ponawiane automatyczne wznowienie. OK/pauza, EXIT i cyfry zachowują obsługę.
+- Gdy usługa nie udostępnia seek albo odrzuca komendę, pojawia się krótki komunikat, bez awarii interfejsu. Nie można zagwarantować seek dla serwera, który go nie obsługuje.
+- PremiumSmart: zgodny konstruktor MoviePlayer również dla OpenPLi (pominięcie fromMovieSelection, gdy nie jest obsługiwane).
+- Weryfikacja lokalna: testy usług i map klawiszy OpenPLi 9.2/OpenATV; test fizycznych dekoderów wymaga potwierdzenia użytkownika.
+
 
 Wersja 0.1.1: kwadratowa ikona z napisem MK PremiumSmart oraz czytelna informacja
 „Wybierz film lub serial — tutaj pojawi się okładka” w pustym polu okładki w menu.
@@ -115,3 +126,4 @@ Pełny kod, testy i referencje są publikowane w sąsiednim pliku _source.zip.
 
 ### 0.1.2
 Nowa ikona MK z zachowaniem kwadratowych proporcji; bez zmian w odtwarzaniu.
+
