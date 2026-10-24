@@ -1,0 +1,49 @@
+name: MK eKino iOS
+on:
+  push:
+    paths:
+      - 'mk-ekino-ios/**'
+      - '.github/workflows/mk-ekino-ios.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mk-ekino-ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        working-directory: mk-ekino-ios
+        run: |
+          command -v xcodegen >/dev/null || brew install xcodegen
+          xcodegen generate
+      - name: Build and test in simulator
+        working-directory: mk-ekino-ios
+        run: |
+          xcrun simctl list devices available --json > /tmp/mk-devices.json
+          SIMULATOR_ID=$(python3 -c 'import json; d=json.load(open("/tmp/mk-devices.json")); print(next(x["udid"] for runtime, devices in d["devices"].items() if "iOS" in runtime for x in devices if "iPhone" in x["name"] and x["isAvailable"]))')
+          xcodebuild -project MKEkino.xcodeproj -scheme MKEkino -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO test
+      - name: Build IPA for personal signing
+        working-directory: mk-ekino-ios
+        run: bash tools/build-ios.sh
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MK_Ekino_iOS_1.0.0
+          path: |
+            mk-ekino-ios/dist/*.ipa
+            mk-ekino-ios/dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MK_Ekino_iOS_tests
+          path: mk-ekino-ios/TestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
