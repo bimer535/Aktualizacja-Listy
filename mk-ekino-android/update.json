@@ -1,271 +1,271 @@
 {
   "applicationId": "pl.mk.ekino.tv",
-  "version": "0.1.4",
-  "versionCode": 5,
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk",
+  "version": "0.1.5",
+  "versionCode": 6,
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk",
   "size": 37793780,
-  "sha256": "557d4ef4c21bcb709057a6f390fc574a2ce7c0fcb1de7e5298c57389549958cf",
-  "notes": "Oznaczanie obejrzanych filmów (automatyczne od 90% i ręczne przez Opcje), wyraźne podświetlenie przycisków playera oraz czarne pasy w trybie Dopasuj.",
+  "sha256": "894d73f065c2b42328ca719d9cc8d7fd3b3e39793029d92f277fe5a4dcf67c6d",
+  "notes": "Poprawka awarii playera z wersji 0.1.4. Zachowano obejrzane, podświetlenie przycisków i czarne pasy.",
   "parts": [
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part001",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part001",
       "size": 737280,
-      "sha256": "9001a980f749917a50cc6cbdc42d57a4ba9a0f8c8c99a57d117e8309a806eef8"
+      "sha256": "a33a7f2aed3f3dfadba98f888f143a1229bf4c66f761b66c40df119a134bb220"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part002",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part002",
       "size": 737280,
       "sha256": "98833999b89d4c11b547a73be687945a99fa4056cd14ffa32aae537921bb1970"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part003",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part003",
       "size": 737280,
       "sha256": "9d81a14092e6023ac976acf8f57ef2e3202dc48eefa0c85c743d064905bcaf85"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part004",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part004",
       "size": 737280,
       "sha256": "cdb0d9732a34e970592ca9ec40f3be594afbc6d687d3fbc8e619fdd89db2237c"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part005",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part005",
       "size": 737280,
-      "sha256": "1a836f6bbaa3e323f581504451041290f6f09870df35113ba8f3426741878980"
+      "sha256": "2c52ce99afb1eb973204ace3e177caa4ede213ffe54060d1be60dd119720fa3a"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part006",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part006",
       "size": 737280,
-      "sha256": "f892ceb546824d75b8f411b1eb5638e96c738f68af909f0af5a889c112b76247"
+      "sha256": "08bb718387d599e489759a2e6b365f18487074ca92834983948875b703b645af"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part007",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part007",
       "size": 737280,
-      "sha256": "929860b21027fd08d4e2171fa1962aac4e3e1e634c52c7031ff696b0a8dec8ca"
+      "sha256": "0aaa040b4ac575d430e3ed3fbb9051cbf9826f3781da3102e10c81b6420da979"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part008",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part008",
       "size": 737280,
-      "sha256": "53e4bbc75faf72f8365268c135303288d0ea621abca05b4db5db5570519aabfc"
+      "sha256": "de2c1d1f53bff553b177b189cfa8d2f9f36840bf2184146d94001abcac78c59e"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part009",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part009",
       "size": 737280,
-      "sha256": "ffc72ea83b417373810a90a5fbb58d843d593038163b90b7d14bb5f398224490"
+      "sha256": "1d8042bc78252e1400857590197207ce706c6a89f0f1204c286b2ea4771ae9bd"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part010",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part010",
       "size": 737280,
-      "sha256": "22a8eb508105538e8e356bdcae5afb4155a18142e7e619e1e8cc62507ebd109a"
+      "sha256": "c94490f250f35f11316f1e4c3576539dc3465b8063e1c0597047bbe448f717f9"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part011",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part011",
       "size": 737280,
-      "sha256": "b9e6d059bdabe244e822e1f3d2c11a4d60acdb37f820ecbf9d43fe0dfc457896"
+      "sha256": "ffbf999d889af2320038e1eca3e048d06bbd43754ef9db223636f8db224b9d7c"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part012",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part012",
       "size": 737280,
-      "sha256": "78d8235178fc62f64ce4f3ef1458ca3599756baa4e126ced8e197f9285dec053"
+      "sha256": "c691e3122d91158197564a949ea4b9ab20a619235ba6178b513c11959800dd28"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part013",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part013",
       "size": 737280,
-      "sha256": "eae0395f488b391aea18c8a32e05e5532e25f5e85d6cf448aff7f150e6f26e5b"
+      "sha256": "6133f559288cb93b8d1274c080a0ed16cc1c97b10944cb9d95bc77bb164583fa"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part014",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part014",
       "size": 737280,
-      "sha256": "e7b1411ed9cda520aa9e5bf93a36114489e5734f7f7ac86136e4277f8ecd74f1"
+      "sha256": "91bb6801d3be56c73c6f80581a566dfd95ba75a50f9ccbbfc3eb7ef1ddd7a993"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part015",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part015",
       "size": 737280,
-      "sha256": "72864ef8971c5c1f1b9c71980bc7b317ac390085770a40a8e96fe9977694b621"
+      "sha256": "bc605350f3689676c6eaecb0e41008e5d0d25ec04f679f74a3f4bd437328b3ad"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part016",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part016",
       "size": 737280,
-      "sha256": "36a4ff8ef501394863fa8a5dd617823fbf51ec1c840a51965a545abdd0d3553d"
+      "sha256": "169ad49b041dc56667e8255442bc35b9c078cec3a6ae5b154e6af15fdbccb7b1"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part017",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part017",
       "size": 737280,
-      "sha256": "3ad6b11c04d86a7e975c09d1f046232c065d60e8650305cce640b19e7032cc8b"
+      "sha256": "bc1bd0d64c33922d36e748c4e06d7db720c076070e2a72ae95d2ffac5579d459"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part018",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part018",
       "size": 737280,
-      "sha256": "6bce4c1aa2b4242b6d3eee405a72ad2e3f0780e985bbb793146ad4a0bbf88441"
+      "sha256": "1bd1bcb9d176ceb3b4fa54dfb27765ceae09dd361a663ac0d93379880ace0174"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part019",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part019",
       "size": 737280,
-      "sha256": "cad051aecaeed548f2115f512afe3ba1b7adff1b7f7c94d3e96982917b3b366c"
+      "sha256": "84cc4f5884a4fc4aa35a5816f2b5f776ba4ecf92ade176495463f6c2187bc891"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part020",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part020",
       "size": 737280,
-      "sha256": "a2727fe6e7489a0271149276a1616745f5e28ac6a74ed7fe4b4c38abfcd68cd7"
+      "sha256": "89008dacf9de368384a73d6a5f359c2d256f1f8dfb4cff83aaa2bf012948343e"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part021",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part021",
       "size": 737280,
-      "sha256": "b63dc2c7a4f1985bd4bdc076f979cb82637b870e87ebaff97845e4eea7c3d848"
+      "sha256": "886936f7db34ec54b5cd667f3edad25fa733871f4ca1ca4969dfda10ff656e0b"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part022",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part022",
       "size": 737280,
-      "sha256": "0821b84ecc50538c53351edd4bcb321524ec067fa2fdf4129fbce6a0571b3327"
+      "sha256": "a683355e66631f9feb046cffc13a7484a43630a345b08a58367bb70d899c20f1"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part023",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part023",
       "size": 737280,
-      "sha256": "e6d61db5d9593a7a859f15d213e88746c46c0c8288d66743e5f8374fccb3f026"
+      "sha256": "c8fa42c7aeab70111be5c21a4c64ed96a1e08f1ed1895ca70777ab4e61a7a9b3"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part024",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part024",
       "size": 737280,
-      "sha256": "4ee2a2cd3cda9556bee5a71a781f7bc6298b6366f598ee3c9f4dd874cc89adb7"
+      "sha256": "5866e90365e49db4ac8cd88878f23d70f776afb26677ef6b7578e912cd4931c3"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part025",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part025",
       "size": 737280,
-      "sha256": "b0fa8fb679fd5c1711aaa628d2c69e12c60861c8fce1f935eae2027242e181f7"
+      "sha256": "437e3bac0a6d103b43dfddc24131612c552dc7181fb76c6dd71bba65670cc574"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part026",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part026",
       "size": 737280,
-      "sha256": "8a006e5383709fcaacf681b5c234a71ee171cc69043f76361204458862c7c5cb"
+      "sha256": "33bef3975c49fd2666239750d12ec4c8041ea0bb96a2e360dd1aaf42c62bcb9a"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part027",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part027",
       "size": 737280,
-      "sha256": "4106407c80d452f42acbddb4df79c6e0fc1504d50b5d64088e0d478bcdd22b48"
+      "sha256": "5b7de47205a18f3c2608e9e04ea09b79ae4d2ace6d6c63eae408cacff49b6e34"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part028",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part028",
       "size": 737280,
       "sha256": "f35bee1800d043b58a7765cbbd2e564a8d26e8afb44ddd1bdd52f8de2087f320"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part029",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part029",
       "size": 737280,
       "sha256": "342820cde0676e45bcebc824d72a757205972c4414ac0a82983c411664d3fa38"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part030",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part030",
       "size": 737280,
       "sha256": "d2e2ea1dbd24a0faddc6f3438054dc2bb5ca27e34aaa5d8867bdaa4a6c14fc5c"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part031",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part031",
       "size": 737280,
       "sha256": "653acda6515a90f6a45539d69152129a58bfce927b9e6c4e5133f9a64938cae0"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part032",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part032",
       "size": 737280,
-      "sha256": "a22d189b1f98f0aa2e0c6cb7d0d4247ab633aa32e78aad0d906aa49aca09f8dd"
+      "sha256": "e149e8ba29d8a8e38e32d5b87a93f1b54eb4d9d35ec82063480aac8816525270"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part033",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part033",
       "size": 737280,
-      "sha256": "7de4c53a87b669ccca973f062cd80ca6d75ea37dfc8dbf8d0fb7b6436718920c"
+      "sha256": "82a0ed33d61d2c7e13d78e087f09a06cb3324f0a50ef21bbc945bc62dc0298f1"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part034",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part034",
       "size": 737280,
       "sha256": "8be6ecbd0c8c978ba64dadc3d066e977b097ee154f496acee5b60bb7c2957c27"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part035",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part035",
       "size": 737280,
-      "sha256": "5263608c3fd0cba5b9f21c4206eebed3fae374af5e3ce811a11c4d8675ea7bfe"
+      "sha256": "b7a5be896dfda9bcc535c63eae5a3f99934e2ee8c45418cca48cbb2b64fe88a1"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part036",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part036",
       "size": 737280,
       "sha256": "efc3ad2f4a53ae32338eddff28b0daad790c7c9fc35268dacdd349dc9e5c995a"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part037",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part037",
       "size": 737280,
       "sha256": "6dd52afd0523991e634b5e3e0f78d5fab7eb6ecb47c8fed3a66e5fe6a1fb7179"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part038",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part038",
       "size": 737280,
       "sha256": "0706ed5c13345b370360d475456b49f63125a85727901cca609e16488fb84eb4"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part039",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part039",
       "size": 737280,
       "sha256": "a0d74b7770cc5ead6ef5981f6d0ff9f3b5de3178ec02fb7e8941cb821eed0308"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part040",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part040",
       "size": 737280,
       "sha256": "27612c20f2706d5ec3279f59025db8f8d8e3689158ba64d69fe3b17f293c6f6b"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part041",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part041",
       "size": 737280,
       "sha256": "ebc8b7c7c82a6ea500b567db95d6c847933a9716d903c2c76ba4265164591f8d"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part042",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part042",
       "size": 737280,
-      "sha256": "0c3661487cbbc6a1465fda47b0eceb530e5e1693db30f3cbb562549a908e236d"
+      "sha256": "9b6d059b8b80371fb8f6175c281b84f693c1d536ba89f7b80c9892190ea127b3"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part043",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part043",
       "size": 737280,
       "sha256": "7bbd94a03eaa631d6057f94032696f7e6fe8ecb0c2b3a298ca644661ff14132f"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part044",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part044",
       "size": 737280,
       "sha256": "c00a3249627916aa27bbea664c6cd152ef98f1291dc00ba7c5766e519e2e92eb"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part045",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part045",
       "size": 737280,
-      "sha256": "2da9759ec71af09a31adcd04218143e6e124a12bb65a7a734a733ae7b13adff9"
+      "sha256": "5f23e0dff02e3ebadb97c8878ca14dc50aff1804ce5f7317ac16068af5a61d8d"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part046",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part046",
       "size": 737280,
-      "sha256": "b91510b1ced52ab8102ab1bf7a3c2bb824a35cc2cf532981df3a438bebd2a5f5"
+      "sha256": "28053828f4084e606f3399d1d23305e32713e093edc25a84848901007b22bf1b"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part047",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part047",
       "size": 737280,
-      "sha256": "16e5c103aea0c95c1e072d3318a9543a6f9d0295e15323318a431629a6238ad3"
+      "sha256": "14d93304898f7e56cee842f59a26a94065b6a4f30c753a4463ac94f21679336e"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part048",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part048",
       "size": 737280,
       "sha256": "cf0b4ba5ccb0cbd81aa0eb6ed35b4f010373df06b7b80c4fde3f454aad569e25"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part049",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part049",
       "size": 737280,
       "sha256": "5c49b5880d18e0d746d658b43e2b71acb84a2b08fd8fb36cd98cd21566aac7db"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part050",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part050",
       "size": 737280,
       "sha256": "94a45e7533bb22579321032c2c46094f36d1efa9dbc5813e6da563b67555588f"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part051",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part051",
       "size": 737280,
       "sha256": "4d4ffbab41dbdae63943b252f2c1d5d1ef66d159bfe3003c527c8692d7925e9a"
     },
     {
-      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.4.apk.part052",
+      "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-android/packages/MK_Ekino_TV_0.1.5.apk.part052",
       "size": 192500,
-      "sha256": "a59435034b811aabc4bba184fe91ae9dc0933993ec1bbb2700811b45be9ef798"
+      "sha256": "8063eeb33ea2af3f647100b93c91aa21d15cb9023d5499530f1562c5c6485315"
     }
   ]
 }
