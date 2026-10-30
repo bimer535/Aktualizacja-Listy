@@ -1,8 +1,17 @@
-# MK eKino Vega 0.1.9
+# MK eKino Vega 0.1.10 — źródła
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.10 — oczekuje na kompilację i sprawdzenie
+
+- Poprawka błędu aplikacji: `onError` WebView nie zasłania całego playera i nie wyłącza kursora. Błędy po otwarciu źródła są komunikatem, który nie przechwytuje wejścia. Dotyczy to także błędu HTTP dokumentu; błędy zasobów są logowane bez blokowania strony.
+- Dodano kod błędu i nazwę ze stałej listy `ERR_*`, bez zapisywania URL ani surowego opisu. Anulowanie nawigacji `ERR_ABORTED` nie tworzy komunikatu awarii. Odczyt metadanych, `canplay`, `playing` lub poprawne wczytanie dokumentu usuwa poprzedni komunikat strony.
+- Log użytkownika 0.1.9: wysłano kliknięcie kursora, odczytano metadane H.264 1920 × 800 i `canplay` z `paused=1`, lecz ekran pokazywał błąd strony. Ten fragment nie zawiera samego zdarzenia `document-error` i nie ustala przyczyny źródłowego błędu.
+- Przywrócono pięć wpisów zależności npm do wcześniejszych wartości. Numerowanie poprzednich wydań przypadkowo zmieniło również wersje zależności w pliku blokady; nie odtwarzały one stanu zainstalowanego wcześniej `node_modules`. Podbijanie wersji dotyczy teraz wyłącznie metadanych aplikacji.
+- Dodano dwa testy regresji błędów strony i HTTP, zachowania kursora, usuwania komunikatu po `canplay` oraz redakcji szczegółów.
+- **Nowe testy, TypeScript i budowa nie zostały uruchomione: środowisko wykonawcze było niedostępne. Nie ma jeszcze gotowego pakietu 0.1.10.** Budowanie musi rozpocząć się od `npm ci`, następnie przejść kontrole, zanim pakiet zostanie zainstalowany.
 
 ## Zmiany w 0.1.9
 
@@ -73,7 +82,7 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 - Błędy HTTP i timeouty; ignorowanie spóźnionych odpowiedzi po zmianie widoku.
 - Parsowanie zewnętrznego HTML jako danych, bez wstawiania go do interfejsu przez `innerHTML`. Most sieciowy przyjmuje tylko adresy katalogu `https://ekino.ws`.
 
-## Status sprawdzenia — 30.10.2026
+## Ostatnie ukończone sprawdzenie — 0.1.9, 30.10.2026
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
@@ -81,7 +90,7 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
-- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie przywróciła katalogu po wyjściu z playera. Wersja 0.1.7 odczytała metadane H.264, lecz nie potwierdziła odtwarzania; zwykły powrót do katalogu zakończył się timeoutem. Wersja 0.1.8 zgłosiła `playing`, ale użytkownik widział nieobsługiwalne pilotem okno wznowienia, bez obrazu i dźwięku. Wersja 0.1.9 nie została jeszcze sprawdzona na urządzeniu.**
+- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie przywróciła katalogu po wyjściu z playera. Wersja 0.1.7 odczytała metadane H.264, lecz nie potwierdziła odtwarzania; zwykły powrót do katalogu zakończył się timeoutem. Wersja 0.1.8 zgłosiła `playing`, ale użytkownik widział nieobsługiwalne pilotem okno wznowienia, bez obrazu i dźwięku. Wersja 0.1.9 nadal nie uruchomiła filmu: po kliknięciu widoczny był błąd strony, mimo późniejszych metadanych i canplay.**
 - Próba pobrania aktualnego katalogu w środowisku budowania 30.10: HTTP 403. Testy nowych filtrów i rozwiązywania źródeł wykorzystują lokalne przykłady oparte na publicznym parserze Enigma2; nie stanowią potwierdzenia działania każdego dostawcy.
 
 ## Ograniczenia

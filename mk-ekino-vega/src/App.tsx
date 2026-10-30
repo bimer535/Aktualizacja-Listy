@@ -27,6 +27,7 @@ export const App = () => {
   const activeRequests = useRef(new Map<number, AbortController>());
   const [browserUrl, setBrowserUrl] = useState<string | null>(null);
   const [browserError, setBrowserError] = useState('');
+  const [pageWarning, setPageWarning] = useState('');
   const [resolving, setResolving] = useState(false);
   const [playback, setPlayback] = useState<{kind:string;url:string;referer:string} | null>(null);
   const resolveGeneration = useRef(0);
@@ -104,7 +105,7 @@ export const App = () => {
     sourceRequest.current?.abort();
     setResolving(false); setPlayback(null);
     setBrowserUrl(null);
-    setBrowserError('');
+    setBrowserError(''); setPageWarning('');
     setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false); setMediaAvailable(false);
     if (playerDocument.current) {
       playerDocument.current = false;
@@ -187,7 +188,7 @@ export const App = () => {
       const code = Number.isInteger(msg.code) ? Math.min(Math.max(msg.code!,0),9) : 0;
       const bounded = (n:unknown, max:number) => typeof n === 'number' && Number.isFinite(n) ? Math.min(max,Math.max(0,Math.round(n))) : 0;
       console.info('[MKPLAY]', label, 'code=' + code, 'ready=' + bounded(msg.readyState,4), 'network=' + bounded(msg.networkState,3), 'paused=' + (typeof msg.paused === 'boolean' ? Number(msg.paused) : -1), 'timeMs=' + bounded(msg.timeMs,86400000), 'bufferedMs=' + bounded(msg.bufferedMs,600000));
-      if (label === 'loadedmetadata' || label === 'canplay' || label === 'playing') setMediaAvailable(true);
+      if (label === 'loadedmetadata' || label === 'canplay' || label === 'playing') {setMediaAvailable(true); setPageWarning('');}
       if (label === 'playing') {setMediaStarted(true); setSlowPlayer(false); setMediaStatus('Odtwarzanie');}
       else if (label === 'error') {
         setMediaStarted(false);
@@ -228,7 +229,7 @@ export const App = () => {
       sourceRequest.current?.abort();
       const controller = new AbortController(); sourceRequest.current = controller;
       playerOpen.current = true;
-      setPlayback(null); setBrowserError(''); setBrowserUrl(url); setResolving(true);
+      setPlayback(null); setBrowserError(''); setPageWarning(''); setBrowserUrl(url); setResolving(true);
       const timer = setTimeout(() => controller.abort(), 35000);
       try {
         const result = await resolveSource(url, async (page: string, referer: string) => {
@@ -255,7 +256,7 @@ export const App = () => {
       return;
     }
     if (msg.type === 'open') {
-      if (url) { playerOpen.current = true; ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); playerDocument.current = true; enableCursor(true); setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
+      if (url) { playerOpen.current = true; ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setPageWarning(''); setBrowserUrl(url); playerDocument.current = true; enableCursor(true); setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
       return;
     }
     if (msg.type !== 'fetch') return;
@@ -294,6 +295,7 @@ export const App = () => {
       return;
     }
     if (playerDocument.current && loaded !== HOME) {
+      setPageWarning('');
       // Embedded providers own their controls, focus and playback lifecycle.
       // Observe them without replacing controls or forcing video.play().
       homeRef.current?.injectJavaScript(playback?.kind === 'direct' ? videoScript(playback.url) : MEDIA_REPORTING);
@@ -322,15 +324,23 @@ export const App = () => {
         injectedJavaScriptBeforeContentLoaded={browserUrl ? MEDIA_REPORTING : undefined}
         onMessage={onHomeMessage}
         onLoad={onWebLoad}
-        onError={() => {
+        onError={({nativeEvent}) => {
           hideSplash();
-          if (playerDocument.current) {console.info('[MKPLAY] document-error'); setBrowserError('Nie udało się otworzyć strony odtwarzacza.');}
-          else {console.info('[MKPLAY] catalogue-document-error'); markCatalogue('error');}
+          const code = Number.isFinite(nativeEvent.code) ? Math.max(-100000,Math.min(100000,Math.trunc(nativeEvent.code))) : 0;
+          if (playerDocument.current) {
+            // Native errors may accompany cancelled navigations or partial page
+            // failures. They must not hide live media or remove manual input.
+            const names = ['ERR_ABORTED','ERR_FAILED','ERR_CONNECTION_RESET','ERR_CONNECTION_CLOSED','ERR_CONNECTION_REFUSED','ERR_CONNECTION_TIMED_OUT','ERR_TIMED_OUT','ERR_NAME_NOT_RESOLVED','ERR_INTERNET_DISCONNECTED','ERR_UNKNOWN_URL_SCHEME','ERR_BLOCKED_BY_CLIENT','ERR_BLOCKED_BY_RESPONSE','ERR_CERT_AUTHORITY_INVALID','ERR_SSL_PROTOCOL_ERROR','ERR_TOO_MANY_REDIRECTS'];
+            const reason = names.find(name => String(nativeEvent.description || '').includes(name)) || 'OTHER';
+            console.info('[MKPLAY] document-error', 'code=' + code, 'reason=' + reason);
+            if (code !== -3 && reason !== 'ERR_ABORTED') setPageWarning('Błąd strony źródła · kod ' + code + ' · ' + reason);
+          } else {console.info('[MKPLAY] catalogue-document-error', 'code=' + code); markCatalogue('error');}
         }}
         onHttpError={({nativeEvent}) => {
-          if (playerDocument.current && nativeEvent.isMainFrame) {
-            console.info('[MKPLAY] http-error status=' + nativeEvent.statusCode);
-            setBrowserError('Źródło zwróciło HTTP ' + nativeEvent.statusCode);
+          if (playerDocument.current) {
+            const status = Number.isInteger(nativeEvent.statusCode) && nativeEvent.statusCode >= 100 && nativeEvent.statusCode <= 599 ? nativeEvent.statusCode : 0;
+            console.info('[MKPLAY] http-error status=' + status, 'frame=' + (nativeEvent.isMainFrame ? 'main' : 'resource'));
+            if (nativeEvent.isMainFrame) setPageWarning('Błąd strony źródła · HTTP ' + status);
           }
         }}
       />}
@@ -368,6 +378,9 @@ export const App = () => {
           <View pointerEvents="none" style={styles.cursorHint}><Text style={styles.cursorHintText}>{cursorError || 'Kursor · Strzałki: ruch · OK: klik · Menu: zmień tryb · Wstecz: katalog'}</Text></View>
         </Pressable>
       </TVFocusGuideView>}
+      {!!browserUrl && !!pageWarning && <View pointerEvents="none" style={styles.pageWarning}>
+        <Text style={styles.error}>{pageWarning} · Wstecz: katalog</Text>
+      </View>}
     </View>
   );
 };
@@ -382,6 +395,7 @@ const styles = StyleSheet.create({
   cursorHint: {position:'absolute',bottom:14,left:24,right:24,backgroundColor:'#102332',padding:10,borderRadius:8},
   cursorHintText: {fontSize:18,color:'#ffffff',textAlign:'center'},
   recovery: {position:'absolute',top:0,bottom:0,left:0,right:0,backgroundColor:'#111e2a',justifyContent:'center',alignItems:'center',gap:20},
+  pageWarning: {position:'absolute',top:80,left:20,right:20,backgroundColor:'#111e2aee',borderRadius:8},
   message: {position:'absolute',top:84,bottom:0,left:0,right:0,backgroundColor:'#000000',justifyContent:'center',alignItems:'center'},
   mediaStatus: {position:'absolute',bottom:75,left:20,right:20,backgroundColor:'#111e2a'},
   toolbar: {position:'absolute',top:0,left:0,right:0,minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 20, paddingHorizontal: 34, backgroundColor: '#111e2a'},

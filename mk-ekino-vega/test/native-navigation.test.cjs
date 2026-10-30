@@ -160,3 +160,36 @@ test('cursor fails visibly without a valid viewport and never guesses a click po
     assert.ok(JSON.stringify(h.tree.toJSON()).includes('Nie udało się wysłać kliknięcia'));
   } finally {await h.cleanup();}
 });
+
+test('provider errors preserve the WebView and cursor, redact details and clear after media recovers',async()=>{
+  const h=await harness();
+  try {
+    await h.send({type:'ui-ready'});const task=await h.begin();await task.finish();
+    await renderer.act(async()=>h.web().props.onError({nativeEvent:{code:-3,description:'net::ERR_ABORTED https://secret.example/token',url:HOST}}));
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Błąd strony źródła'),false);
+    await renderer.act(async()=>h.web().props.onError({nativeEvent:{code:-2,description:'net::ERR_FAILED https://secret.example/token',url:HOST}}));
+    assert.equal(h.tree.root.findAllByType('TVFocusGuideView').length,1);
+    assert.equal(h.web().props.source.uri,HOST);assert.equal(h.mounts(),1);
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Błąd strony źródła'));
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Nie udało się otworzyć strony odtwarzacza'),false);
+    assert.ok(h.logs.some(l=>l.includes('document-error code=-2 reason=ERR_FAILED')));
+    assert.ok(h.logs.every(l=>!l.includes('secret.example')));
+    await h.send({type:'mk-media',event:'canplay',readyState:4,paused:true},HOST);
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Błąd strony źródła'),false);
+    const cursor=h.tree.root.findAllByType('Pressable').find(p=>p.props.accessibilityLabel?.startsWith('Kursor:'));
+    await renderer.act(async()=>cursor.props.onPress());assert.equal(h.touches.length,1);
+    await h.tick(80);assert.equal(h.touches.length,2);
+  } finally {await h.cleanup();}
+});
+test('HTTP errors remain nonblocking and preserve manual input',async()=>{
+  const h=await harness();
+  try {
+    await h.send({type:'ui-ready'});const task=await h.begin();await task.finish();
+    await renderer.act(async()=>h.web().props.onHttpError({nativeEvent:{statusCode:403,isMainFrame:false,url:HOST}}));
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Błąd strony źródła'),false);
+    await renderer.act(async()=>h.web().props.onHttpError({nativeEvent:{statusCode:503,isMainFrame:true,url:HOST}}));
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('HTTP 503'));
+    assert.equal(h.tree.root.findAllByType('TVFocusGuideView').length,1);
+    assert.equal(h.web().props.source.uri,HOST);
+  } finally {await h.cleanup();}
+});
