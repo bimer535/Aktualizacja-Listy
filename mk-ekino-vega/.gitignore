@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+*.log
+buildinfo.json
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx

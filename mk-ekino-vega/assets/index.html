@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MK eKino • Vega OS</title>
+<style>
+:root{--bg:#09111b;--panel:#14212e;--accent:#31e4cc;--soft:#aabcc6;--text:#f3f8f9}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Arial,sans-serif;font-size:18px}button,input{font:inherit}button{cursor:pointer;border:2px solid transparent;background:transparent;color:inherit}button:focus,input:focus{outline:3px solid var(--accent);outline-offset:3px}
+.shell{display:flex;min-height:100vh}.side{width:225px;flex:none;border-right:1px solid #263746;padding:28px 17px;background:#101c28}.brand{font-size:27px;font-weight:900;letter-spacing:-1px;color:#fff}.brand span{color:var(--accent)}.edition{font-size:12px;color:var(--soft);margin:3px 0 35px}.nav{display:block;width:100%;text-align:left;padding:14px 18px;margin:6px 0;border-radius:10px;font-weight:700}.nav.active{background:#163e46;color:var(--accent)}.nav:focus{background:#24535d}
+main{flex:1;min-width:0;padding:29px 36px 52px}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:32px;letter-spacing:-1px;margin:0}.hint{color:var(--soft);font-size:13px}.banner{margin-top:18px;margin-bottom:29px;background:linear-gradient(108deg,#123641 0%,#112c39 48%,#1a2332 100%);border:1px solid #28505b;border-radius:19px;padding:23px 26px;min-height:135px}.banner .top{color:var(--accent);font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold}.banner h2{font-size:25px;margin:7px 0}.banner p{font-size:15px;color:#d2e0e5;max-width:700px;margin:0}.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:20px 0}.pill{padding:11px 18px;background:#1b3040;border-radius:10px;border:1px solid #345365}.pill:focus,.pill:hover{background:#1b585a}.search{width:min(100%,430px);height:48px;padding:0 16px;color:white;background:#152533;border:1px solid #496273;border-radius:10px}.status{color:var(--soft);font-size:14px;min-height:20px}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}.card{text-align:left;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:var(--panel);border:2px solid #233748;padding:0;min-width:0;transition:transform .15s}.card:focus{border-color:var(--accent);transform:scale(1.045);box-shadow:0 0 0 2px #16917b}.poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:linear-gradient(155deg,#265261,#17293b);display:block}.poster.fallback{display:flex;align-items:center;justify-content:center;color:#75d8cd;font-size:35px}.card .cardname{padding:12px 12px 4px;font-size:15px;font-weight:750;min-height:54px;line-height:1.35}.card .meta{padding:0 12px 12px;color:#94aeb7;font-size:12px}.empty{color:#cbd6dc;background:#142330;border-radius:14px;padding:26px;margin:20px 0;line-height:1.65}.details{display:none}.details.visible{display:block}.detailHead{display:flex;gap:25px;align-items:flex-start}.detailPoster{width:180px;aspect-ratio:2/3;object-fit:cover;background:#1b2b38;border-radius:12px}.detailBody{flex:1}.description{line-height:1.58;color:#d4e2e5;font-size:16px;max-width:800px}.sources{margin-top:24px;display:flex;flex-wrap:wrap;gap:12px}.tag{color:#9ebac0;font-size:15px}.caption{font-size:13px;color:#88a0a9;margin-top:10px}.small{font-size:13px;color:var(--soft)}.hidden{display:none!important}@media(max-width:1050px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.side{width:185px}main{padding:25px 22px}}@media(max-width:780px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.side{width:155px}.brand{font-size:22px}.nav{padding:10px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+<div class="brand">MK <span>eKino</span></div><div class="edition">VEGA OS · 0.1.1</div>
+<button class="nav active" data-tab="home">Strona główna</button>
+<button class="nav" data-tab="movies">Filmy</button>
+<button class="nav" data-tab="shows">Seriale</button>
+<button class="nav" data-tab="favorites">Ulubione</button>
+<button class="nav" data-tab="watched">Obejrzane</button>
+<button class="nav" data-tab="search">Szukaj</button>
+<p class="small" style="margin-top:50px">Pilot: strzałki i OK<br>Wstecz: poprzedni ekran</p>
+</aside>
+<main>
+ <div id="library">
+  <div class="heading"><h1 id="page-title">Odkrywaj filmy</h1><span class="hint">MK eKino dla Fire TV Stick 4K Select</span></div>
+  <section class="banner"><div class="top">MK eKino · Fire TV</div><h2>Twoje filmy na dużym ekranie</h2><p>Przeglądaj katalog eKino, zapisuj ulubione i otwieraj dostępne źródła. Bez konta w aplikacji.</p></section>
+  <div class="actions"><input id="search" class="search" type="search" placeholder="Szukaj na wyświetlonej stronie…" aria-label="Filtruj listę"/><button class="pill" id="do-search">Szukaj w katalogu</button><button class="pill" id="refresh">Odśwież</button><button class="pill" id="open-site">Otwórz stronę eKino</button></div>
+  <p class="status" id="status">Ładowanie katalogu…</p>
+  <section class="grid" id="grid"></section>
+  <div class="actions" id="paging"><button class="pill" id="prev">← Poprzednia</button><span class="tag" id="page-count">Strona 1</span><button class="pill" id="next">Następna →</button></div>
+ </div>
+ <section id="details" class="details"><div class="actions"><button class="pill" id="close">← Wróć do listy</button><button class="pill" id="favorite">☆ Ulubione</button><button class="pill" id="mark">✓ Obejrzałem</button></div><div id="detail-view"></div><p class="caption">Źródła są udostępniane przez zewnętrzne serwisy. Odtwarzanie może wymagać zgody, konta lub nie być dostępne.</p></section>
+</main>
+</div>
+<script src="app.js"></script>
+</body></html>
