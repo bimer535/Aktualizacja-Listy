@@ -1,8 +1,17 @@
-# MK eKino Vega 0.1.8
+# MK eKino Vega 0.1.9
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.9
+
+- Zgłoszenie użytkownika 0.1.8: strona zatrzymuje się na oknie „Wznów / Od początku”; przyciski nie są dostępne strzałkami, obrazu i dźwięku brak. Log `playing` z rosnącym czasem nie potwierdził widocznego filmu. To stan HTMLMediaElement, a nie pomiar obrazu na ekranie.
+- Dodano ręczny kursor TV, automatycznie włączany na wejściu do zewnętrznego playera. Strzałki przesuwają celownik, OK wysyła natywne `touchstart` i `touchend` przez udokumentowane `WebView.dispatchTouchEvent`. Menu przełącza kursor/nawigację; Wstecz wraca do katalogu. W trybie nawigacji dostępny jest też przycisk „Kursor”.
+- Nakładka z własnym fokusem przejmuje strzałki/OK, zamiast polegać na fokusowaniu elementów zewnętrznej strony. Współrzędne celownika są skalowane do widocznego viewportu WebView; brak rozmiaru oznacza widoczny błąd, bez zgadywania pozycji kliknięcia.
+- Kliknięcia następują wyłącznie po OK użytkownika. Kod nie wyszukuje ani nie klika samoczynnie „Wznów”, „Od początku” czy potwierdzeń człowieka. Zakończenie dotyku jest wysyłane także przy wyjściu w trakcie kliknięcia. Natywne Play/Pauza nie steruje filmem w trybie kursora, aby użytkownik najpierw obsłużył okno strony.
+- Logi `cursor-click` i `cursor-click-failed` nie zawierają treści strony, współrzędnych, URL ani danych osobowych.
+- Sprawdzenie obejmuje przeliczanie pozycji, ograniczenie ruchu do ekranu, pojedynczą sekwencję dotyku na OK, zmianę trybu bez odtwarzania renderera i zwolnienie dotyku przy Wstecz. Nie potwierdzono jeszcze działania kursora ani obrazu/dźwięku na fizycznym Sticku.
 
 ## Zmiany w 0.1.8
 
@@ -68,11 +77,11 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 22 testy katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 25 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
-- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie przywróciła katalogu po wyjściu z playera. Wersja 0.1.7 odczytała metadane H.264, lecz nie potwierdziła odtwarzania; zwykły powrót do katalogu zakończył się timeoutem. Wersja 0.1.8 nie została jeszcze sprawdzona na urządzeniu.**
+- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie przywróciła katalogu po wyjściu z playera. Wersja 0.1.7 odczytała metadane H.264, lecz nie potwierdziła odtwarzania; zwykły powrót do katalogu zakończył się timeoutem. Wersja 0.1.8 zgłosiła `playing`, ale użytkownik widział nieobsługiwalne pilotem okno wznowienia, bez obrazu i dźwięku. Wersja 0.1.9 nie została jeszcze sprawdzona na urządzeniu.**
 - Próba pobrania aktualnego katalogu w środowisku budowania 30.10: HTTP 403. Testy nowych filtrów i rozwiązywania źródeł wykorzystują lokalne przykłady oparte na publicznym parserze Enigma2; nie stanowią potwierdzenia działania każdego dostawcy.
 
 ## Ograniczenia

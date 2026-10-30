@@ -14,10 +14,11 @@ const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,modu
 const state={tab:'movies',filters:{year:'2026'},selected:{url:'https://ekino.ws/movie/show/test/1',title:'Film'}};
 async function harness() {
   let mounts=0, back, tv, foreground, release, stopped=0, exits=0, clock=10000, nextTimer=0;
+  let viewport={width:1920,height:1080,offsetTop:100,offsetLeft:50};const touches=[];
   const timers=new Map(),injected=[],logs=[],calls=[];
   const WebView=React.forwardRef((props,ref)=>{
     React.useEffect(()=>{mounts++;},[]);
-    React.useImperativeHandle(ref,()=>({injectJavaScript:s=>injected.push(s),stopLoading:()=>{stopped++;}}));
+    React.useImperativeHandle(ref,()=>({injectJavaScript:s=>injected.push(s),stopLoading:()=>{stopped++;},getVisualViewportInfo:()=>viewport,dispatchTouchEvent:e=>touches.push(e)}));
     return React.createElement('WebView',props);
   });
   const hideSplash=()=>{};
@@ -28,7 +29,8 @@ async function harness() {
       if(name==='react')return React;
       if(name==='react-native')return {View:'View',Text:'Text',Pressable:'Pressable',StyleSheet:{create:x=>x},AppState:{addEventListener:(event,fn)=>{foreground=fn;return {remove(){}};}},BackHandler:{addEventListener:(event,fn)=>{back=fn;return {remove(){}};},exitApp:()=>exits++}};
       if(name==='@amazon-devices/webview')return {WebView};
-      if(name==='@amazon-devices/react-native-kepler')return {useTVEventHandler:fn=>{tv=fn;},useHideSplashScreenCallback:()=>hideSplash,usePreventHideSplashScreen:()=>{}};
+      if(name==='@amazon-devices/react-native-kepler')return {TVFocusGuideView:'TVFocusGuideView',useTVEventHandler:fn=>{tv=fn;},useHideSplashScreenCallback:()=>hideSplash,usePreventHideSplashScreen:()=>{}};
+      if(name==='./cursor')return require('../src/cursor');
       if(name==='./playback')return {...require('../src/playback'),resolveSource:async(url,fetchPage)=>{await fetchPage(url,url);return {kind:'embed',url:HOST,referer:url};}};
       throw Error(name);
     }};
@@ -37,7 +39,7 @@ async function harness() {
   await renderer.act(async()=>{tree=renderer.create(React.createElement(sandbox.exports.App));});
   const web=()=>tree.root.findByType('WebView');
   const send=(message,url=HOME)=>renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url,data:JSON.stringify(message)}});});
-  return {tree,web,send,injected,logs,calls,timers,
+  return {tree,web,send,injected,logs,calls,timers,touches,setViewport:v=>{viewport=v;},
     mounts:()=>mounts,stopped:()=>stopped,exits:()=>exits,
     back:()=>renderer.act(async()=>{back();}),
     tv:event=>renderer.act(async()=>{tv(event);}),
@@ -59,6 +61,7 @@ test('player return releases the old renderer before recreating the catalogue an
     assert.equal(h.web().props.mediaPlaybackRequiresUserAction,false,'host may start video after asynchronous manual confirmation');
     await renderer.act(async()=>h.web().props.onLoad({nativeEvent:{url:HOST}}));
     assert.ok(h.injected.every(s=>!s.includes('v.controls=true')&&!s.includes('v.play()')));
+    await h.tv({eventType:'menu',eventKeyAction:0});
     await h.send({type:'mk-media',event:'loadedmetadata',readyState:1,paused:true},HOST);
     const playButton=h.tree.root.findAllByType('Pressable').find(p=>p.findByType('Text').props.children.includes('Play / Pauza'));
     assert.ok(playButton);
@@ -73,7 +76,7 @@ test('player return releases the old renderer before recreating the catalogue an
     await h.send({type:'mk-media',event:'error',code:4,url:'https://secret.example/token'},HOST);
     assert.ok(JSON.stringify(h.tree.toJSON()).includes('MEDIA_ERR_4'));
     assert.ok(h.logs.every(l=>!l.includes('secret.example')));
-    await h.tv({eventType:'menu',eventKeyAction:0});
+    await h.back();
     assert.equal(h.tree.root.findAllByType('WebView').length,0);
     await h.tick(300);
     assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),2);
@@ -114,5 +117,46 @@ test('reentering an unready application retries catalogue, and Back can exit wit
     await h.tick(300);assert.equal(h.mounts(),2);
     await h.back();assert.equal(h.exits(),1);
     assert.ok(h.injected.every(s=>!s.includes('mkBack')));
+  } finally {await h.cleanup();}
+});
+
+test('manual cursor captures focus, moves with arrows and sends one native touch pair per OK',async()=>{
+  const h=await harness();
+  try {
+    await h.send({type:'ui-ready'});const task=await h.begin();await task.finish();
+    assert.equal(h.web().props.focusable,false);
+    const guide=h.tree.root.findByType('TVFocusGuideView');
+    assert.equal(guide.props.trapFocusLeft,true);assert.equal(guide.props.trapFocusRight,true);
+    assert.equal(h.touches.length,0,'no click on page load');
+    const cursorButton=()=>h.tree.root.findAllByType('Pressable').find(p=>p.props.accessibilityLabel?.startsWith('Kursor:'));
+    assert.equal(cursorButton().props.hasTVPreferredFocus,true);
+    await h.tv({eventType:'right',eventKeyAction:0});
+    await h.tv({eventType:'right',eventKeyAction:1});
+    await h.tv({eventType:'down',eventKeyAction:0});
+    assert.equal(h.touches.length,0,'movement and release must never click');
+    await renderer.act(async()=>cursorButton().props.onPress());
+    assert.equal(h.touches.length,1);assert.equal(h.touches[0].type,'touchstart');
+    assert.equal(h.touches[0].touches[0].clientX,984);assert.equal(h.touches[0].touches[0].clientY,564);
+    await renderer.act(async()=>cursorButton().props.onPress());assert.equal(h.touches.length,1,'ignore duplicate activation during a touch');
+    await h.tick(80);assert.equal(h.touches.length,2);assert.equal(h.touches[1].type,'touchend');
+    assert.deepEqual(h.touches[0].touches,h.touches[1].touches);
+    await h.tv({eventType:'menu',eventKeyAction:0});assert.equal(h.web().props.focusable,true);
+    assert.equal(h.tree.root.findAllByType('TVFocusGuideView').length,0);
+    assert.equal(h.mounts(),1,'toggling cursor must not recreate the renderer');
+    await h.tv({eventType:'menu',eventKeyAction:0});assert.equal(h.web().props.focusable,false);
+    await renderer.act(async()=>cursorButton().props.onPress());
+    await h.back();assert.equal(h.touches.at(-1).type,'touchend','Back releases pending touch before unmount');
+    assert.equal([...h.timers.values()].some(t=>t.ms===80),false);
+  } finally {await h.cleanup();}
+});
+test('cursor fails visibly without a valid viewport and never guesses a click position',async()=>{
+  const h=await harness();
+  try {
+    await h.send({type:'ui-ready'});const task=await h.begin();await task.finish();
+    h.setViewport({width:0,height:0});
+    const button=h.tree.root.findAllByType('Pressable').find(p=>p.props.accessibilityLabel?.startsWith('Kursor:'));
+    await renderer.act(async()=>button.props.onPress());
+    assert.equal(h.touches.length,0);
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Nie udało się wysłać kliknięcia'));
   } finally {await h.cleanup();}
 });

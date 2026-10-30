@@ -2,9 +2,10 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {AppState, BackHandler, Pressable, StyleSheet, Text, View} from 'react-native';
 import {WebView} from '@amazon-devices/webview';
-import {useHideSplashScreenCallback, usePreventHideSplashScreen, useTVEventHandler} from '@amazon-devices/react-native-kepler';
+import {useHideSplashScreenCallback, usePreventHideSplashScreen, useTVEventHandler, TVFocusGuideView} from '@amazon-devices/react-native-kepler';
 
 import {publicUrl, resolveSource, videoScript, MEDIA_REPORTING, MANUAL_PLAY_PAUSE} from './playback';
+import {movePointer, touchPoint} from './cursor';
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 const SITE = 'https://ekino.ws';
@@ -46,11 +47,44 @@ export const App = () => {
   const cataloguePhaseRef = useRef(cataloguePhase);
   const [rendererMounted, setRendererMounted] = useState(true);
   const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [cursorMode, setCursorMode] = useState(false);
+  const cursorEnabled = useRef(false);
+  const [pointer, setPointer] = useState({x:0.5,y:0.5});
+  const pointerRef = useRef(pointer);
+  const [bounds, setBounds] = useState({width:1280,height:720});
+  const boundsRef = useRef(bounds);
+  const [cursorError, setCursorError] = useState('');
+  const pendingTouch = useRef<{target:React.ElementRef<typeof WebView>;point:{clientX:number;clientY:number};timer:ReturnType<typeof setTimeout> | null} | null>(null);
   usePreventHideSplashScreen();
   const hideSplash = useHideSplashScreenCallback();
   const markCatalogue = useCallback((phase:'loading'|'ready'|'error') => {
     cataloguePhaseRef.current = phase; setCataloguePhase(phase);
   }, []);
+  const finishTouch = useCallback(() => {
+    const touch = pendingTouch.current;
+    if (!touch) return;
+    pendingTouch.current = null;
+    if (touch.timer) clearTimeout(touch.timer);
+    try {touch.target.dispatchTouchEvent({type:'touchend',touches:[touch.point]});} catch (_) {}
+  }, []);
+  const enableCursor = useCallback((enabled:boolean) => {
+    finishTouch(); cursorEnabled.current = enabled; setCursorMode(enabled); setCursorError('');
+  }, [finishTouch]);
+  const clickPointer = useCallback(() => {
+    if (!playerOpen.current || !playerDocument.current || !cursorEnabled.current || pendingTouch.current) return;
+    const target = homeRef.current;
+    if (!target) return;
+    try {
+      const point = touchPoint(pointerRef.current,target.getVisualViewportInfo());
+      target.dispatchTouchEvent({type:'touchstart',touches:[point]});
+      pendingTouch.current = {target,point,timer:null};
+      pendingTouch.current.timer = setTimeout(finishTouch,80);
+      console.info('[MKPLAY] cursor-click'); setCursorError('');
+    } catch (_) {
+      finishTouch(); console.info('[MKPLAY] cursor-click-failed');
+      setCursorError('Nie udało się wysłać kliknięcia. Wstecz: katalog.');
+    }
+  }, [finishTouch]);
 
   const restartCatalogue = useCallback(() => {
     console.info('[MKPLAY] catalogue-restart');
@@ -64,6 +98,7 @@ export const App = () => {
     restartTimer.current = setTimeout(() => {setRendererMounted(true); restartTimer.current = null;}, 300);
   }, [markCatalogue]);
   const closePlayer = useCallback(() => {
+    enableCursor(false);
     playerOpen.current = false;
     ++resolveGeneration.current; ++catalogueGeneration.current;
     sourceRequest.current?.abort();
@@ -75,9 +110,9 @@ export const App = () => {
       playerDocument.current = false;
       console.info('[MKPLAY] catalogue-requested'); restartCatalogue();
     } else homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
-  }, [restartCatalogue]);
+  }, [restartCatalogue, enableCursor]);
   const requestPlayback = useCallback(() => {
-    if (!playerOpen.current || !playerDocument.current) return;
+    if (!playerOpen.current || !playerDocument.current || cursorEnabled.current) return;
     console.info('[MKPLAY] native-playpause');
     homeRef.current?.injectJavaScript(MANUAL_PLAY_PAUSE);
   }, []);
@@ -93,13 +128,23 @@ export const App = () => {
   }, [closePlayer]);
   useTVEventHandler(event => {
     if (event.eventKeyAction === 1) return;
+    if (playerOpen.current && playerDocument.current && event.eventType === 'menu') {
+      enableCursor(!cursorEnabled.current); return;
+    }
+    if (playerOpen.current && cursorEnabled.current && ['up','down','left','right'].includes(event.eventType)) {
+      const next = movePointer(pointerRef.current,event.eventType,boundsRef.current);
+      pointerRef.current = next; setPointer(next); return;
+    }
     if (playerOpen.current && event.eventType === 'playpause') {requestPlayback(); return;}
-    if (event.eventType === 'back' || (playerOpen.current && event.eventType === 'menu')) handleBack();
+    if (event.eventType === 'back') handleBack();
   });
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
     return () => sub.remove();
   }, [handleBack]);
+  useEffect(() => {
+    if (browserError) enableCursor(false);
+  }, [browserError,enableCursor]);
   useEffect(() => {
     if (browserUrl || cataloguePhase !== 'loading' || !rendererMounted) return;
     const timer = setTimeout(() => {
@@ -121,11 +166,12 @@ export const App = () => {
     return () => clearTimeout(timer);
   }, [browserUrl, mediaStarted]);
   useEffect(() => () => {
+    finishTouch();
     if (restartTimer.current) clearTimeout(restartTimer.current);
     sourceRequest.current?.abort();
     for (const controller of activeRequests.current.values()) controller.abort();
     activeRequests.current.clear();
-  }, []);
+  }, [finishTouch]);
 
   function sendToUi(payload: object, generation = catalogueGeneration.current) {
     if (generation !== catalogueGeneration.current || playerDocument.current || restorePending.current) return;
@@ -195,6 +241,8 @@ export const App = () => {
         }, safeUrl(msg.referer) || SITE + '/');
         if (generation === resolveGeneration.current) {
           setPlayback(result); playerDocument.current = true;
+          pointerRef.current = {x:0.5,y:0.5}; setPointer(pointerRef.current);
+          enableCursor(result.kind === 'embed');
           setPageSource({uri:result.kind === 'direct' ? result.referer : result.url,headers:{Referer:result.referer}});
           console.info('[MKPLAY] resolved mode=' + result.kind);
         }
@@ -207,7 +255,7 @@ export const App = () => {
       return;
     }
     if (msg.type === 'open') {
-      if (url) { playerOpen.current = true; ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); playerDocument.current = true; setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
+      if (url) { playerOpen.current = true; ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); playerDocument.current = true; enableCursor(true); setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
       return;
     }
     if (msg.type !== 'fetch') return;
@@ -253,13 +301,16 @@ export const App = () => {
     }
   }
   return (
-    <View style={styles.outer}>
+    <View style={styles.outer} onLayout={({nativeEvent:{layout}}) => {
+      if (layout.width > 0 && layout.height > 0) {const size = {width:layout.width,height:layout.height}; boundsRef.current = size; setBounds(size);}
+    }}>
       {rendererMounted && <WebView
         // Keep the surface on entry. Return releases it before mounting the
         // catalogue after a gap; never recreate Chromium in the same commit.
         ref={homeRef}
         style={styles.web}
-        hasTVPreferredFocus
+        focusable={!cursorMode}
+        hasTVPreferredFocus={!cursorMode}
         userAgent={USER_AGENT}
         source={pageSource}
         allowSystemKeyEvents={false}
@@ -293,21 +344,30 @@ export const App = () => {
           <Text style={styles.backText}>Zamknij aplikację</Text>
         </Pressable>
       </View>}
-      {!!browserUrl && <View style={styles.toolbar}>
+      {!!browserUrl && !cursorMode && <View style={styles.toolbar}>
         <Pressable focusable hasTVPreferredFocus={slowPlayer || !!browserError} onPress={closePlayer} onFocus={() => setBackFocused(true)} onBlur={() => setBackFocused(false)} style={[styles.back, backFocused && styles.focus]}>
           <Text style={styles.backText}>← Wróć do MK eKino</Text>
         </Pressable>
         {mediaAvailable && <Pressable focusable onPress={requestPlayback} onFocus={() => setPlayFocused(true)} onBlur={() => setPlayFocused(false)} style={[styles.back,playFocused && styles.focus]}>
           <Text style={styles.backText}>▶ Play / Pauza</Text>
         </Pressable>}
-        <Text style={styles.notice}>{resolving ? 'Otwieranie źródła…' : 'Wstecz / Menu: katalog'}</Text>
+        {!resolving && <Pressable focusable onPress={() => enableCursor(true)} style={styles.back}><Text style={styles.backText}>Kursor</Text></Pressable>}
+        <Text style={styles.notice}>{resolving ? 'Otwieranie źródła…' : 'Wstecz: katalog · Menu: kursor'}</Text>
       </View>}
       {!!browserUrl && (resolving || !!browserError) && <View style={styles.message}>
         <Text style={styles.error}>{browserError || 'Otwieranie źródła filmu…'}</Text>
       </View>}
-      {!!browserUrl && !resolving && !browserError && !mediaStarted && (!!mediaStatus || slowPlayer) && <View pointerEvents="none" style={styles.mediaStatus}>
+      {!!browserUrl && !cursorMode && !resolving && !browserError && !mediaStarted && (!!mediaStatus || slowPlayer) && <View pointerEvents="none" style={styles.mediaStatus}>
         <Text style={styles.error}>{slowPlayer ? 'Brak potwierdzenia odtwarzania po 45 s. Wstecz lub Menu: wróć do źródeł. ' + mediaStatus : mediaStatus}</Text>
       </View>}
+      {!!browserUrl && cursorMode && !resolving && !browserError && <TVFocusGuideView autoFocus trapFocusUp trapFocusDown trapFocusLeft trapFocusRight style={styles.cursorLayer}>
+        <Pressable focusable hasTVPreferredFocus accessibilityLabel="Kursor: strzałki przesuwają, OK klika, Menu przełącza tryb" onPress={clickPointer} style={styles.cursorCapture}>
+          <View pointerEvents="none" style={[styles.cursor,{left:pointer.x*bounds.width-12,top:pointer.y*bounds.height-12}]}>
+            <View style={styles.cursorDot}/>
+          </View>
+          <View pointerEvents="none" style={styles.cursorHint}><Text style={styles.cursorHintText}>{cursorError || 'Kursor · Strzałki: ruch · OK: klik · Menu: zmień tryb · Wstecz: katalog'}</Text></View>
+        </Pressable>
+      </TVFocusGuideView>}
     </View>
   );
 };
@@ -315,6 +375,12 @@ export const App = () => {
 const styles = StyleSheet.create({
   outer: {flex: 1, backgroundColor: '#000000'},
   web: {flex: 1, backgroundColor: '#000000'},
+  cursorLayer: {position:'absolute',top:0,bottom:0,left:0,right:0},
+  cursorCapture: {flex:1},
+  cursor: {position:'absolute',width:24,height:24,borderRadius:12,borderWidth:3,borderColor:'#31e4cc',backgroundColor:'#10233288',justifyContent:'center',alignItems:'center'},
+  cursorDot: {width:4,height:4,borderRadius:2,backgroundColor:'#ffffff'},
+  cursorHint: {position:'absolute',bottom:14,left:24,right:24,backgroundColor:'#102332',padding:10,borderRadius:8},
+  cursorHintText: {fontSize:18,color:'#ffffff',textAlign:'center'},
   recovery: {position:'absolute',top:0,bottom:0,left:0,right:0,backgroundColor:'#111e2a',justifyContent:'center',alignItems:'center',gap:20},
   message: {position:'absolute',top:84,bottom:0,left:0,right:0,backgroundColor:'#000000',justifyContent:'center',alignItems:'center'},
   mediaStatus: {position:'absolute',bottom:75,left:20,right:20,backgroundColor:'#111e2a'},

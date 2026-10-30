@@ -2,7 +2,7 @@
 # Run on the Ubuntu/macOS host connected to the Fire TV by USB or local network.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VPKG="${1:-$HERE/MK_Ekino_Vega_0.1.8_armv7.vpkg}"
+VPKG="${1:-$HERE/MK_Ekino_Vega_0.1.9_armv7.vpkg}"
 DEVICE="${2:-}"
 command -v vega >/dev/null || { echo 'Brak Vega CLI. Zainstaluj oficjalny SDK na Ubuntu/macOS.' >&2; exit 1; }
 [[ -f "$VPKG" ]] || { echo "Nie znaleziono pakietu: $VPKG" >&2; exit 1; }
