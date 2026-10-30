@@ -7,6 +7,10 @@ const clean = text => (text || '').replace(/\s+/g, ' ').trim();
 let currentTab = 'home', page = 1, cards = [], selected = null;
 let sequence = 0, requestNumber = 0, query = '', nextPage = null;
 let pageUrls = [], detailsStack = [], lastFocus = null;
+const filters = {cat: '', version: '', year: ''};
+const filterLabels = {cat: 'Kategoria', version: 'Wersja', year: 'Rok'};
+let filterOptions = {cat: [], version: [], year: []};
+let filterFetch = null, filterOpener = null, filterGeneration = 0;
 const pending = new Map();
 const saved = {favorites: {}, watched: {}};
 try {
@@ -79,6 +83,64 @@ function parseCards(html, base = SITE) {
   }
   return [...items.values()];
 }
+function movieUrl() {
+  let url = SITE + '/movie/cat/strona[1]+sort[add]+method[desc]+';
+  for (const [key, route] of [['cat','kategoria'],['version','wersja'],['year','rok']]) {
+    if (filters[key] && /^[A-Za-z0-9,]{1,50}$/.test(filters[key])) url += route + '[' + filters[key] + ']+';
+  }
+  return url;
+}
+function readFilters(html) {
+  const doc = parseHTML(html);
+  const parsed = {cat: [], version: [], year: []};
+  for (const a of doc.querySelectorAll('.movieCategories a[href]')) {
+    const id = (a.getAttribute('href') || '').match(/kategoria\[(\d+)\]/)?.[1];
+    if (id) parsed.cat.push({id, name: clean(a.textContent)});
+  }
+  for (const [key, selector] of [['version','.quality li[data-id]'],['year','.filtyear [data-id]']]) {
+    for (const li of doc.querySelectorAll(selector)) {
+      const id = li.getAttribute('data-id'), name = clean(li.textContent) || id;
+      if (/^[A-Za-z0-9,]{1,50}$/.test(id) && (key !== 'year' || /^\d{4}$/.test(id))) parsed[key].push({id, name});
+    }
+  }
+  for (const key of Object.keys(parsed)) if (parsed[key].length) filterOptions[key] = [...new Map(parsed[key].map(x => [x.id,x])).values()];
+}
+function updateFilters() {
+  for (const key of Object.keys(filters)) {
+    const option = filterOptions[key].find(x => x.id === filters[key]);
+    $('#filter-' + key).textContent = filterLabels[key] + ': ' + (option?.name || filters[key] || 'Wszystkie');
+  }
+}
+function closeFilters() {
+  const dialog = $('#filter-dialog');
+  if (dialog.classList.contains('hidden')) return false;
+  ++filterGeneration; $('#library').inert = false; dialog.classList.add('hidden'); filterOpener?.focus(); return true;
+}
+async function chooseFilter(key) {
+  const generation = ++filterGeneration;
+  $('#library').inert = true;
+  filterOpener = $('#filter-' + key);
+  const dialog = $('#filter-dialog'); dialog.classList.remove('hidden');
+  $('#filter-title').textContent = filterLabels[key];
+  $('#filter-options').replaceChildren();
+  $('#filter-back').focus();
+  try {
+    if (!filterOptions[key].length) {
+      $('#filter-title').textContent = 'Pobieranie filtrów…';
+      if (!filterFetch) filterFetch = get(SITE + '/movie/cat/+').finally(() => {filterFetch = null;});
+      const response = await filterFetch; readFilters(response.html);
+    }
+    if (generation !== filterGeneration || dialog.classList.contains('hidden')) return;
+    $('#filter-title').textContent = filterLabels[key];
+    if (!filterOptions[key].length) throw Error('Serwis nie udostępnił listy filtrów');
+    const options = [{id:'',name:'Wszystkie'}, ...filterOptions[key]];
+    for (const option of options) {
+      const button = add($('#filter-options'), 'button', 'pill' + (filters[key] === option.id ? ' chosen' : ''), option.name);
+      button.onclick = () => { filters[key] = option.id; updateFilters(); closeFilters(); changeTab('movies'); };
+    }
+    $('#filter-options .chosen')?.focus();
+  } catch (error) { $('#filter-title').textContent = 'Nie można pobrać filtrów: ' + error.message; }
+}
 function parseNext(html, base) {
   const link = [...parseHTML(html).querySelectorAll('a[href]')].find(a => /Następna strona/i.test(a.title));
   return link ? catalogueUrl(link.getAttribute('href'), base) : null;
@@ -101,6 +163,15 @@ function parseDetail(html, base, item) {
     const url = SITE + '/watch/f/' + encodeURIComponent(match[1]) + '/' + encodeURIComponent(match[2]);
     if (!seen.has(url)) { seen.add(url); sources.push({url, name: match[1]}); }
   }
+  const labels = new Map();
+  for (const a of doc.querySelectorAll('ul.players a[href^="#"]')) {
+    const label = [...a.querySelectorAll('[title]')].map(x => x.getAttribute('title')).filter(Boolean).join(' · ');
+    labels.set(a.getAttribute('href').slice(1), label);
+  }
+  for (const source of sources) {
+    const m = source.url.match(/\/watch\/f\/([^/]+)\/([^/?#]+)/);
+    if (m) {const label = labels.get(decodeURIComponent(m[2]) + '-' + decodeURIComponent(m[1])); if (label) source.name += ' · ' + label;}
+  }
   const order = ['player', 'voe', 'mix'];
   sources.sort((a, b) => (order.indexOf(a.name) < 0 ? 9 : order.indexOf(a.name)) - (order.indexOf(b.name) < 0 ? 9 : order.indexOf(b.name)));
   return {
@@ -117,7 +188,7 @@ function add(parent, tag, className, text) {
   parent.appendChild(element);
   return element;
 }
-function openPage(url) { const safe = catalogueUrl(url); if (safe) send({type: 'open', url: safe}); }
+function openPage(url, play = false) { const safe = catalogueUrl(url); if (safe) send({type: play ? 'play' : 'open', url: safe, referer: selected?.url || SITE + '/'}); }
 function createCard(item) {
   const button = document.createElement('button');
   button.className = 'card'; button.dataset.url = item.url; button.setAttribute('aria-label', item.title);
@@ -143,6 +214,8 @@ function render() {
 async function load(url) {
   const ticket = ++sequence;
   selected = null; detailsStack = [];
+  $('#filters').classList.toggle('hidden', !['home','movies'].includes(currentTab));
+  updateFilters();
   $('#details').classList.remove('visible'); $('#library').classList.remove('hidden');
   nextPage = null; cards = []; render();
   $('#search').placeholder = currentTab === 'search' ? 'Tytuł filmu lub serialu…' : 'Filtruj stronę lub wyszukaj w katalogu…';
@@ -152,7 +225,7 @@ async function load(url) {
   if (currentTab === 'search' && !query) {
     status('Wpisz tytuł i wybierz „Szukaj w katalogu”.'); $('#search').focus(); return;
   }
-  if (!url) url = currentTab === 'movies' ? SITE + '/movie/cat/strona[1]+sort[add]+method[desc]+' :
+  if (!url) url = currentTab === 'movies' ? movieUrl() :
     currentTab === 'shows' ? SITE + '/serie/' : currentTab === 'search' ? SITE + '/search/qf/?q=' + encodeURIComponent(query) : SITE + '/';
   pageUrls[page - 1] = url;
   status('Pobieranie katalogu…');
@@ -160,13 +233,14 @@ async function load(url) {
     const result = await get(url);
     if (ticket !== sequence) return;
     if (/cf-chl-|Attention Required! \| Cloudflare/.test(result.html)) throw Error('Serwis wymaga weryfikacji w przeglądarce');
+    readFilters(result.html); updateFilters();
     cards = parseCards(result.html, url); nextPage = parseNext(result.html, url);
     status(cards.length ? cards.length + ' pozycji · strona ' + page : 'Brak wyników. Możesz otworzyć stronę eKino.');
   } catch (error) {
     if (ticket !== sequence) return;
     status('Nie można pobrać katalogu: ' + error.message + '.');
   }
-  render(); $('#grid button')?.focus();
+  render(); if ($('#filter-dialog').classList.contains('hidden')) $('#grid button')?.focus();
 }
 async function showDetail(item, push = false) {
   if (push && selected) detailsStack.push(selected);
@@ -197,7 +271,7 @@ async function showDetail(item, push = false) {
     const sources = add(output, 'div', 'sources');
     for (const source of info.sources) {
       const button = add(sources, 'button', 'pill', '▶ ' + source.name);
-      button.onclick = () => { lastFocus = button; openPage(source.url); };
+      button.onclick = () => { lastFocus = button; openPage(source.url, true); };
     }
     const button = add(sources, 'button', 'pill', 'Otwórz stronę materiału'); button.onclick = () => openPage(item.url);
   } catch (error) {
@@ -236,6 +310,7 @@ function searchCatalogue() {
   $('#page-title').textContent = 'Wyniki: ' + term; load();
 }
 window.mkBack = () => {
+  if (closeFilters()) return;
   if (closeDetail()) return;
   if (currentTab !== 'home') changeTab('home');
   else send({type: 'exit'});
@@ -245,6 +320,9 @@ window.mkPlayerClosed = () => {
   else $('#close').focus();
 };
 for (const button of document.querySelectorAll('[data-tab]')) button.onclick = () => changeTab(button.dataset.tab);
+for (const key of Object.keys(filters)) $('#filter-' + key).onclick = () => chooseFilter(key);
+$('#filter-back').onclick = closeFilters;
+$('#filter-clear').onclick = () => {for (const key of Object.keys(filters)) filters[key] = ''; updateFilters(); changeTab('movies');};
 $('#refresh').onclick = () => load(pageUrls[page - 1]);
 $('#do-search').onclick = searchCatalogue;
 $('#search').oninput = () => { if (currentTab !== 'search') render(); };

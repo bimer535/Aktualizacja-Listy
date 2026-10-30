@@ -1,8 +1,16 @@
-# MK eKino Vega 0.1.1
+# MK eKino Vega 0.1.3
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.3
+
+- Wybór gatunku, wersji językowej (np. Lektor, Napisy, Dubbing) i roku z publicznego katalogu. Filtry łączą się w zapytaniu do serwera, resetują paginację i można je wyczyścić.
+- Etykiety języka/jakości przy źródłach, jeśli serwis je udostępnia.
+- Wybór źródła przechodzi przez publiczny link/iframe strony pośredniej do rzeczywistego playera. Bezpośredni MP4/HLS otwierany jest w kontrolowanym elemencie video w kontekście strony źródłowej (Referer); pozostałe źródła uruchamiają zwykły embed dostawcy z próbą automatycznego odtwarzania.
+- Anulowanie otwierania źródła przy powrocie do katalogu, limit czasu i wykrywanie zapętlonych przekierowań.
+- Nie wykonuje własnego obchodzenia CAPTCHA, DRM ani ograniczeń konta. Nie jest pełnym portem resolverów Pythona ani natywnego playera Media3.
 
 ## Działanie
 
@@ -14,15 +22,16 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 - Błędy HTTP i timeouty; ignorowanie spóźnionych odpowiedzi po zmianie widoku.
 - Parsowanie zewnętrznego HTML jako danych, bez wstawiania go do interfejsu przez `innerHTML`. Most sieciowy przyjmuje tylko adresy katalogu `https://ekino.ws`.
 
-## Status sprawdzenia — 29.10.2026
+## Status sprawdzenia — 30.10.2026
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 5 testów integracji interfejsu w JSDOM: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 13 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
-- **Nie wykonano instalacji i testu na fizycznym Sticku. Nie potwierdzono odtwarzania wideo.**
+- **Wersja 0.1.2 została zainstalowana i uruchomiona przez użytkownika. W 0.1.3 nie potwierdzono jeszcze odtwarzania wideo na Sticku.**
+- Próba pobrania aktualnego katalogu w środowisku budowania 30.10: HTTP 403. Testy nowych filtrów i rozwiązywania źródeł wykorzystują lokalne przykłady oparte na publicznym parserze Enigma2; nie stanowią potwierdzenia działania każdego dostawcy.
 
 ## Ograniczenia
 

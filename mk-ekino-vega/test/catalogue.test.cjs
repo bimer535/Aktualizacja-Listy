@@ -95,3 +95,29 @@ test('late catalogue responses cannot overwrite another tab and remote HTML stay
     assert.equal(hostile.w.pwned, undefined);
   } finally {hostile.dom.window.close();}
 });
+
+const filterPage = '<ul class="movieCategories"><li><a href="/movie/cat/kategoria[4]+">Komedia</a></li></ul><ul class="quality"><li data-id="1">Lektor</li><li data-id="2">Napisy</li></ul><ul class="filtyear"><li data-id="2026">2026</li><li data-id="2025">2025</li></ul>';
+test('category, language and year filters combine in server requests, reset pagination and can be cleared', async () => {
+  const {dom,d,messages}=setup(()=>filterPage+list);
+  try {
+    await settle();
+    for(const [key,name] of [['cat','Komedia'],['version','Lektor'],['year','2026']]) {
+      d.querySelector('#filter-'+key).click();await settle();
+      [...d.querySelectorAll('#filter-options button')].find(b=>b.textContent===name).click();await settle();
+    }
+    assert.equal(messages.at(-1).url,'https://ekino.ws/movie/cat/strona[1]+sort[add]+method[desc]+kategoria[4]+wersja[1]+rok[2026]+');
+    assert.equal(d.querySelector('#filter-year').textContent,'Rok: 2026');
+    d.querySelector('#filter-clear').click();await settle();
+    assert.equal(messages.at(-1).url,'https://ekino.ws/movie/cat/strona[1]+sort[add]+method[desc]+');
+  } finally {dom.window.close();}
+});
+test('filter dialog loads filters when absent from home, and Back closes only the dialog',async()=>{
+  const {dom,d,w,messages}=setup(m=>m.url.endsWith('/movie/cat/+')?filterPage:list);
+  try {
+    await settle();d.querySelector('#filter-version').click();await settle();
+    assert.equal(messages.at(-1).url,'https://ekino.ws/movie/cat/+');
+    assert.ok([...d.querySelectorAll('#filter-options button')].some(b=>b.textContent==='Lektor'));
+    w.mkBack();assert.equal(d.querySelector('#filter-dialog').classList.contains('hidden'),true);
+    assert.notEqual(messages.at(-1).type,'exit');
+  } finally {dom.window.close();}
+});

@@ -4,10 +4,13 @@ import {BackHandler, Pressable, StyleSheet, Text, View} from 'react-native';
 import {WebView} from '@amazon-devices/webview';
 import {useHideSplashScreenCallback, usePreventHideSplashScreen} from '@amazon-devices/react-native-kepler';
 
+import {publicUrl, resolveSource, AUTO_PLAY, videoScript} from './playback';
+
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 const SITE = 'https://ekino.ws';
 const HOME = 'file:///pkg/assets/index.html';
 const PATHS = /^\/(?:$|movie\/|serie\/|serial\/|watch\/|search\/)/;
-type Message = {type: string; requestId?: number; url?: string};
+type Message = {type: string; requestId?: number; url?: string; referer?: string};
 
 function safeUrl(input: unknown): string | null {
   if (typeof input !== 'string' || !input || input.length > 2048) return null;
@@ -22,11 +25,19 @@ export const App = () => {
   const activeRequests = useRef(new Map<number, AbortController>());
   const [browserUrl, setBrowserUrl] = useState<string | null>(null);
   const [browserError, setBrowserError] = useState('');
+  const [resolving, setResolving] = useState(false);
+  const [playback, setPlayback] = useState<{kind:string;url:string;referer:string} | null>(null);
+  const resolveGeneration = useRef(0);
+  const sourceRequest = useRef<AbortController | null>(null);
+  const playerRef = useRef<React.ElementRef<typeof WebView>>(null);
   const [backFocused, setBackFocused] = useState(false);
   usePreventHideSplashScreen();
   const hideSplash = useHideSplashScreenCallback();
 
   const closePlayer = useCallback(() => {
+    ++resolveGeneration.current;
+    sourceRequest.current?.abort();
+    setResolving(false); setPlayback(null);
     setBrowserUrl(null);
     setBrowserError('');
     homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
@@ -40,6 +51,7 @@ export const App = () => {
     return () => sub.remove();
   }, [browserUrl, closePlayer]);
   useEffect(() => () => {
+    sourceRequest.current?.abort();
     for (const controller of activeRequests.current.values()) controller.abort();
     activeRequests.current.clear();
   }, []);
@@ -54,8 +66,32 @@ export const App = () => {
     if (!msg || typeof msg.type !== 'string') return;
     if (msg.type === 'exit') { BackHandler.exitApp(); return; }
     const url = safeUrl(msg.url);
+    if (msg.type === 'play' && url && url.startsWith(SITE + '/watch/')) {
+      const generation = ++resolveGeneration.current;
+      sourceRequest.current?.abort();
+      const controller = new AbortController(); sourceRequest.current = controller;
+      setPlayback(null); setBrowserError(''); setBrowserUrl(url); setResolving(true);
+      const timer = setTimeout(() => controller.abort(), 35000);
+      try {
+        const result = await resolveSource(url, async (page: string, referer: string) => {
+          const response = await fetch(page, {signal:controller.signal, headers:{Accept:'text/html', Referer:referer, 'User-Agent':USER_AGENT}});
+          if (!response.ok) throw Error('Źródło zwróciło HTTP ' + response.status);
+          if (response.url && !publicUrl(response.url)) throw Error('Źródło zwróciło nieobsługiwany adres');
+          const html = await response.text();
+          if (html.length > 2500000) throw Error('Zbyt duża odpowiedź źródła');
+          return {html, url:response.url || page};
+        }, safeUrl(msg.referer) || SITE + '/');
+        if (generation === resolveGeneration.current) setPlayback(result);
+      } catch (error) {
+        if (generation === resolveGeneration.current) setBrowserError(error instanceof Error && error.name !== 'AbortError' ? error.message : 'Upłynął czas otwierania źródła. Wróć i wybierz inne.');
+      } finally {
+        clearTimeout(timer);
+        if (generation === resolveGeneration.current) {setResolving(false); sourceRequest.current = null;}
+      }
+      return;
+    }
     if (msg.type === 'open') {
-      if (url) { setBrowserError(''); setBrowserUrl(url); }
+      if (url) { ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); }
       return;
     }
     if (msg.type !== 'fetch') return;
@@ -107,11 +143,15 @@ export const App = () => {
           </Pressable>
           <Text style={styles.notice}>Wstecz na pilocie: powrót do katalogu</Text>
         </View>
+        {resolving && <Text style={styles.notice}>Otwieranie źródła filmu…</Text>}
         {!!browserError && <Text style={styles.error}>{browserError}</Text>}
-        <WebView
+        {!resolving && !browserError && <WebView
+          ref={playerRef}
           style={styles.web}
           hasTVPreferredFocus
-          source={{uri: browserUrl, headers: {Referer: SITE + '/'}}}
+          userAgent={USER_AGENT}
+          source={{uri: playback?.kind === 'direct' ? playback.referer : playback?.url || browserUrl, headers: {Referer: playback?.referer || SITE + '/'}}}
+          onLoad={() => playerRef.current?.injectJavaScript(playback?.kind === 'direct' ? videoScript(playback.url) : AUTO_PLAY)}
           allowSystemKeyEvents={false}
           allowsDefaultMediaControl
           domStorageEnabled
@@ -121,7 +161,7 @@ export const App = () => {
           onHttpError={({nativeEvent}) => {
             if (nativeEvent.isMainFrame) setBrowserError('Źródło zwróciło HTTP ' + nativeEvent.statusCode);
           }}
-        />
+        />}
       </View>}
     </View>
   );
