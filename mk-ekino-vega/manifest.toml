@@ -3,9 +3,9 @@ schema-version = 1
 [package]
 title = "MK eKino"
 icon = "@image/mkekino.png"
-version = "0.1.4"
+version = "0.1.5"
 # Floor so local builds pass vpt validate; pass an increasing --build-number for every Appstore upload.
-build-number = 5
+build-number = 6
 id = "org.mkapps.ekino"
 
 [os.version]

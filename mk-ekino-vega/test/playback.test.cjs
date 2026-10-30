@@ -79,3 +79,14 @@ test('media error diagnostics include numeric state, exclude stream tokens, and 
     assert.equal(JSON.stringify(messages).includes('Secret'),false);
   } finally {dom.window.close();}
 });
+test('unstarted video does not steal focus from a manually selected host confirmation button',()=>{
+  const dom=new JSDOM('<button id="confirm">Play</button><video></video>',{runScripts:'outside-only'});
+  try {
+    dom.window.HTMLMediaElement.prototype.play=()=>Promise.resolve();
+    const button=dom.window.document.querySelector('#confirm'),video=dom.window.document.querySelector('video');
+    button.focus();dom.window.eval(AUTO_PLAY);
+    assert.equal(dom.window.document.activeElement,button);
+    video.dispatchEvent(new dom.window.Event('playing'));
+    assert.equal(dom.window.document.activeElement,video);
+  } finally {dom.window.close();}
+});

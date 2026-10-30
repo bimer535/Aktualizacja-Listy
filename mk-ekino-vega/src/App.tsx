@@ -175,6 +175,9 @@ export const App = () => {
   return (
     <View style={styles.outer}>
       <WebView
+        // A fresh native view requests TV focus when entering/leaving the host
+        // player. Only one full-size renderer is present at any time.
+        key={pageSource.uri === HOME ? 'catalogue' : 'player'}
         ref={homeRef}
         style={styles.web}
         hasTVPreferredFocus

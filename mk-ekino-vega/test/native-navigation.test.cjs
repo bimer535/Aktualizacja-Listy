@@ -9,7 +9,7 @@ const renderer = require('react-test-renderer');
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const HOME = 'file:///pkg/assets/index.html';
 
-test('catalogue, resolving, playback, errors and Back share one continuously mounted full-size WebView', async () => {
+test('catalogue, resolving, playback, errors and Back share one full-size WebView, remounting the host view to request TV focus', async () => {
   let mounts=0, back, release;
   const injected=[], logs=[], calls=[];
   const WebView=React.forwardRef((props,ref)=>{
@@ -43,7 +43,8 @@ test('catalogue, resolving, playback, errors and Back share one continuously mou
     assert.equal(web().props.source.uri,HOME);
     await renderer.act(async()=>{release();await task;});
     assert.equal(web().props.source.uri,'https://host.example/e/video');
-    assert.equal(mounts,1);assert.equal(web().props.style.flex,1);
+    assert.equal(mounts,2);assert.equal(web().props.style.flex,1);assert.equal(web().props.hasTVPreferredFocus,true);
+    assert.equal(tree.root.findAllByType('WebView').length,1);
     await renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url:'https://host.example/e/video',data:JSON.stringify({type:'fetch',url:'https://ekino.ws/',requestId:100})}});});
     assert.equal(calls.length,1,'remote player must not access catalogue bridge');
     await renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url:'https://host.example/e/video',data:JSON.stringify({type:'mk-media',event:'error',code:4,readyState:0,networkState:3,url:'https://secret.example/token'})}});});
@@ -51,7 +52,8 @@ test('catalogue, resolving, playback, errors and Back share one continuously mou
     assert.ok(logs.some(l=>l.includes('[MKPLAY] error code=4')));
     assert.ok(logs.every(l=>!l.includes('secret.example')));
     await renderer.act(async()=>{back();});
-    assert.equal(web().props.source.uri,HOME);assert.equal(mounts,1);
+    assert.equal(web().props.source.uri,HOME);assert.equal(mounts,3);
+    assert.equal(tree.root.findAllByType('WebView').length,1);
     await renderer.act(async()=>{web().props.onLoad({nativeEvent:{url:HOME}});});
     assert.ok(injected.some(s=>s.includes('mkRestore')&&s.includes('2026')));
   } finally {if(tree)await renderer.act(async()=>tree.unmount());}

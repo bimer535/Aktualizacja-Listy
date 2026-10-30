@@ -71,7 +71,7 @@ setTimeout(function(){if(document&&!document.querySelector('video'))window.mkRep
 const AUTO_PLAY = MEDIA_REPORTING + `(function(){if(window.mkPlaybackReady)return;window.mkPlaybackReady=true;
 function activate(){if(!document)return;document.querySelectorAll('video').forEach(function(v){
 v.controls=true;v.autoplay=true;v.style.background='black';v.setAttribute('playsinline','');
-if(!v.dataset.mkReady){v.dataset.mkReady='1';v.tabIndex=0;v.focus();v.addEventListener('playing',function(){
+if(!v.dataset.mkReady){v.dataset.mkReady='1';v.tabIndex=0;v.addEventListener('playing',function(){v.focus();
 v.style.position='fixed';v.style.inset='0';v.style.width='100vw';v.style.height='100vh';v.style.zIndex='2147483647';
 document.body.style.background='black';});v.play().catch(function(){window.mkReport('play-rejected',v);});}});}
 const observer=new MutationObserver(activate);observer.observe(document.documentElement,{subtree:true,childList:true});window.addEventListener('pagehide',function(){observer.disconnect();},{once:true});activate();})();true;`;
