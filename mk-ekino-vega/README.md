@@ -1,8 +1,17 @@
-# MK eKino Vega 0.1.5
+# MK eKino Vega 0.1.6
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.6
+
+- Usunięto automatyczne `video.play()`, wymuszanie kontrolek, pełnego ekranu i fokusu wewnątrz zewnętrznych playerów. Strona dostawcy zachowuje własny przebieg uruchamiania; obserwator raportuje tylko zdarzenia wideo, bez zmiany DOM.
+- Włączono cookies zewnętrznych ramek dla sesji playera. Potwierdzenie i Play pozostają ręczną czynnością użytkownika.
+- Dodano natywną obsługę Wstecz i Menu przez zdarzenia pilota Kepler, zatrzymanie dokumentu przy powrocie i odrzucanie spóźnionej odpowiedzi resolvera. Nie wymaga to odpowiedzi JavaScript strony źródłowej. Nie zapewnia wyjścia w razie awarii całego procesu aplikacji/systemu.
+- Po 45 s bez potwierdzonego `playing` aplikacja pokazuje komunikat i preferuje przycisk powrotu. Nie przerywa samoczynnie wideo: zdarzenia z wewnętrznej ramki innego pochodzenia mogą być niewidoczne dla obserwatora.
+- Zgłoszenie użytkownika: 0.1.5 zatrzymuje się na ładowaniu playera i nie pozwala wrócić pilotem. Przyczyna wcześniejszego błędu samego strumienia pozostaje niepotwierdzona. VLC nie jest integrowany ani uruchamiany przez tę aplikację.
+- Sprawdzenie obejmuje testy kodu, kompilację i walidację pakietu; nie obejmuje odtwarzania na fizycznym Sticku. To pakiet diagnostyczny i poprawka obsługi zewnętrznego playera, nie deklaracja działającego odtwarzania wszystkich źródeł.
 
 ## Zmiany w 0.1.5
 
@@ -33,7 +42,7 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 - Wyszukiwanie w katalogu `/search/qf/?q=...` oraz filtrowanie bieżącej listy.
 - Ulubione i oznaczanie obejrzanych zapisane w pamięci aplikacji.
 - Nawigacja przestrzenna WebView pilotem; Wstecz zamyka odtwarzacz, wraca z odcinka do serialu i z katalogu głównego wychodzi z aplikacji.
-- Otwieranie stron źródeł w osobnym WebView z kontrolkami multimedialnymi Vega.
+- Otwieranie stron źródeł w jednym WebView; zewnętrzny player zachowuje własne kontrolki.
 - Błędy HTTP i timeouty; ignorowanie spóźnionych odpowiedzi po zmianie widoku.
 - Parsowanie zewnętrznego HTML jako danych, bez wstawiania go do interfejsu przez `innerHTML`. Most sieciowy przyjmuje tylko adresy katalogu `https://ekino.ws`.
 
@@ -41,11 +50,11 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 17 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 16 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
-- **Wersja 0.1.2 została zainstalowana i uruchomiona przez użytkownika. W 0.1.3 nie potwierdzono jeszcze odtwarzania wideo na Sticku.**
+- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie została jeszcze sprawdzona na urządzeniu.**
 - Próba pobrania aktualnego katalogu w środowisku budowania 30.10: HTTP 403. Testy nowych filtrów i rozwiązywania źródeł wykorzystują lokalne przykłady oparte na publicznym parserze Enigma2; nie stanowią potwierdzenia działania każdego dostawcy.
 
 ## Ograniczenia

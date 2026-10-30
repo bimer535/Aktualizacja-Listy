@@ -2,9 +2,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {BackHandler, Pressable, StyleSheet, Text, View} from 'react-native';
 import {WebView} from '@amazon-devices/webview';
-import {useHideSplashScreenCallback, usePreventHideSplashScreen} from '@amazon-devices/react-native-kepler';
+import {useHideSplashScreenCallback, usePreventHideSplashScreen, useTVEventHandler} from '@amazon-devices/react-native-kepler';
 
-import {publicUrl, resolveSource, AUTO_PLAY, videoScript, MEDIA_REPORTING} from './playback';
+import {publicUrl, resolveSource, videoScript, MEDIA_REPORTING} from './playback';
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 const SITE = 'https://ekino.ws';
@@ -37,28 +37,51 @@ export const App = () => {
   const [mediaStatus, setMediaStatus] = useState('');
   const [mediaStarted, setMediaStarted] = useState(false);
   const [backFocused, setBackFocused] = useState(false);
+  const playerOpen = useRef(false);
+  const lastBack = useRef(0);
+  const [slowPlayer, setSlowPlayer] = useState(false);
   usePreventHideSplashScreen();
   const hideSplash = useHideSplashScreenCallback();
 
   const closePlayer = useCallback(() => {
+    playerOpen.current = false;
     ++resolveGeneration.current; ++catalogueGeneration.current;
     sourceRequest.current?.abort();
+    // Stop the remote document before replacing its renderer. No page script
+    // or media event is needed to return to the catalogue.
+    try {homeRef.current?.stopLoading();} catch (_) {}
     setResolving(false); setPlayback(null);
     setBrowserUrl(null);
     setBrowserError('');
-    setMediaStatus(''); setMediaStarted(false);
+    setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false);
     if (playerDocument.current) {
       restorePending.current = true; playerDocument.current = false; setPageSource({uri:HOME});
     } else homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
   }, []);
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (browserUrl) closePlayer();
+  const handleBack = useCallback(() => {
+      // Kepler may deliver the same press through both native subscriptions.
+      const now = Date.now();
+      if (now - lastBack.current < 250) return true;
+      lastBack.current = now;
+      if (playerOpen.current) {console.info('[MKPLAY] native-back'); closePlayer();}
       else homeRef.current?.injectJavaScript('window.mkBack?.(); true;');
       return true;
-    });
+  }, [closePlayer]);
+  useTVEventHandler(event => {
+    if (event.eventKeyAction === 1) return;
+    if (event.eventType === 'back' || (playerOpen.current && event.eventType === 'menu')) handleBack();
+  });
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
     return () => sub.remove();
-  }, [browserUrl, closePlayer]);
+  }, [handleBack]);
+  useEffect(() => {
+    if (!browserUrl || mediaStarted) return;
+    const timer = setTimeout(() => {
+      console.info('[MKPLAY] startup-unconfirmed'); setSlowPlayer(true);
+    }, 45000);
+    return () => clearTimeout(timer);
+  }, [browserUrl, mediaStarted]);
   useEffect(() => () => {
     sourceRequest.current?.abort();
     for (const controller of activeRequests.current.values()) controller.abort();
@@ -75,10 +98,10 @@ export const App = () => {
     if (!msg || typeof msg.type !== 'string') return;
     if (playerDocument.current) {
       if (msg.type !== 'mk-media') return;
-      const label = ['playing','waiting','stalled','error','play-rejected','no-video','loadstart','loadedmetadata'].includes(msg.event || '') ? msg.event : 'unknown';
+      const label = ['document-ready','play','playing','waiting','stalled','error','play-rejected','no-video','loadstart','loadedmetadata'].includes(msg.event || '') ? msg.event : 'unknown';
       const code = Number.isInteger(msg.code) ? Math.min(Math.max(msg.code!,0),9) : 0;
       console.info('[MKPLAY]', label, 'code=' + code, 'ready=' + Number(msg.readyState || 0), 'network=' + Number(msg.networkState || 0));
-      if (label === 'playing') {setMediaStarted(true); setMediaStatus('Odtwarzanie');}
+      if (label === 'playing') {setMediaStarted(true); setSlowPlayer(false); setMediaStatus('Odtwarzanie');}
       else if (label === 'error') {
         setMediaStarted(false);
         const reasons:Record<number,string> = {1:'Przerwane odtwarzanie',2:'Błąd pobierania filmu',3:'Błąd dekodowania filmu',4:'Nieobsługiwany strumień lub brak źródła'};
@@ -94,7 +117,7 @@ export const App = () => {
       for (const controller of activeRequests.current.values()) controller.abort();
       activeRequests.current.clear();
       if (msg.state && JSON.stringify(msg.state).length <= 120000) catalogueState.current = msg.state;
-      setMediaStatus(''); setMediaStarted(false);
+      setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false);
     }
     if (msg.type === 'exit') { BackHandler.exitApp(); return; }
     const url = safeUrl(msg.url);
@@ -102,6 +125,7 @@ export const App = () => {
       const generation = ++resolveGeneration.current;
       sourceRequest.current?.abort();
       const controller = new AbortController(); sourceRequest.current = controller;
+      playerOpen.current = true;
       setPlayback(null); setBrowserError(''); setBrowserUrl(url); setResolving(true);
       const timer = setTimeout(() => controller.abort(), 35000);
       try {
@@ -127,7 +151,7 @@ export const App = () => {
       return;
     }
     if (msg.type === 'open') {
-      if (url) { ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); playerDocument.current = true; setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
+      if (url) { playerOpen.current = true; ++resolveGeneration.current; sourceRequest.current?.abort(); setResolving(false); setPlayback(null); setBrowserError(''); setBrowserUrl(url); playerDocument.current = true; setPageSource({uri:url,headers:{Referer:SITE + '/'}}); }
       return;
     }
     if (msg.type !== 'fetch') return;
@@ -168,7 +192,9 @@ export const App = () => {
       return;
     }
     if (playerDocument.current && loaded !== HOME) {
-      homeRef.current?.injectJavaScript(playback?.kind === 'direct' ? videoScript(playback.url) : AUTO_PLAY);
+      // Embedded providers own their controls, focus and playback lifecycle.
+      // Observe them without replacing controls or forcing video.play().
+      homeRef.current?.injectJavaScript(playback?.kind === 'direct' ? videoScript(playback.url) : MEDIA_REPORTING);
       console.info('[MKPLAY] document-loaded');
     }
   }
@@ -186,8 +212,9 @@ export const App = () => {
         allowSystemKeyEvents={false}
         allowsDefaultMediaControl
         domStorageEnabled
+        thirdPartyCookiesEnabled
         javaScriptEnabled
-        mediaPlaybackRequiresUserAction={false}
+        mediaPlaybackRequiresUserAction={playback?.kind !== 'direct'}
         injectedJavaScriptBeforeContentLoaded={browserUrl ? MEDIA_REPORTING : undefined}
         onMessage={onHomeMessage}
         onLoad={onWebLoad}
@@ -203,16 +230,16 @@ export const App = () => {
         }}
       />
       {!!browserUrl && <View style={styles.toolbar}>
-        <Pressable focusable onPress={closePlayer} onFocus={() => setBackFocused(true)} onBlur={() => setBackFocused(false)} style={[styles.back, backFocused && styles.focus]}>
+        <Pressable focusable hasTVPreferredFocus={slowPlayer || !!browserError} onPress={closePlayer} onFocus={() => setBackFocused(true)} onBlur={() => setBackFocused(false)} style={[styles.back, backFocused && styles.focus]}>
           <Text style={styles.backText}>← Wróć do MK eKino</Text>
         </Pressable>
-        <Text style={styles.notice}>{resolving ? 'Otwieranie źródła…' : 'Wstecz: katalog'}</Text>
+        <Text style={styles.notice}>{resolving ? 'Otwieranie źródła…' : 'Wstecz / Menu: katalog'}</Text>
       </View>}
       {!!browserUrl && (resolving || !!browserError) && <View style={styles.message}>
         <Text style={styles.error}>{browserError || 'Otwieranie źródła filmu…'}</Text>
       </View>}
-      {!!browserUrl && !resolving && !browserError && !mediaStarted && !!mediaStatus && <View pointerEvents="none" style={styles.mediaStatus}>
-        <Text style={styles.error}>{mediaStatus}</Text>
+      {!!browserUrl && !resolving && !browserError && !mediaStarted && (!!mediaStatus || slowPlayer) && <View pointerEvents="none" style={styles.mediaStatus}>
+        <Text style={styles.error}>{slowPlayer ? 'Brak potwierdzenia odtwarzania po 45 s. Wstecz lub Menu: wróć do źródeł. ' + mediaStatus : mediaStatus}</Text>
       </View>}
     </View>
   );

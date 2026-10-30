@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {JSDOM} = require('jsdom');
-const {resolveSource, publicUrl, AUTO_PLAY, videoScript} = require('../src/playback');
+const {resolveSource, publicUrl, MEDIA_REPORTING, videoScript} = require('../src/playback');
 const watch = 'https://ekino.ws/watch/f/player/key';
 
 test('follows the normal redirect link and iframe to the actual player, preserving Referer', async () => {
@@ -44,15 +44,18 @@ test('stream player creates a video element safely and retains controls after re
     assert.equal(dom.window.document.body.textContent,'');
   } finally {dom.window.close();}
 });
-test('normal embed adapter requests playback and exposes controls without following ad links', async () => {
-  const dom=new JSDOM('<video></video><a href="https://ad.example/">Ad</a>',{runScripts:'outside-only'});
+test('embed observation leaves host playback, focus, controls and DOM unchanged', async () => {
+  const dom=new JSDOM('<button id="confirm">Play</button><video></video>',{runScripts:'outside-only'});
   let played=0;
   try {
     dom.window.HTMLMediaElement.prototype.play=()=>{played++;return Promise.resolve();};
-    dom.window.eval(AUTO_PLAY);
-    assert.equal(played,1);assert.equal(dom.window.document.querySelector('video').controls,true);
-    dom.window.document.querySelector('video').dispatchEvent(new dom.window.Event('playing'));
-    assert.equal(dom.window.document.querySelector('video').style.position,'fixed');
+    const button=dom.window.document.querySelector('button'),video=dom.window.document.querySelector('video');
+    button.focus(); const before=dom.window.document.body.innerHTML;
+    dom.window.eval(MEDIA_REPORTING);await new Promise(r=>setImmediate(r));
+    video.dispatchEvent(new dom.window.Event('playing'));
+    assert.equal(played,0);assert.equal(video.controls,false);
+    assert.equal(dom.window.document.activeElement,button);
+    assert.equal(dom.window.document.body.innerHTML,before);
   } finally {dom.window.close();}
 });
 test('provider HTTP denial opens its normal embed session; wrapper denial remains an error', async()=>{
@@ -63,30 +66,17 @@ test('provider HTTP denial opens its normal embed session; wrapper denial remain
   assert.equal(result.kind,'embed');assert.equal(result.url,'https://host.example/e/1');
   await assert.rejects(resolveSource(watch,async()=>{throw Error('Źródło zwróciło HTTP 403');}),/HTTP 403/);
 });
-test('media error diagnostics include numeric state, exclude stream tokens, and report rejected Play',async()=>{
+test('passive media diagnostics include numeric state without stream tokens',async()=>{
   const dom=new JSDOM('<video></video>',{runScripts:'outside-only'});
   const messages=[];
   try {
     dom.window.ReactNativeWebView={postMessage:s=>messages.push(JSON.parse(s))};
-    dom.window.HTMLMediaElement.prototype.play=()=>Promise.reject(Error('Secret token https://private.example/key'));
-    dom.window.eval(AUTO_PLAY);await new Promise(r=>setImmediate(r));
-    assert.ok(messages.some(m=>m.event==='play-rejected'));
+    dom.window.eval(MEDIA_REPORTING);await new Promise(r=>setImmediate(r));
     const video=dom.window.document.querySelector('video');
-    Object.defineProperty(video,'error',{value:{code:3,message:'private media URL'}});
+    Object.defineProperty(video,'error',{value:{code:3,message:'https://private.example/token'}});
     video.dispatchEvent(new dom.window.Event('error'));
     assert.equal(messages.at(-1).code,3);
     assert.equal(JSON.stringify(messages).includes('private'),false);
-    assert.equal(JSON.stringify(messages).includes('Secret'),false);
-  } finally {dom.window.close();}
-});
-test('unstarted video does not steal focus from a manually selected host confirmation button',()=>{
-  const dom=new JSDOM('<button id="confirm">Play</button><video></video>',{runScripts:'outside-only'});
-  try {
-    dom.window.HTMLMediaElement.prototype.play=()=>Promise.resolve();
-    const button=dom.window.document.querySelector('#confirm'),video=dom.window.document.querySelector('video');
-    button.focus();dom.window.eval(AUTO_PLAY);
-    assert.equal(dom.window.document.activeElement,button);
-    video.dispatchEvent(new dom.window.Event('playing'));
-    assert.equal(dom.window.document.activeElement,video);
+    assert.ok(messages.some(m=>m.event==='document-ready'));
   } finally {dom.window.close();}
 });
