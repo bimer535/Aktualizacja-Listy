@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {JSDOM} = require('jsdom');
-const {resolveSource, publicUrl, MEDIA_REPORTING, videoScript} = require('../src/playback');
+const {resolveSource, publicUrl, MEDIA_REPORTING, videoScript, MANUAL_PLAY_PAUSE} = require('../src/playback');
 const watch = 'https://ekino.ws/watch/f/player/key';
 
 test('follows the normal redirect link and iframe to the actual player, preserving Referer', async () => {
@@ -78,5 +78,45 @@ test('passive media diagnostics include numeric state without stream tokens',asy
     assert.equal(messages.at(-1).code,3);
     assert.equal(JSON.stringify(messages).includes('private'),false);
     assert.ok(messages.some(m=>m.event==='document-ready'));
+  } finally {dom.window.close();}
+});
+
+test('manual Play acts only on a video with metadata, never on host confirmation buttons',async()=>{
+  const dom=new JSDOM('<button id="verify">Confirm</button><video></video>',{runScripts:'outside-only'});
+  const messages=[];let played=0,clicked=0;
+  try {
+    dom.window.ReactNativeWebView={postMessage:s=>messages.push(JSON.parse(s))};
+    dom.window.document.querySelector('button').onclick=()=>clicked++;
+    dom.window.HTMLMediaElement.prototype.play=()=>{played++;return Promise.resolve();};
+    dom.window.eval(MANUAL_PLAY_PAUSE);assert.equal(played,0);
+    assert.equal(messages.at(-1).event,'manual-not-ready');
+    const video=dom.window.document.querySelector('video');
+    Object.defineProperty(video,'readyState',{value:1});
+    video.currentTime=12.5;
+    Object.defineProperty(video,'buffered',{value:{length:1,start:()=>0,end:()=>17}});
+    dom.window.eval(MANUAL_PLAY_PAUSE);await new Promise(r=>setImmediate(r));
+    assert.equal(played,1);assert.equal(clicked,0);assert.equal(video.controls,false);
+    const info=messages.find(m=>m.event==='manual-play');
+    assert.equal(info.paused,true);assert.equal(info.timeMs,12500);assert.equal(info.bufferedMs,4500);
+  } finally {dom.window.close();}
+});
+test('manual Play reports a blocked start without leaking exception details',async()=>{
+  const dom=new JSDOM('<video></video>',{runScripts:'outside-only'});const messages=[];
+  try {
+    dom.window.ReactNativeWebView={postMessage:s=>messages.push(JSON.parse(s))};
+    const video=dom.window.document.querySelector('video');Object.defineProperty(video,'readyState',{value:1});
+    dom.window.HTMLMediaElement.prototype.play=()=>Promise.reject(Object.assign(Error('https://secret.example/token'),{name:'NotAllowedError'}));
+    dom.window.eval(MANUAL_PLAY_PAUSE);await new Promise(r=>setImmediate(r));
+    assert.ok(messages.some(m=>m.event==='play-rejected'&&m.code===1));
+    assert.equal(JSON.stringify(messages).includes('secret'),false);
+  } finally {dom.window.close();}
+});
+test('manual Pause pauses existing playback once',()=>{
+  const dom=new JSDOM('<video></video>',{runScripts:'outside-only'});let paused=0;
+  try {
+    const video=dom.window.document.querySelector('video');
+    Object.defineProperties(video,{readyState:{value:3},paused:{value:false}});
+    video.pause=()=>paused++;
+    dom.window.eval(MANUAL_PLAY_PAUSE);assert.equal(paused,1);
   } finally {dom.window.close();}
 });

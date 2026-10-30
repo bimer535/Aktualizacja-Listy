@@ -4,13 +4,13 @@ import {AppState, BackHandler, Pressable, StyleSheet, Text, View} from 'react-na
 import {WebView} from '@amazon-devices/webview';
 import {useHideSplashScreenCallback, usePreventHideSplashScreen, useTVEventHandler} from '@amazon-devices/react-native-kepler';
 
-import {publicUrl, resolveSource, videoScript, MEDIA_REPORTING} from './playback';
+import {publicUrl, resolveSource, videoScript, MEDIA_REPORTING, MANUAL_PLAY_PAUSE} from './playback';
 
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 const SITE = 'https://ekino.ws';
 const HOME = 'file:///pkg/assets/index.html';
 const PATHS = /^\/(?:$|movie\/|serie\/|serial\/|watch\/|search\/)/;
-type Message = {type: string; requestId?: number; url?: string; referer?: string; state?: unknown; event?: string; code?: number; readyState?: number; networkState?: number};
+type Message = {type: string; requestId?: number; url?: string; referer?: string; state?: unknown; event?: string; code?: number; readyState?: number; networkState?: number; paused?: boolean; timeMs?: number; bufferedMs?: number};
 
 function safeUrl(input: unknown): string | null {
   if (typeof input !== 'string' || !input || input.length > 2048) return null;
@@ -40,6 +40,8 @@ export const App = () => {
   const playerOpen = useRef(false);
   const lastBack = useRef(0);
   const [slowPlayer, setSlowPlayer] = useState(false);
+  const [mediaAvailable, setMediaAvailable] = useState(false);
+  const [playFocused, setPlayFocused] = useState(false);
   const [cataloguePhase, setCataloguePhase] = useState<'loading'|'ready'|'error'>('loading');
   const cataloguePhaseRef = useRef(cataloguePhase);
   const [rendererMounted, setRendererMounted] = useState(true);
@@ -50,20 +52,6 @@ export const App = () => {
     cataloguePhaseRef.current = phase; setCataloguePhase(phase);
   }, []);
 
-  const closePlayer = useCallback(() => {
-    playerOpen.current = false;
-    ++resolveGeneration.current; ++catalogueGeneration.current;
-    sourceRequest.current?.abort();
-    setResolving(false); setPlayback(null);
-    setBrowserUrl(null);
-    setBrowserError('');
-    setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false);
-    if (playerDocument.current) {
-      restorePending.current = true; playerDocument.current = false;
-      markCatalogue('loading'); setPageSource({uri:HOME});
-      console.info('[MKPLAY] catalogue-requested');
-    } else homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
-  }, [markCatalogue]);
   const restartCatalogue = useCallback(() => {
     console.info('[MKPLAY] catalogue-restart');
     ++catalogueGeneration.current;
@@ -72,9 +60,27 @@ export const App = () => {
     restorePending.current = !!catalogueState.current;
     markCatalogue('loading'); setRendererMounted(false); setPageSource({uri:HOME});
     if (restartTimer.current) clearTimeout(restartTimer.current);
-    // Recovery alone recreates the renderer, in separate commits with a gap.
+    // Return and recovery release the old renderer before creating a new one.
     restartTimer.current = setTimeout(() => {setRendererMounted(true); restartTimer.current = null;}, 300);
   }, [markCatalogue]);
+  const closePlayer = useCallback(() => {
+    playerOpen.current = false;
+    ++resolveGeneration.current; ++catalogueGeneration.current;
+    sourceRequest.current?.abort();
+    setResolving(false); setPlayback(null);
+    setBrowserUrl(null);
+    setBrowserError('');
+    setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false); setMediaAvailable(false);
+    if (playerDocument.current) {
+      playerDocument.current = false;
+      console.info('[MKPLAY] catalogue-requested'); restartCatalogue();
+    } else homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
+  }, [restartCatalogue]);
+  const requestPlayback = useCallback(() => {
+    if (!playerOpen.current || !playerDocument.current) return;
+    console.info('[MKPLAY] native-playpause');
+    homeRef.current?.injectJavaScript(MANUAL_PLAY_PAUSE);
+  }, []);
   const handleBack = useCallback(() => {
       // Kepler may deliver the same press through both native subscriptions.
       const now = Date.now();
@@ -87,6 +93,7 @@ export const App = () => {
   }, [closePlayer]);
   useTVEventHandler(event => {
     if (event.eventKeyAction === 1) return;
+    if (playerOpen.current && event.eventType === 'playpause') {requestPlayback(); return;}
     if (event.eventType === 'back' || (playerOpen.current && event.eventType === 'menu')) handleBack();
   });
   useEffect(() => {
@@ -130,15 +137,24 @@ export const App = () => {
     if (!msg || typeof msg.type !== 'string') return;
     if (playerDocument.current) {
       if (msg.type !== 'mk-media') return;
-      const label = ['document-ready','play','playing','waiting','stalled','error','play-rejected','no-video','loadstart','loadedmetadata'].includes(msg.event || '') ? msg.event : 'unknown';
+      const label = ['document-ready','manual-play','manual-pause','manual-state','manual-not-ready','play','playing','pause','canplay','ended','waiting','stalled','error','play-rejected','no-video','loadstart','loadedmetadata'].includes(msg.event || '') ? msg.event : 'unknown';
       const code = Number.isInteger(msg.code) ? Math.min(Math.max(msg.code!,0),9) : 0;
-      console.info('[MKPLAY]', label, 'code=' + code, 'ready=' + Number(msg.readyState || 0), 'network=' + Number(msg.networkState || 0));
+      const bounded = (n:unknown, max:number) => typeof n === 'number' && Number.isFinite(n) ? Math.min(max,Math.max(0,Math.round(n))) : 0;
+      console.info('[MKPLAY]', label, 'code=' + code, 'ready=' + bounded(msg.readyState,4), 'network=' + bounded(msg.networkState,3), 'paused=' + (typeof msg.paused === 'boolean' ? Number(msg.paused) : -1), 'timeMs=' + bounded(msg.timeMs,86400000), 'bufferedMs=' + bounded(msg.bufferedMs,600000));
+      if (label === 'loadedmetadata' || label === 'canplay' || label === 'playing') setMediaAvailable(true);
       if (label === 'playing') {setMediaStarted(true); setSlowPlayer(false); setMediaStatus('Odtwarzanie');}
       else if (label === 'error') {
         setMediaStarted(false);
         const reasons:Record<number,string> = {1:'Przerwane odtwarzanie',2:'Błąd pobierania filmu',3:'Błąd dekodowania filmu',4:'Nieobsługiwany strumień lub brak źródła'};
         setMediaStatus((reasons[code] || 'Błąd odtwarzacza') + ' · MEDIA_ERR_' + code);
-      } else if (label === 'play-rejected') {setMediaStarted(false); setMediaStatus('Player odrzucił uruchomienie. Naciśnij Play; jeśli nadal brak obrazu, wróć i wybierz inne źródło.');}
+      } else if (label === 'play-rejected') {
+        setMediaStarted(false);
+        const reasons:Record<number,string> = {1:'WebView zablokował rozpoczęcie odtwarzania',2:'Nieobsługiwane źródło wideo',3:'Uruchomienie filmu zostało przerwane'};
+        setMediaStatus((reasons[code] || 'Nie udało się rozpocząć odtwarzania') + ' · PLAY_REJECTED_' + code);
+      }
+      else if (label === 'loadedmetadata' && msg.paused === true) setMediaStatus('Odczytano dane filmu. Naciśnij Play/Pauza na pilocie lub przycisk u góry.');
+      else if (label === 'manual-not-ready') setMediaStatus('Player nie udostępnił jeszcze filmu. Potwierdź Play na stronie źródła.');
+      else if (label === 'pause') {setMediaStarted(false); setMediaStatus('Pauza · Play/Pauza na pilocie: wznów');}
       else if (label === 'no-video') setMediaStatus('Brak zdarzeń wideo w głównym widoku źródła.');
       else if (!mediaStarted) setMediaStatus('Oczekiwanie na film…');
       return;
@@ -157,7 +173,7 @@ export const App = () => {
       for (const controller of activeRequests.current.values()) controller.abort();
       activeRequests.current.clear();
       if (msg.state && JSON.stringify(msg.state).length <= 120000) catalogueState.current = msg.state;
-      setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false);
+      setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false); setMediaAvailable(false);
     }
     if (msg.type === 'exit') { BackHandler.exitApp(); return; }
     const url = safeUrl(msg.url);
@@ -239,19 +255,19 @@ export const App = () => {
   return (
     <View style={styles.outer}>
       {rendererMounted && <WebView
-        // Preserve the native surface while switching documents. Do not destroy
-        // and recreate Chromium in the same commit on player entry/return.
+        // Keep the surface on entry. Return releases it before mounting the
+        // catalogue after a gap; never recreate Chromium in the same commit.
         ref={homeRef}
         style={styles.web}
         hasTVPreferredFocus
         userAgent={USER_AGENT}
         source={pageSource}
         allowSystemKeyEvents={false}
-        allowsDefaultMediaControl
+        allowsDefaultMediaControl={false}
         domStorageEnabled
         thirdPartyCookiesEnabled
         javaScriptEnabled
-        mediaPlaybackRequiresUserAction={playback?.kind !== 'direct'}
+        mediaPlaybackRequiresUserAction={false}
         injectedJavaScriptBeforeContentLoaded={browserUrl ? MEDIA_REPORTING : undefined}
         onMessage={onHomeMessage}
         onLoad={onWebLoad}
@@ -281,6 +297,9 @@ export const App = () => {
         <Pressable focusable hasTVPreferredFocus={slowPlayer || !!browserError} onPress={closePlayer} onFocus={() => setBackFocused(true)} onBlur={() => setBackFocused(false)} style={[styles.back, backFocused && styles.focus]}>
           <Text style={styles.backText}>← Wróć do MK eKino</Text>
         </Pressable>
+        {mediaAvailable && <Pressable focusable onPress={requestPlayback} onFocus={() => setPlayFocused(true)} onBlur={() => setPlayFocused(false)} style={[styles.back,playFocused && styles.focus]}>
+          <Text style={styles.backText}>▶ Play / Pauza</Text>
+        </Pressable>}
         <Text style={styles.notice}>{resolving ? 'Otwieranie źródła…' : 'Wstecz / Menu: katalog'}</Text>
       </View>}
       {!!browserUrl && (resolving || !!browserError) && <View style={styles.message}>

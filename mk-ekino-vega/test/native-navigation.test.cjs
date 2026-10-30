@@ -47,7 +47,7 @@ async function harness() {
     begin:async()=>{let task;await renderer.act(async()=>{task=web().props.onMessage({nativeEvent:{url:HOME,data:JSON.stringify({type:'play',url:'https://ekino.ws/watch/f/player/key',state})}});});return {finish:()=>renderer.act(async()=>{release();await task;})};},
     cleanup:()=>renderer.act(async()=>tree.unmount())};
 }
-test('player return preserves the native renderer and waits for catalogue ready before restoring',async()=>{
+test('player return releases the old renderer before recreating the catalogue and restoring its state',async()=>{
   const h=await harness();
   try {
     await h.send({type:'ui-ready'});
@@ -55,9 +55,17 @@ test('player return preserves the native renderer and waits for catalogue ready 
     assert.equal(h.web().props.source.uri,HOST);assert.equal(h.mounts(),1);
     assert.equal(h.web().props.allowSystemKeyEvents,false);
     assert.equal(h.web().props.thirdPartyCookiesEnabled,true);
-    assert.equal(h.web().props.mediaPlaybackRequiresUserAction,true);
+    assert.equal(h.web().props.allowsDefaultMediaControl,false,'native Play has one controller, without a second default media toggle');
+    assert.equal(h.web().props.mediaPlaybackRequiresUserAction,false,'host may start video after asynchronous manual confirmation');
     await renderer.act(async()=>h.web().props.onLoad({nativeEvent:{url:HOST}}));
     assert.ok(h.injected.every(s=>!s.includes('v.controls=true')&&!s.includes('v.play()')));
+    await h.send({type:'mk-media',event:'loadedmetadata',readyState:1,paused:true},HOST);
+    const playButton=h.tree.root.findAllByType('Pressable').find(p=>p.findByType('Text').props.children.includes('Play / Pauza'));
+    assert.ok(playButton);
+    const beforePlay=h.injected.length;
+    await h.tv({eventType:'playpause',eventKeyAction:1});assert.equal(h.injected.length,beforePlay);
+    await h.tv({eventType:'playpause',eventKeyAction:0});
+    assert.ok(h.injected.at(-1).includes("window.mkReport('manual-play'"));
     await h.tick(45000);
     assert.ok(JSON.stringify(h.tree.toJSON()).includes('Brak potwierdzenia odtwarzania po 45 s'));
     await h.send({type:'fetch',url:'https://ekino.ws/',requestId:100},HOST);
@@ -66,7 +74,9 @@ test('player return preserves the native renderer and waits for catalogue ready 
     assert.ok(JSON.stringify(h.tree.toJSON()).includes('MEDIA_ERR_4'));
     assert.ok(h.logs.every(l=>!l.includes('secret.example')));
     await h.tv({eventType:'menu',eventKeyAction:0});
-    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),1);
+    assert.equal(h.tree.root.findAllByType('WebView').length,0);
+    await h.tick(300);
+    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),2);
     assert.equal(h.stopped(),0,'stopLoading must not race the catalogue navigation');
     assert.ok(JSON.stringify(h.tree.toJSON()).includes('Ładowanie katalogu…'));
     await h.back();assert.equal(h.exits(),0,'duplicate native event ignored');
@@ -77,7 +87,7 @@ test('player return preserves the native renderer and waits for catalogue ready 
     assert.ok(h.injected.some(s=>s.includes('mkStart')&&s.includes('2026')));
     assert.equal(JSON.stringify(h.tree.toJSON()).includes('Ładowanie katalogu…'),false);
     h.advance();const cancelled=await h.begin();await h.back();await cancelled.finish();
-    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),1);
+    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),2);
   } finally {await h.cleanup();}
 });
 test('missing catalogue readiness exposes native retry/exit and recreates renderer only after a gap',async()=>{

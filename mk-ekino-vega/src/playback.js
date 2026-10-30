@@ -60,15 +60,29 @@ async function resolveSource(initial, fetchPage, referer = 'https://ekino.ws/') 
 }
 // Report bounded event codes only; never send stream URLs, cookies or page text.
 const MEDIA_REPORTING = `(function(){if(window.mkMediaReporting)return;window.mkMediaReporting=true;
-window.mkReport=function(event,v,code){try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:'mk-media',event:event,code:Number(code||v&&v.error&&v.error.code||0),readyState:Number(v&&v.readyState||0),networkState:Number(v&&v.networkState||0)}));}catch(_){}};
+window.mkReport=function(event,v,code){try{let ahead=0;
+if(v&&v.buffered)for(let i=0;i<v.buffered.length;i++){if(v.buffered.start(i)<=v.currentTime&&v.buffered.end(i)>=v.currentTime)ahead=v.buffered.end(i)-v.currentTime;}
+window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:'mk-media',event:event,code:Number(code||v&&v.error&&v.error.code||0),readyState:Number(v&&v.readyState||0),networkState:Number(v&&v.networkState||0),paused:v?!!v.paused:null,timeMs:Math.min(86400000,Math.max(0,Math.round(Number(v&&v.currentTime||0)*1000))),bufferedMs:Math.min(600000,Math.max(0,Math.round(ahead*1000)))}));}catch(_){}};
 const observed=new WeakSet();
 function observe(){if(!document)return;document.querySelectorAll('video').forEach(function(v){if(observed.has(v))return;observed.add(v);
-['play','playing','waiting','stalled','error','loadstart','loadedmetadata'].forEach(function(event){v.addEventListener(event,function(){window.mkReport(event,v);});});});}
+['play','playing','pause','canplay','ended','waiting','stalled','error','loadstart','loadedmetadata'].forEach(function(event){v.addEventListener(event,function(){window.mkReport(event,v);});});});}
 const observer=new MutationObserver(observe);
 function start(){if(document.documentElement)observer.observe(document.documentElement,{subtree:true,childList:true});observe();window.mkReport('document-ready',null);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 window.addEventListener('pagehide',function(){observer.disconnect();},{once:true});
 setTimeout(function(){if(document&&!document.querySelector('video'))window.mkReport('no-video',null);},15000);
+})();true;`;
+// Invoked only by an explicit native Play/Pause press. Never click page buttons
+// or confirmation challenges. Control only a video that already has metadata.
+const MANUAL_PLAY_PAUSE = MEDIA_REPORTING + `(function(){
+const videos=Array.from(document.querySelectorAll('video')).filter(function(v){return v.readyState>=1;});
+videos.sort(function(a,b){const ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();return br.width*br.height-ar.width*ar.height;});
+const v=videos[0];if(!v){window.mkReport('manual-not-ready',null);return;}
+if(!v.paused&&!v.ended){window.mkReport('manual-pause',v);v.pause();return;}
+window.mkReport('manual-play',v);
+try{Promise.resolve(v.play()).catch(function(e){const codes={NotAllowedError:1,NotSupportedError:2,AbortError:3};window.mkReport('play-rejected',v,codes[e&&e.name]||9);});}
+catch(e){const codes={NotAllowedError:1,NotSupportedError:2,AbortError:3};window.mkReport('play-rejected',v,codes[e&&e.name]||9);}
+setTimeout(function(){window.mkReport('manual-state',v);},3000);
 })();true;`;
 function videoScript(url) {
   const literal = JSON.stringify(url).replace(/</g, '\\u003c');
@@ -79,4 +93,4 @@ v.controls=true;v.autoplay=true;v.setAttribute('playsinline','');v.style.cssText
 error.style.cssText='position:fixed;bottom:70px;left:30px;z-index:2147483647;color:white';
 v.src=${literal};v.onerror=function(){error.textContent='Nie udało się odtworzyć strumienia. MEDIA_ERR_'+Number(v.error&&v.error.code||0);window.mkReport('error',v);};v.play().catch(function(){window.mkReport('play-rejected',v);});})();true;`;
 }
-module.exports = {publicUrl, resolveSource, videoScript, MEDIA_REPORTING};
+module.exports = {publicUrl, resolveSource, videoScript, MEDIA_REPORTING, MANUAL_PLAY_PAUSE};
