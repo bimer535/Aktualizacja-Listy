@@ -1,17 +1,17 @@
-# MK eKino Vega 0.1.10 — źródła
+# MK eKino Vega 0.1.10
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
 
-## Zmiany w 0.1.10 — oczekuje na kompilację i sprawdzenie
+## Zmiany w 0.1.10
 
 - Poprawka błędu aplikacji: `onError` WebView nie zasłania całego playera i nie wyłącza kursora. Błędy po otwarciu źródła są komunikatem, który nie przechwytuje wejścia. Dotyczy to także błędu HTTP dokumentu; błędy zasobów są logowane bez blokowania strony.
 - Dodano kod błędu i nazwę ze stałej listy `ERR_*`, bez zapisywania URL ani surowego opisu. Anulowanie nawigacji `ERR_ABORTED` nie tworzy komunikatu awarii. Odczyt metadanych, `canplay`, `playing` lub poprawne wczytanie dokumentu usuwa poprzedni komunikat strony.
 - Log użytkownika 0.1.9: wysłano kliknięcie kursora, odczytano metadane H.264 1920 × 800 i `canplay` z `paused=1`, lecz ekran pokazywał błąd strony. Ten fragment nie zawiera samego zdarzenia `document-error` i nie ustala przyczyny źródłowego błędu.
 - Przywrócono pięć wpisów zależności npm do wcześniejszych wartości. Numerowanie poprzednich wydań przypadkowo zmieniło również wersje zależności w pliku blokady; nie odtwarzały one stanu zainstalowanego wcześniej `node_modules`. Podbijanie wersji dotyczy teraz wyłącznie metadanych aplikacji.
 - Dodano dwa testy regresji błędów strony i HTTP, zachowania kursora, usuwania komunikatu po `canplay` oraz redakcji szczegółów.
-- **Nowe testy, TypeScript i budowa nie zostały uruchomione: środowisko wykonawcze było niedostępne. Nie ma jeszcze gotowego pakietu 0.1.10.** Budowanie musi rozpocząć się od `npm ci`, następnie przejść kontrole, zanim pakiet zostanie zainstalowany.
+- Czysta instalacja `npm ci`, TypeScript, 27 testów i `vega project doctor`: zaliczone. Pakiet ARMv7 zbudowany przez SDK 2.0.13986; walidacja `vpt`: 0 błędów. Odtwarzanie obrazu i dźwięku na fizycznym Sticku nadal niepotwierdzone.
 
 ## Zmiany w 0.1.9
 
@@ -82,11 +82,11 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 - Błędy HTTP i timeouty; ignorowanie spóźnionych odpowiedzi po zmianie widoku.
 - Parsowanie zewnętrznego HTML jako danych, bez wstawiania go do interfejsu przez `innerHTML`. Most sieciowy przyjmuje tylko adresy katalogu `https://ekino.ws`.
 
-## Ostatnie ukończone sprawdzenie — 0.1.9, 30.10.2026
+## Status sprawdzenia — 0.1.10, 30.10.2026
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 25 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 27 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi, nieufny HTML, kursor i zachowanie sterowania po błędach WebView.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
