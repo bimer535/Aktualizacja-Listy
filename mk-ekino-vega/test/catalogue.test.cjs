@@ -121,3 +121,14 @@ test('filter dialog loads filters when absent from home, and Back closes only th
     assert.notEqual(messages.at(-1).type,'exit');
   } finally {dom.window.close();}
 });
+
+test('return from a navigated player restores category, year, title detail and the series back stack',async()=>{
+  const {dom,d,w}=setup(()=>filterPage+list);
+  try {
+    await settle();
+    await w.mkRestore({tab:'movies',page:1,pageUrls:['https://ekino.ws/movie/cat/strona[1]+rok[2026]+'],filters:{year:'2026',cat:'4'},selected:{url:'https://ekino.ws/movie/show/test/1',title:'Film'},detailsStack:[{url:'https://ekino.ws/serie/show/test/',title:'Serial'}]});
+    assert.equal(d.querySelector('#filter-year').textContent,'Rok: 2026');
+    assert.equal(d.querySelector('#details').classList.contains('visible'),true);
+    w.mkBack();await settle();assert.match(d.querySelector('#detail-view h1').textContent,/Serial/);
+  } finally {dom.window.close();}
+});

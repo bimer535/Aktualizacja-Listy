@@ -63,3 +63,19 @@ test('provider HTTP denial opens its normal embed session; wrapper denial remain
   assert.equal(result.kind,'embed');assert.equal(result.url,'https://host.example/e/1');
   await assert.rejects(resolveSource(watch,async()=>{throw Error('Źródło zwróciło HTTP 403');}),/HTTP 403/);
 });
+test('media error diagnostics include numeric state, exclude stream tokens, and report rejected Play',async()=>{
+  const dom=new JSDOM('<video></video>',{runScripts:'outside-only'});
+  const messages=[];
+  try {
+    dom.window.ReactNativeWebView={postMessage:s=>messages.push(JSON.parse(s))};
+    dom.window.HTMLMediaElement.prototype.play=()=>Promise.reject(Error('Secret token https://private.example/key'));
+    dom.window.eval(AUTO_PLAY);await new Promise(r=>setImmediate(r));
+    assert.ok(messages.some(m=>m.event==='play-rejected'));
+    const video=dom.window.document.querySelector('video');
+    Object.defineProperty(video,'error',{value:{code:3,message:'private media URL'}});
+    video.dispatchEvent(new dom.window.Event('error'));
+    assert.equal(messages.at(-1).code,3);
+    assert.equal(JSON.stringify(messages).includes('private'),false);
+    assert.equal(JSON.stringify(messages).includes('Secret'),false);
+  } finally {dom.window.close();}
+});

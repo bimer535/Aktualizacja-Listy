@@ -1,8 +1,16 @@
-# MK eKino Vega 0.1.3
+# MK eKino Vega 0.1.4
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.4
+
+- Jeden, stale zamontowany WebView o pełnym rozmiarze. Katalog i player zmieniają dokument w tej samej powierzchni; nie ma drugiego renderera ani ukrywania katalogu przez rozmiar 0 × 0.
+- Przywracanie wybranych filtrów, strony i szczegółów filmu po powrocie z playera. Odpowiedzi poprzedniego dokumentu nie trafiają do nowego widoku.
+- Widoczne komunikaty HTMLMediaElement (MEDIA_ERR_1–4) i odrzuconego Play. Logi `[MKPLAY]` zawierają wyłącznie etap i kody stanów, bez URL strumienia, cookies i tokenów.
+- Zmiana odpowiada na zgłoszone logi Chromium o utracie kontekstu GPU. Logi zawierały również udane wyświetlenie klatki po powrocie na pierwszy plan; nie dowodzą, że GPU był jedyną przyczyną problemu.
+- **Nie potwierdzono odtwarzania na fizycznym Sticku. To poprawka przełączania widoków i diagnostyki, a nie potwierdzenie kompletnego portu resolverów czy playera Androida/Enigmy.**
 
 ## Zmiany w 0.1.3
 
@@ -26,7 +34,7 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 13 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 16 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.

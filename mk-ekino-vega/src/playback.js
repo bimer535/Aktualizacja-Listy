@@ -58,21 +58,30 @@ async function resolveSource(initial, fetchPage, referer = 'https://ekino.ws/') 
   }
   throw Error('Zbyt wiele przekierowań źródła');
 }
+// Report bounded event codes only; never send stream URLs, cookies or page text.
+const MEDIA_REPORTING = `(function(){if(window.mkMediaReporting)return;window.mkMediaReporting=true;
+window.mkReport=function(event,v,code){try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:'mk-media',event:event,code:Number(code||v&&v.error&&v.error.code||0),readyState:Number(v&&v.readyState||0),networkState:Number(v&&v.networkState||0)}));}catch(_){}};
+function observe(){if(!document)return;document.querySelectorAll('video').forEach(function(v){if(v.dataset.mkReported)return;v.dataset.mkReported='1';
+['playing','waiting','stalled','error','loadstart','loadedmetadata'].forEach(function(event){v.addEventListener(event,function(){window.mkReport(event,v);});});});}
+const observer=new MutationObserver(observe);observer.observe(document.documentElement,{subtree:true,childList:true});
+window.addEventListener('pagehide',function(){observer.disconnect();},{once:true});observe();
+setTimeout(function(){if(document&&!document.querySelector('video'))window.mkReport('no-video',null);},15000);
+})();true;`;
 // Use the host's normal player. No CAPTCHA, DRM or access checks are bypassed.
-const AUTO_PLAY = `(function(){if(window.mkPlaybackReady)return;window.mkPlaybackReady=true;
+const AUTO_PLAY = MEDIA_REPORTING + `(function(){if(window.mkPlaybackReady)return;window.mkPlaybackReady=true;
 function activate(){if(!document)return;document.querySelectorAll('video').forEach(function(v){
 v.controls=true;v.autoplay=true;v.style.background='black';v.setAttribute('playsinline','');
 if(!v.dataset.mkReady){v.dataset.mkReady='1';v.tabIndex=0;v.focus();v.addEventListener('playing',function(){
 v.style.position='fixed';v.style.inset='0';v.style.width='100vw';v.style.height='100vh';v.style.zIndex='2147483647';
-document.body.style.background='black';});v.play().catch(function(){});}});}
+document.body.style.background='black';});v.play().catch(function(){window.mkReport('play-rejected',v);});}});}
 const observer=new MutationObserver(activate);observer.observe(document.documentElement,{subtree:true,childList:true});window.addEventListener('pagehide',function(){observer.disconnect();},{once:true});activate();})();true;`;
 function videoScript(url) {
   const literal = JSON.stringify(url).replace(/</g, '\\u003c');
-  return `(function(){if(window.mkDirectInitialized)return;window.mkDirectInitialized=true;
+  return MEDIA_REPORTING + `(function(){if(window.mkDirectInitialized)return;window.mkDirectInitialized=true;
 const v=document.createElement('video'),error=document.createElement('p');
 document.body.replaceChildren(v,error);document.body.style.cssText='margin:0;background:black;color:white';
 v.controls=true;v.autoplay=true;v.setAttribute('playsinline','');v.style.cssText='position:fixed;inset:0;width:100vw;height:100vh;background:black;z-index:2147483646';
 error.style.cssText='position:fixed;bottom:70px;left:30px;z-index:2147483647;color:white';
-v.src=${literal};v.onerror=function(){error.textContent='Nie udało się odtworzyć strumienia. Wróć i wybierz inne źródło.';};v.play().catch(function(){});})();true;`;
+v.src=${literal};v.onerror=function(){error.textContent='Nie udało się odtworzyć strumienia. MEDIA_ERR_'+Number(v.error&&v.error.code||0);window.mkReport('error',v);};v.play().catch(function(){window.mkReport('play-rejected',v);});})();true;`;
 }
-module.exports = {publicUrl, resolveSource, AUTO_PLAY, videoScript};
+module.exports = {publicUrl, resolveSource, AUTO_PLAY, videoScript, MEDIA_REPORTING};

@@ -188,7 +188,10 @@ function add(parent, tag, className, text) {
   parent.appendChild(element);
   return element;
 }
-function openPage(url, play = false) { const safe = catalogueUrl(url); if (safe) send({type: play ? 'play' : 'open', url: safe, referer: selected?.url || SITE + '/'}); }
+function captureState() {
+  return {tab:currentTab,page,pageUrls:[...pageUrls],query,filters:{...filters},selected,detailsStack:[...detailsStack]};
+}
+function openPage(url, play = false) { const safe = catalogueUrl(url); if (safe) send({type: play ? 'play' : 'open', url: safe, referer: selected?.url || SITE + '/', state:captureState()}); }
 function createCard(item) {
   const button = document.createElement('button');
   button.className = 'card'; button.dataset.url = item.url; button.setAttribute('aria-label', item.title);
@@ -314,6 +317,23 @@ window.mkBack = () => {
   if (closeDetail()) return;
   if (currentTab !== 'home') changeTab('home');
   else send({type: 'exit'});
+};
+window.mkRestore = async state => {
+  if (!state || typeof state !== 'object') return;
+  const tabs = ['home','movies','shows','favorites','watched','search'];
+  currentTab = tabs.includes(state.tab) ? state.tab : 'home';
+  page = Number.isInteger(state.page) && state.page > 0 && state.page < 100000 ? state.page : 1;
+  pageUrls = Array.isArray(state.pageUrls) ? state.pageUrls.slice(0,10000).map(url => catalogueUrl(url)) : [];
+  query = typeof state.query === 'string' ? state.query.slice(0,300) : '';
+  for (const key of Object.keys(filters)) filters[key] = /^[A-Za-z0-9,]{1,50}$/.test(state.filters?.[key]) ? state.filters[key] : '';
+  document.querySelectorAll('[data-tab]').forEach(button => button.classList.toggle('active',button.dataset.tab === currentTab));
+  $('#page-title').textContent = {home:'Odkrywaj filmy',movies:'Filmy',shows:'Seriale',favorites:'Ulubione',watched:'Obejrzane',search:'Wyniki: ' + query}[currentTab];
+  $('#search').value = currentTab === 'search' ? query : '';
+  const safeItem = item => item && catalogueUrl(item.url) && typeof item.title === 'string' ? {url:catalogueUrl(item.url), title:item.title.slice(0,300), poster:absolute(item.poster)} : null;
+  const item = safeItem(state.selected);
+  const stack = Array.isArray(state.detailsStack) ? state.detailsStack.map(safeItem).filter(Boolean).slice(0,30) : [];
+  await load(pageUrls[page - 1]);
+  if (item) {await showDetail(item); detailsStack = stack;}
 };
 window.mkPlayerClosed = () => {
   if (lastFocus && typeof lastFocus !== 'string' && lastFocus.isConnected) lastFocus.focus();
