@@ -13,8 +13,8 @@ fi
 vega device list
 if [[ -n "$DEVICE" ]]; then
   vega device -d "$DEVICE" install-app --packagePath "$VPKG"
-  vega device -d "$DEVICE" launch-app --appName eu.prostastrona.mkekino.main
+  vega device -d "$DEVICE" launch-app --appName org.mkapps.ekino.main
 else
   vega device install-app --packagePath "$VPKG"
-  vega device launch-app --appName eu.prostastrona.mkekino.main
+  vega device launch-app --appName org.mkapps.ekino.main
 fi

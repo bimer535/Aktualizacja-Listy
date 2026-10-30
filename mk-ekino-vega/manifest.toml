@@ -6,7 +6,7 @@ icon = "@image/mkekino.png"
 version = "0.1.1"
 # Floor so local builds pass vpt validate; pass an increasing --build-number for every Appstore upload.
 build-number = 2
-id = "eu.prostastrona.mkekino"
+id = "org.mkapps.ekino"
 
 [os.version]
 min = "2.0"
@@ -15,7 +15,7 @@ target = "2.0"
 [needs]
 [components]
 [[components.interactive]]
-id = "eu.prostastrona.mkekino.main"
+id = "org.mkapps.ekino.main"
 runtime-module = "/com.amazon.kepler.runtime.react_native_kepler_4@IReactNativeKepler_0"
 launch-type = "singleton"
 categories = ["com.amazon.category.main"]

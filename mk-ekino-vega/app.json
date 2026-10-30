@@ -1,5 +1,5 @@
 {
   "//": "The declared app name must follow this pattern to be KRL-compatible",
-  "name": "eu.prostastrona.mkekino.main",
+  "name": "org.mkapps.ekino.main",
   "displayName": "mkekino"
 }

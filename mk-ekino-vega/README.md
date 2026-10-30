@@ -1,6 +1,6 @@
 # MK eKino Vega 0.1.1
 
-Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `eu.prostastrona.mkekino`, komponent `eu.prostastrona.mkekino.main`.
+Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
 
@@ -70,7 +70,7 @@ Można też wykonać bez skryptu:
 
 ```bash
 vega device install-app --packagePath build/armv7-release/mk-ekino-vega_armv7.vpkg
-vega device launch-app --appName eu.prostastrona.mkekino.main
+vega device launch-app --appName org.mkapps.ekino.main
 ```
 
 Podpisy i profile instalacyjne obsługuje oficjalny toolchain. W razie odmowy instalacji zachowaj dokładny komunikat urządzenia; nie wyłączaj weryfikacji podpisów. Poprawna walidacja pakietu nie stanowi potwierdzenia instalacji na każdym urządzeniu.
