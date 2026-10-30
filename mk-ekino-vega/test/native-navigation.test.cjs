@@ -8,74 +8,101 @@ const React = require('react');
 const renderer = require('react-test-renderer');
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const HOME = 'file:///pkg/assets/index.html';
-
-test('catalogue, resolving, playback, errors and Back share one full-size WebView, remounting the host view to request TV focus', async () => {
-  let mounts=0, back, tv, release, stopped=0, clock=10000, nextTimer=0;
-  const timers=new Map();
-  const injected=[], logs=[], calls=[];
+const HOST = 'https://host.example/e/video';
+const source=fs.readFileSync(path.join(__dirname,'../src/App.tsx'),'utf8');
+const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+const state={tab:'movies',filters:{year:'2026'},selected:{url:'https://ekino.ws/movie/show/test/1',title:'Film'}};
+async function harness() {
+  let mounts=0, back, tv, foreground, release, stopped=0, exits=0, clock=10000, nextTimer=0;
+  const timers=new Map(),injected=[],logs=[],calls=[];
   const WebView=React.forwardRef((props,ref)=>{
     React.useEffect(()=>{mounts++;},[]);
     React.useImperativeHandle(ref,()=>({injectJavaScript:s=>injected.push(s),stopLoading:()=>{stopped++;}}));
     return React.createElement('WebView',props);
   });
-  const source=fs.readFileSync(path.join(__dirname,'../src/App.tsx'),'utf8');
-  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.React,module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText;
+  const hideSplash=()=>{};
   const sandbox={exports:{},setTimeout:(fn,ms)=>{const id=++nextTimer;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),AbortController,Date:{now:()=>clock},
     console:{info:(...args)=>logs.push(args.join(' '))},
-    fetch:async(url)=>{calls.push(url);await new Promise(r=>{release=r;});return {ok:true,status:200,url, text:async()=>'<iframe src="https://host.example/e/video"></iframe>'};},
+    fetch:async(url)=>{calls.push(url);await new Promise(r=>{release=r;});return {ok:true,status:200,url,text:async()=>'<iframe src="'+HOST+'"></iframe>'};},
     require:name=>{
       if(name==='react')return React;
-      if(name==='react-native')return {View:'View',Text:'Text',Pressable:'Pressable',StyleSheet:{create:x=>x},BackHandler:{addEventListener:(event,fn)=>{back=fn;return {remove(){}};},exitApp(){}}};
+      if(name==='react-native')return {View:'View',Text:'Text',Pressable:'Pressable',StyleSheet:{create:x=>x},AppState:{addEventListener:(event,fn)=>{foreground=fn;return {remove(){}};}},BackHandler:{addEventListener:(event,fn)=>{back=fn;return {remove(){}};},exitApp:()=>exits++}};
       if(name==='@amazon-devices/webview')return {WebView};
-      if(name==='@amazon-devices/react-native-kepler')return {useTVEventHandler:fn=>{tv=fn;},useHideSplashScreenCallback:()=>()=>{},usePreventHideSplashScreen:()=>{}};
-      if(name==='./playback')return {...require('../src/playback'),resolveSource:async(url,fetchPage,referer)=>{await fetchPage(url,referer);return {kind:'embed',url:'https://host.example/e/video',referer:url};}};
+      if(name==='@amazon-devices/react-native-kepler')return {useTVEventHandler:fn=>{tv=fn;},useHideSplashScreenCallback:()=>hideSplash,usePreventHideSplashScreen:()=>{}};
+      if(name==='./playback')return {...require('../src/playback'),resolveSource:async(url,fetchPage)=>{await fetchPage(url,url);return {kind:'embed',url:HOST,referer:url};}};
       throw Error(name);
     }};
   vm.runInNewContext(code,sandbox);
   let tree;
+  await renderer.act(async()=>{tree=renderer.create(React.createElement(sandbox.exports.App));});
+  const web=()=>tree.root.findByType('WebView');
+  const send=(message,url=HOME)=>renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url,data:JSON.stringify(message)}});});
+  return {tree,web,send,injected,logs,calls,timers,
+    mounts:()=>mounts,stopped:()=>stopped,exits:()=>exits,
+    back:()=>renderer.act(async()=>{back();}),
+    tv:event=>renderer.act(async()=>{tv(event);}),
+    foreground:()=>renderer.act(async()=>{foreground('active');}),
+    advance:()=>{clock+=1000;},
+    tick:ms=>renderer.act(async()=>{const entry=[...timers.entries()].find(([id,t])=>t.ms===ms);assert.ok(entry,'expected timer '+ms);timers.delete(entry[0]);entry[1].fn();}),
+    begin:async()=>{let task;await renderer.act(async()=>{task=web().props.onMessage({nativeEvent:{url:HOME,data:JSON.stringify({type:'play',url:'https://ekino.ws/watch/f/player/key',state})}});});return {finish:()=>renderer.act(async()=>{release();await task;})};},
+    cleanup:()=>renderer.act(async()=>tree.unmount())};
+}
+test('player return preserves the native renderer and waits for catalogue ready before restoring',async()=>{
+  const h=await harness();
   try {
-    await renderer.act(async()=>{tree=renderer.create(React.createElement(sandbox.exports.App));});
-    const web=()=>tree.root.findByType('WebView');
-    assert.equal(web().props.source.uri,HOME);
-    const state={tab:'movies',filters:{year:'2026'},selected:{url:'https://ekino.ws/movie/show/test/1',title:'Film'}};
-    let task;
-    await renderer.act(async()=>{task=web().props.onMessage({nativeEvent:{url:HOME,data:JSON.stringify({type:'play',url:'https://ekino.ws/watch/f/player/key',state})}});});
-    assert.equal(tree.root.findAllByType('WebView').length,1);
-    assert.equal(web().props.source.uri,HOME);
-    await renderer.act(async()=>{release();await task;});
-    assert.equal(web().props.source.uri,'https://host.example/e/video');
-    assert.equal(mounts,2);assert.equal(web().props.style.flex,1);assert.equal(web().props.hasTVPreferredFocus,true);
-    assert.equal(web().props.allowSystemKeyEvents,false,'Back stays in the application');
-    assert.equal(web().props.thirdPartyCookiesEnabled,true);
-    assert.equal(web().props.mediaPlaybackRequiresUserAction,true,'embed must retain manual playback');
-    assert.equal(tree.root.findAllByType('WebView').length,1);
-    await renderer.act(async()=>{web().props.onLoad({nativeEvent:{url:'https://host.example/e/video'}});});
-    assert.ok(injected.every(s=>!s.includes('v.controls=true')&&!s.includes('v.play()')),'embed must not alter the provider player');
-    await renderer.act(async()=>{timers.values().find(t=>t.ms===45000).fn();});
-    assert.ok(JSON.stringify(tree.toJSON()).includes('Brak potwierdzenia odtwarzania po 45 s'));
-    await renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url:'https://host.example/e/video',data:JSON.stringify({type:'fetch',url:'https://ekino.ws/',requestId:100})}});});
-    assert.equal(calls.length,1,'remote player must not access catalogue bridge');
-    await renderer.act(async()=>{await web().props.onMessage({nativeEvent:{url:'https://host.example/e/video',data:JSON.stringify({type:'mk-media',event:'error',code:4,readyState:0,networkState:3,url:'https://secret.example/token'})}});});
-    assert.ok(JSON.stringify(tree.toJSON()).includes('MEDIA_ERR_4'));
-    assert.ok(logs.some(l=>l.includes('[MKPLAY] error code=4')));
-    assert.ok(logs.every(l=>!l.includes('secret.example')));
-    // Neither document JS nor a media event is required by native Menu.
-    const beforeMenu=injected.length;
-    await renderer.act(async()=>{tv({eventType:'menu',eventKeyAction:0});});
-    assert.equal(web().props.source.uri,HOME);assert.equal(mounts,3);
-    assert.equal(stopped,1);assert.equal(injected.length,beforeMenu);
-    await renderer.act(async()=>{back();});
-    assert.equal(injected.length,beforeMenu,'duplicate native Back must not exit the restored catalogue');
-    assert.equal(tree.root.findAllByType('WebView').length,1);
-    await renderer.act(async()=>{web().props.onLoad({nativeEvent:{url:HOME}});});
-    assert.ok(injected.some(s=>s.includes('mkRestore')&&s.includes('2026')));
-    // Cancel an unresponsive resolver; its eventual response cannot reopen it.
-    clock+=1000;
-    await renderer.act(async()=>{task=web().props.onMessage({nativeEvent:{url:HOME,data:JSON.stringify({type:'play',url:'https://ekino.ws/watch/f/player/key',state})}});});
-    await renderer.act(async()=>{back();});
-    assert.equal(web().props.source.uri,HOME);
-    await renderer.act(async()=>{release();await task;});
-    assert.equal(web().props.source.uri,HOME);assert.equal(mounts,3);
-    assert.equal(stopped,2);
-  } finally {if(tree)await renderer.act(async()=>tree.unmount());}
+    await h.send({type:'ui-ready'});
+    const task=await h.begin();await task.finish();
+    assert.equal(h.web().props.source.uri,HOST);assert.equal(h.mounts(),1);
+    assert.equal(h.web().props.allowSystemKeyEvents,false);
+    assert.equal(h.web().props.thirdPartyCookiesEnabled,true);
+    assert.equal(h.web().props.mediaPlaybackRequiresUserAction,true);
+    await renderer.act(async()=>h.web().props.onLoad({nativeEvent:{url:HOST}}));
+    assert.ok(h.injected.every(s=>!s.includes('v.controls=true')&&!s.includes('v.play()')));
+    await h.tick(45000);
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Brak potwierdzenia odtwarzania po 45 s'));
+    await h.send({type:'fetch',url:'https://ekino.ws/',requestId:100},HOST);
+    assert.equal(h.calls.length,1,'host cannot access catalogue bridge');
+    await h.send({type:'mk-media',event:'error',code:4,url:'https://secret.example/token'},HOST);
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('MEDIA_ERR_4'));
+    assert.ok(h.logs.every(l=>!l.includes('secret.example')));
+    await h.tv({eventType:'menu',eventKeyAction:0});
+    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),1);
+    assert.equal(h.stopped(),0,'stopLoading must not race the catalogue navigation');
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Ładowanie katalogu…'));
+    await h.back();assert.equal(h.exits(),0,'duplicate native event ignored');
+    const previous=h.injected.length;
+    await renderer.act(async()=>h.web().props.onLoad({nativeEvent:{url:HOME}}));
+    assert.ok(h.injected.slice(previous).every(s=>!s.includes('2026')),'onLoad is not evidence of JS readiness');
+    await h.send({type:'ui-ready'});
+    assert.ok(h.injected.some(s=>s.includes('mkStart')&&s.includes('2026')));
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Ładowanie katalogu…'),false);
+    h.advance();const cancelled=await h.begin();await h.back();await cancelled.finish();
+    assert.equal(h.web().props.source.uri,HOME);assert.equal(h.mounts(),1);
+  } finally {await h.cleanup();}
+});
+test('missing catalogue readiness exposes native retry/exit and recreates renderer only after a gap',async()=>{
+  const h=await harness();
+  try {
+    await renderer.act(async()=>h.web().props.onLoad({nativeEvent:{url:HOME}}));
+    await h.tick(10000);
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Katalog nie odpowiedział'));
+    const retry=h.tree.root.findAllByType('Pressable').find(p=>p.findByType('Text').props.children.includes('Ponów'));
+    await renderer.act(async()=>retry.props.onPress());
+    assert.equal(h.tree.root.findAllByType('WebView').length,0,'old renderer is released first');
+    assert.ok(JSON.stringify(h.tree.toJSON()).includes('Zamknij aplikację'));
+    await h.tick(300);assert.equal(h.mounts(),2);
+    await h.send({type:'ui-ready'});
+    assert.equal(JSON.stringify(h.tree.toJSON()).includes('Katalog nie odpowiedział'),false);
+    assert.equal(h.timers.size,0);
+  } finally {await h.cleanup();}
+});
+test('reentering an unready application retries catalogue, and Back can exit without web JavaScript',async()=>{
+  const h=await harness();
+  try {
+    await h.tick(10000);await h.foreground();
+    assert.equal(h.tree.root.findAllByType('WebView').length,0);
+    await h.tick(300);assert.equal(h.mounts(),2);
+    await h.back();assert.equal(h.exits(),1);
+    assert.ok(h.injected.every(s=>!s.includes('mkBack')));
+  } finally {await h.cleanup();}
 });

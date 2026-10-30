@@ -1,8 +1,17 @@
-# MK eKino Vega 0.1.6
+# MK eKino Vega 0.1.7
 
 Port dla Amazon Fire TV Stick 4K Select z **Vega OS 2.0**. Pakiet ARMv7 `.vpkg`, aplikacja `org.mkapps.ekino`, komponent `org.mkapps.ekino.main`.
 
 Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz selektorów katalogu z `mk-ekino-android/packages/MK_Ekino_TV_0.1.2_source.zip` w tym repozytorium (stan bazowy `c7666a7`). Interfejs i adapter WebView są przeznaczone dla Vega; kod Java/Media3 z Androida nie działa bezpośrednio na Vega OS.
+
+## Zmiany w 0.1.7
+
+- Przy przejściu katalog → player → katalog pozostaje ten sam natywny WebView. Usunięto zmianę klucza React oraz `stopLoading` przy powrocie, aby nie niszczyć powierzchni renderera i nie zatrzymywać nowej nawigacji.
+- Katalog sygnalizuje `ui-ready` po zarejestrowaniu własnych funkcji. Wrapper dopiero wtedy uruchamia katalog przez `mkStart`, przekazując stan do odtworzenia. Samo zdarzenie `onLoad` nie jest potwierdzeniem gotowości skryptu. Uruchomienie jest jednokrotne, aby start domyślny nie ścigał się z przywracaniem filtrów.
+- Podczas przywracania widoczny jest natywny ekran „Ładowanie katalogu”. Jeżeli katalog nie potwierdzi gotowości w 10 s, pojawiają się „Ponów wczytywanie katalogu” i „Zamknij aplikację”. Wstecz może zamknąć aplikację także bez odpowiedzi WebView.
+- Ręczna próba ponowienia zwalnia renderer i tworzy nowy po przerwie w osobnym renderowaniu React. Powrót z Home ponawia wczytywanie tylko wtedy, gdy katalog nie potwierdził gotowości. Nie kasuje danych użytkownika.
+- Logi MKPLAY rozróżniają `catalogue-requested`, `catalogue-document-loaded`, `catalogue-ready`, `catalogue-ready-timeout` i `catalogue-restart`; nie zawierają prywatnych danych ani adresów strumienia.
+- Zgłoszenie użytkownika: w 0.1.6 natywne Wstecz zostało odebrane, lecz katalog nie wrócił i po Home aplikacja pozostała czarna. Zmiana odpowiada na ten błąd; fizyczne odtworzenie filmu i działanie powierzchni renderera wymagają sprawdzenia na Sticku. Nie potwierdzono przyczyny wcześniejszego błędu samego filmu.
 
 ## Zmiany w 0.1.6
 
@@ -50,11 +59,11 @@ Projekt korzysta z wcześniejszego prototypu MK eKino Vega 0.1.0 i tras oraz sel
 
 - SDK `2.0.13986`, CLI `1.4.7`, React Native `0.83.0`, WebView `4.0.5`.
 - TypeScript: bez błędów.
-- 16 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
+- 19 testów katalogu, filtrów i adaptera odtwarzania: zaliczone. Pokrywają tytuły/okładki/paginację, wyszukiwanie, wybór źródła/zapis/back, powrót z odcinka, spóźnione odpowiedzi i nieufny HTML.
 - `vega project doctor`: wszystkie wymagane kontrole zgodności zaliczone.
 - Release ARMv7: zbudowany; `vpt validate`: 0 błędów manifestu.
 - Pobranie prawdziwej strony katalogu: HTTP 200, 10 pozycji.
-- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie została jeszcze sprawdzona na urządzeniu.**
+- **Użytkownik zainstalował i uruchomił aplikację na Sticku. Wersje 0.1.3–0.1.5 nie odtworzyły wskazanego filmu poprawnie. Wersja 0.1.6 nie przywróciła katalogu po wyjściu z playera. Wersja 0.1.7 nie została jeszcze sprawdzona na urządzeniu.**
 - Próba pobrania aktualnego katalogu w środowisku budowania 30.10: HTTP 403. Testy nowych filtrów i rozwiązywania źródeł wykorzystują lokalne przykłady oparte na publicznym parserze Enigma2; nie stanowią potwierdzenia działania każdego dostawcy.
 
 ## Ograniczenia

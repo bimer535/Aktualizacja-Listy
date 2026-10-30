@@ -1,6 +1,6 @@
 /** MK eKino for Vega OS 2.0. GPL-3.0-only. */
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {BackHandler, Pressable, StyleSheet, Text, View} from 'react-native';
+import {AppState, BackHandler, Pressable, StyleSheet, Text, View} from 'react-native';
 import {WebView} from '@amazon-devices/webview';
 import {useHideSplashScreenCallback, usePreventHideSplashScreen, useTVEventHandler} from '@amazon-devices/react-native-kepler';
 
@@ -40,30 +40,48 @@ export const App = () => {
   const playerOpen = useRef(false);
   const lastBack = useRef(0);
   const [slowPlayer, setSlowPlayer] = useState(false);
+  const [cataloguePhase, setCataloguePhase] = useState<'loading'|'ready'|'error'>('loading');
+  const cataloguePhaseRef = useRef(cataloguePhase);
+  const [rendererMounted, setRendererMounted] = useState(true);
+  const restartTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   usePreventHideSplashScreen();
   const hideSplash = useHideSplashScreenCallback();
+  const markCatalogue = useCallback((phase:'loading'|'ready'|'error') => {
+    cataloguePhaseRef.current = phase; setCataloguePhase(phase);
+  }, []);
 
   const closePlayer = useCallback(() => {
     playerOpen.current = false;
     ++resolveGeneration.current; ++catalogueGeneration.current;
     sourceRequest.current?.abort();
-    // Stop the remote document before replacing its renderer. No page script
-    // or media event is needed to return to the catalogue.
-    try {homeRef.current?.stopLoading();} catch (_) {}
     setResolving(false); setPlayback(null);
     setBrowserUrl(null);
     setBrowserError('');
     setMediaStatus(''); setMediaStarted(false); setSlowPlayer(false);
     if (playerDocument.current) {
-      restorePending.current = true; playerDocument.current = false; setPageSource({uri:HOME});
+      restorePending.current = true; playerDocument.current = false;
+      markCatalogue('loading'); setPageSource({uri:HOME});
+      console.info('[MKPLAY] catalogue-requested');
     } else homeRef.current?.injectJavaScript('window.mkPlayerClosed?.(); true;');
-  }, []);
+  }, [markCatalogue]);
+  const restartCatalogue = useCallback(() => {
+    console.info('[MKPLAY] catalogue-restart');
+    ++catalogueGeneration.current;
+    for (const controller of activeRequests.current.values()) controller.abort();
+    activeRequests.current.clear();
+    restorePending.current = !!catalogueState.current;
+    markCatalogue('loading'); setRendererMounted(false); setPageSource({uri:HOME});
+    if (restartTimer.current) clearTimeout(restartTimer.current);
+    // Recovery alone recreates the renderer, in separate commits with a gap.
+    restartTimer.current = setTimeout(() => {setRendererMounted(true); restartTimer.current = null;}, 300);
+  }, [markCatalogue]);
   const handleBack = useCallback(() => {
       // Kepler may deliver the same press through both native subscriptions.
       const now = Date.now();
       if (now - lastBack.current < 250) return true;
       lastBack.current = now;
       if (playerOpen.current) {console.info('[MKPLAY] native-back'); closePlayer();}
+      else if (cataloguePhaseRef.current !== 'ready') BackHandler.exitApp();
       else homeRef.current?.injectJavaScript('window.mkBack?.(); true;');
       return true;
   }, [closePlayer]);
@@ -76,6 +94,19 @@ export const App = () => {
     return () => sub.remove();
   }, [handleBack]);
   useEffect(() => {
+    if (browserUrl || cataloguePhase !== 'loading' || !rendererMounted) return;
+    const timer = setTimeout(() => {
+      console.info('[MKPLAY] catalogue-ready-timeout'); hideSplash(); markCatalogue('error');
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [browserUrl, cataloguePhase, rendererMounted, hideSplash, markCatalogue]);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active' && !playerOpen.current && cataloguePhaseRef.current !== 'ready') restartCatalogue();
+    });
+    return () => sub.remove();
+  }, [restartCatalogue]);
+  useEffect(() => {
     if (!browserUrl || mediaStarted) return;
     const timer = setTimeout(() => {
       console.info('[MKPLAY] startup-unconfirmed'); setSlowPlayer(true);
@@ -83,6 +114,7 @@ export const App = () => {
     return () => clearTimeout(timer);
   }, [browserUrl, mediaStarted]);
   useEffect(() => () => {
+    if (restartTimer.current) clearTimeout(restartTimer.current);
     sourceRequest.current?.abort();
     for (const controller of activeRequests.current.values()) controller.abort();
     activeRequests.current.clear();
@@ -109,6 +141,14 @@ export const App = () => {
       } else if (label === 'play-rejected') {setMediaStarted(false); setMediaStatus('Player odrzucił uruchomienie. Naciśnij Play; jeśli nadal brak obrazu, wróć i wybierz inne źródło.');}
       else if (label === 'no-video') setMediaStatus('Brak zdarzeń wideo w głównym widoku źródła.');
       else if (!mediaStarted) setMediaStatus('Oczekiwanie na film…');
+      return;
+    }
+    if (msg.type === 'ui-ready' && !playerOpen.current && (!event.nativeEvent.url || event.nativeEvent.url === HOME)) {
+      console.info('[MKPLAY] catalogue-ready');
+      markCatalogue('ready'); hideSplash();
+      const state = restorePending.current ? catalogueState.current : null;
+      restorePending.current = false;
+      homeRef.current?.injectJavaScript('window.mkStart?.(' + JSON.stringify(state) + '); true;');
       return;
     }
     if (restorePending.current || (event.nativeEvent.url && event.nativeEvent.url !== HOME)) return;
@@ -185,10 +225,8 @@ export const App = () => {
     hideSplash();
     const loaded = event.nativeEvent.url || pageSource.uri;
     if (pageSource.uri === HOME && loaded === HOME && !playerDocument.current) {
-      if (restorePending.current) {
-        restorePending.current = false;
-        homeRef.current?.injectJavaScript('window.mkRestore?.(' + JSON.stringify(catalogueState.current) + '); true;');
-      }
+      console.info('[MKPLAY] catalogue-document-loaded');
+      homeRef.current?.injectJavaScript('window.mkReady?.(); true;');
       return;
     }
     if (playerDocument.current && loaded !== HOME) {
@@ -200,10 +238,9 @@ export const App = () => {
   }
   return (
     <View style={styles.outer}>
-      <WebView
-        // A fresh native view requests TV focus when entering/leaving the host
-        // player. Only one full-size renderer is present at any time.
-        key={pageSource.uri === HOME ? 'catalogue' : 'player'}
+      {rendererMounted && <WebView
+        // Preserve the native surface while switching documents. Do not destroy
+        // and recreate Chromium in the same commit on player entry/return.
         ref={homeRef}
         style={styles.web}
         hasTVPreferredFocus
@@ -221,6 +258,7 @@ export const App = () => {
         onError={() => {
           hideSplash();
           if (playerDocument.current) {console.info('[MKPLAY] document-error'); setBrowserError('Nie udało się otworzyć strony odtwarzacza.');}
+          else {console.info('[MKPLAY] catalogue-document-error'); markCatalogue('error');}
         }}
         onHttpError={({nativeEvent}) => {
           if (playerDocument.current && nativeEvent.isMainFrame) {
@@ -228,7 +266,17 @@ export const App = () => {
             setBrowserError('Źródło zwróciło HTTP ' + nativeEvent.statusCode);
           }
         }}
-      />
+      />}
+      {!browserUrl && cataloguePhase !== 'ready' && <View style={styles.recovery}>
+        <Text style={styles.backText}>MK eKino</Text>
+        <Text style={styles.error}>{cataloguePhase === 'loading' ? 'Ładowanie katalogu…' : 'Katalog nie odpowiedział. Ponów wczytywanie lub zamknij aplikację.'}</Text>
+        {cataloguePhase === 'error' && <Pressable focusable hasTVPreferredFocus onPress={restartCatalogue} style={styles.back}>
+          <Text style={styles.backText}>Ponów wczytywanie katalogu</Text>
+        </Pressable>}
+        <Pressable focusable hasTVPreferredFocus={cataloguePhase === 'loading'} onPress={() => BackHandler.exitApp()} style={styles.back}>
+          <Text style={styles.backText}>Zamknij aplikację</Text>
+        </Pressable>
+      </View>}
       {!!browserUrl && <View style={styles.toolbar}>
         <Pressable focusable hasTVPreferredFocus={slowPlayer || !!browserError} onPress={closePlayer} onFocus={() => setBackFocused(true)} onBlur={() => setBackFocused(false)} style={[styles.back, backFocused && styles.focus]}>
           <Text style={styles.backText}>← Wróć do MK eKino</Text>
@@ -248,6 +296,7 @@ export const App = () => {
 const styles = StyleSheet.create({
   outer: {flex: 1, backgroundColor: '#000000'},
   web: {flex: 1, backgroundColor: '#000000'},
+  recovery: {position:'absolute',top:0,bottom:0,left:0,right:0,backgroundColor:'#111e2a',justifyContent:'center',alignItems:'center',gap:20},
   message: {position:'absolute',top:84,bottom:0,left:0,right:0,backgroundColor:'#000000',justifyContent:'center',alignItems:'center'},
   mediaStatus: {position:'absolute',bottom:75,left:20,right:20,backgroundColor:'#111e2a'},
   toolbar: {position:'absolute',top:0,left:0,right:0,minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 20, paddingHorizontal: 34, backgroundColor: '#111e2a'},

@@ -360,4 +360,16 @@ for (const [selector, kind] of [['#favorite', 'favorites'], ['#mark', 'watched']
 }
 // System Back is routed by the native wrapper. This also supports desktop tests.
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); window.mkBack(); } });
-load();
+// Start only after the native wrapper acknowledges this initialized document.
+// This avoids racing a default load with restoration after returning from film.
+let started = false;
+window.mkStart = state => {
+  if (started) return;
+  started = true;
+  document.querySelector('.nav.active')?.focus();
+  if (state && typeof state === 'object') window.mkRestore(state);
+  else load();
+};
+window.mkReady = () => send({type:'ui-ready'});
+if (window.ReactNativeWebView) window.mkReady();
+else window.mkStart(null);

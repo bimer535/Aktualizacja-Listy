@@ -9,11 +9,12 @@ const script = fs.readFileSync(path.join(root, 'assets/app.js'), 'utf8');
 const list = '<div class="movies-list-item"><a href="/movie/show/film/1"><img src="/poster.jpg" alt="Wrong title"/></a><div class="title"><a href="/movie/show/film/1">Polski tytuł</a><a class="blue" href="/movie/show/film/1">Long original title</a></div><p class="cates">2026 | Dramat</p><i title="Lektor"></i><div class="sum-vote"><div>8.5</div></div></div><a title="Następna strona" href="/movie/cat/strona[2]+">2</a>';
 const detail = '<h1>Polski tytuł</h1><div class="descriptionMovie">Opis filmu</div><script>ShowPlayer("voe","abc");ShowPlayer("player","def")</script>';
 const settle = () => new Promise(resolve => setImmediate(resolve));
-function setup(responder) {
+function setup(responder, autoStart = true) {
   const dom = new JSDOM(html, {url: 'https://mk.local/', runScripts: 'outside-only'});
   const messages = [];
   dom.window.ReactNativeWebView = {postMessage(raw) {
     const message = JSON.parse(raw); messages.push(message);
+    if (message.type === 'ui-ready') {if (autoStart) queueMicrotask(() => dom.window.mkStart(null)); return;}
     if (message.type !== 'fetch') return;
     const response = responder ? responder(message) : message.url.includes('/movie/show/') ? detail : list;
     if (response !== null) queueMicrotask(() => dom.window.mkReceive(JSON.stringify({requestId: message.requestId, url: message.url, html: response})));
@@ -82,7 +83,7 @@ test('episode Back returns to series before returning to catalogue', async () =>
 test('late catalogue responses cannot overwrite another tab and remote HTML stays inert', async () => {
   const {dom, d, w, messages} = setup(() => null);
   try {
-    const old = messages[0]; d.querySelector('[data-tab="favorites"]').click();
+    await settle(); const old = messages.find(m => m.type === 'fetch'); d.querySelector('[data-tab="favorites"]').click();
     w.mkReceive(JSON.stringify({requestId:old.requestId,html:list})); await settle();
     assert.equal(d.querySelectorAll('.card').length, 0);
   } finally {dom.window.close();}
@@ -130,5 +131,19 @@ test('return from a navigated player restores category, year, title detail and t
     assert.equal(d.querySelector('#filter-year').textContent,'Rok: 2026');
     assert.equal(d.querySelector('#details').classList.contains('visible'),true);
     w.mkBack();await settle();assert.match(d.querySelector('#detail-view h1').textContent,/Serial/);
+  } finally {dom.window.close();}
+});
+
+test('native readiness handshake starts exactly one catalogue request, using restored filters', async () => {
+  const {dom,w,messages,d}=setup(undefined,false);
+  try {
+    assert.equal(messages.length,1);assert.equal(messages[0].type,'ui-ready');
+    assert.equal(messages.filter(m=>m.type==='fetch').length,0);
+    w.mkStart({tab:'movies',filters:{year:'2026',version:'1'}});
+    w.mkStart(null);w.mkReady();await settle();
+    const requests=messages.filter(m=>m.type==='fetch');
+    assert.equal(requests.length,1);
+    assert.ok(requests[0].url.includes('rok[2026]'));assert.ok(requests[0].url.includes('wersja[1]'));
+    assert.equal(d.querySelectorAll('.card').length,1);
   } finally {dom.window.close();}
 });
