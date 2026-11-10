@@ -1,3 +1,23 @@
+# MK Kino 0.3.0
+
+Aktualna wersja na Android TV: **0.3.0**, numer kompilacji **9**, pakiet `pl.mk.ekino.tv`.
+
+## Aktualizacja
+
+W MK Kino wybierz **MENU → Sprawdź aktualizację** lub użyj **niebieskiego przycisku** pilota. Aplikacja pobierze i połączy 54 części APK oraz sprawdzi ich rozmiary, sumy SHA-256 i podpis instalatora. Zatwierdź instalację w Androidzie. Instaluj na obecną aplikację, bez jej odinstalowywania, aby zachować dane.
+
+## Nowe filtry filmów
+
+Cztery niezależne przyciski: **Gatunek**, **Język**, **Rok**, **Sortowanie**. Ustawienia są zapisywane; zmiana jednego filtra nie zeruje pozostałych. Gatunek, język i rok dotyczą obu katalogów. Sortowanie A–Z i według rocznika porządkuje aktualnie pobraną stronę. Filtr roku zawęża cały katalog.
+
+Sprawdzone: 8 testów logiki katalogów i filtrów, podpis APK, zgodność spakowanych modułów ze źródłami. Obsługa nowego paska pilotem wymaga jeszcze sprawdzenia na fizycznym Android TV.
+
+Kontakt: bimer535@wp.pl.
+
+---
+
+## Historia i opis wcześniejszych wydań
+
 # MK eKino TV 0.1.2
 
 Nowa turkusowa ikona MK eKino. Kod odtwarzania i aktualizacji zachowany z 0.1.1.
@@ -42,7 +62,7 @@ Nie wymaga komputera, dekodera Enigma, ServiceApp ani konta eKino.
 - Lista/kafelki, duże okładki, oceny eKino, ulubione, kontynuuj oglądanie.
 - Wznawianie od zapisanej pozycji, zakończone filmy usuwane z kontynuowania.
 - Własna kwadratowa ikona MK EKINO; w menu bez okładki widoczna jest ikona.
-- Informacje i kontakt MK: bimer55@wp.pl.
+- Informacje i kontakt MK: bimer535@wp.pl.
 
 ## Pilot
 
