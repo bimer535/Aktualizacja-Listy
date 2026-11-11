@@ -1,3 +1,21 @@
+# MK Kino 0.6.1
+
+Aktualna wersja: **0.6.1**, numer kompilacji **15**, pakiet `pl.mk.ekino.tv`.
+
+Poprawiono rysowanie przewijanych kafelków i opisów pod menu oraz filtrami, równą poświatę wokół zaznaczenia i podwójny rocznik na plakatach. Nie przenoszono interfejsu aplikacji PremiumSmart.
+
+## Aktualizacja
+
+Wybierz **MENU → Sprawdź aktualizację → Pobierz**, potem potwierdź instalację w Androidzie. Nie odinstalowuj poprzedniej wersji. Serwer używa nazw `MK_Ekino_TV_0.6.1.apk.partNNN`, wymaganych przez dotychczasowy aktualizator. Wcześniejszy błąd sprawdzania wersji 0.6.0 powodowały niezgodne nazwy plików; poprawiono je również dla tamtego wydania.
+
+Sprawdzono 36 testów, kompilację Android API 35/D8, podpis APK v2 i zgodność certyfikatu, integralność ZIP i niezmienność bibliotek odtwarzania. Rozmiar APK: 37982227 bajtów, SHA-256: `d12389706af6d799c1bd247cc4d671c802cf8b913966a514b0993784676dd57b`. Nie wykonano testu wizualnego ani odtwarzania na fizycznym Android TV.
+
+[Opis zmian 0.6.1](RELEASE_0.6.1.md). Kontakt: bimer535@wp.pl.
+
+---
+
+## Dokumentacja poprzednich wydań
+
 # MK Kino 0.6.0
 
 Aktualna wersja: **0.6.0**, numer kompilacji **14**, pakiet `pl.mk.ekino.tv`.
