@@ -1,3 +1,31 @@
+# MK Ekino E2 0.2.14 — powrót do 0.2.11
+
+Wydanie 0.2.14 przywraca interfejs, katalog, cztery kafelki i działanie wersji 0.2.11. Wycofano eksperymentalny interfejs z panoramą z 0.2.12–0.2.13. Wyższy numer umożliwia zwykłą aktualizację przez opkg i aktualizator aplikacji.
+
+Jedynym rozszerzeniem obsługi jest łatwy dostęp do aktualizacji z pilota: NIEBIESKI na liście i w kafelkach oraz MENU → Sprawdź aktualizację. Zniknęła etykieta zastępcza MK EKINO z kafelków. ŻÓŁTY przełącza widok listy i kafelków. Pozostała nawigacja jest taka jak w 0.2.11.
+
+Zachowano pakiet `enigma2-plugin-extensions-mkekinoe2`, ścieżkę instalacji, `/etc/mk-ekino-e2/library.json`, ustawienia, ulubione i historię oglądania. Moduły katalogu, resolvera, odtwarzania oraz przewijania pochodzą bez zmian z 0.2.11. Po instalacji zrestartuj interfejs Enigma2.
+
+## Instalacja ręczna
+
+Wgraj `MK_Ekino_E2_0.2.14.ipk` do `/tmp` i wykonaj:
+
+```sh
+opkg install /tmp/MK_Ekino_E2_0.2.14.ipk
+```
+
+Następnie wybierz w systemie restart GUI. Nie trzeba usuwać aplikacji ani kasować ustawień. Aktualizacja z 0.2.12 lub 0.2.13 jest zwykłym podniesieniem numeru pakietu.
+
+## Budowanie i weryfikacja
+
+`python3 -m unittest discover -s tests`
+
+`python3 tools/build_ipk.py`
+
+Testy używają atrap API Enigma2. Nie przeprowadzono testu na fizycznym dekoderze. Grafika i układ odpowiadają oryginalnej wersji 0.2.11. Licencja GPL-3.0-only zgodnie z plikiem LICENSE.
+
+## Archiwum poprzednich wydań
+
 # MK Kino Enigma2 0.2.13 — poprawka układu
 
 Pełna ramka zaznaczenia nad zdjęciami, przezroczysty środek poświaty, równe kafelki w bezpiecznych marginesach ekranu, niższe menu i usunięty napis MK Kino z okładek. Po aktualizacji zrestartuj GUI.

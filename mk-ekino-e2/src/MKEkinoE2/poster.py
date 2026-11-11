@@ -11,15 +11,14 @@ import urllib.parse
 import urllib.request
 
 CACHE=Path('/tmp/mk-ekino-posters')
-MAX_BYTES=2*1024*1024
+MAX_BYTES=256*1024
 
 
 def valid_url(url):
     parsed=urllib.parse.urlsplit(url)
-    local=(parsed.hostname=='ekino.ws' and re.fullmatch(r'/static/thumb/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png)',parsed.path,re.I))
-    tmdb=(parsed.hostname=='image.tmdb.org' and re.fullmatch(r'/t/p/(?:w342|w500|w1280)/[A-Za-z0-9_-]+\.(?:jpg|png)',parsed.path,re.I))
-    if (parsed.scheme!='https' or not (local or tmdb) or parsed.username or parsed.password
-            or parsed.port not in (None,443) or parsed.query or parsed.fragment):
+    if (parsed.scheme!='https' or parsed.hostname!='ekino.ws' or parsed.username or parsed.password
+            or parsed.port not in (None,443) or parsed.query or parsed.fragment
+            or not re.fullmatch(r'/static/thumb/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png)',parsed.path,re.I)):
         raise ValueError('invalid_poster_address')
     return url
 
@@ -62,7 +61,7 @@ def main():
         if args.batch:
             import json
             urls=json.loads(Path(args.batch).read_text())
-            if not isinstance(urls,list) or len(urls)>6:return 1
+            if not isinstance(urls,list) or len(urls)>4:return 1
             def download(url):
                 try:print(json.dumps({'poster_ready':fetch(url).stem}),flush=True)
                 except Exception:pass

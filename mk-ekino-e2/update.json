@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.13",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.13.ipk",
-  "size": 300164,
-  "sha256": "4c7a5a42bdc77feb8136d03ab73b72a5859ee13cb6f4f9a13e3c304314ed32fc",
-  "notes": "Poprawiony układ po 0.2.12: pełna ramka i niebieska poświata nad okładką, bez zasłaniania przez zdjęcie. Równe kafelki, cały rząd strony głównej w ekranie, większy margines górnego menu. Usunięty napis MK Kino z okładek. Odtwarzacz i ustawienia bez zmian. Po aktualizacji zrestartuj interfejs Enigma2."
+  "version": "0.2.14",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.14.ipk",
+  "size": 231930,
+  "sha256": "20b010e7d509830f00c30248639a61bc8163833bc62a381d7881dc4d03e67c2a",
+  "notes": "Powrót do sprawdzonego interfejsu i działania wersji 0.2.11. Usunięto interfejs kinowy z wydań 0.2.12–0.2.13. Aktualizacja z pilota: NIEBIESKI w widoku listy i kafelków albo MENU > Sprawdź aktualizację. Zachowane ustawienia, ulubione, historia, odtwarzacz i przewijanie. Po instalacji zrestartuj interfejs Enigma2."
 }

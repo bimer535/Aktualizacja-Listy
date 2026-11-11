@@ -181,7 +181,7 @@ def source_items(text,current):
         index=ordinals.get(provider,0);ordinals[provider]=index+1
         label=labels.get(key+'-'+provider,'')
         name=provider+(' (%d)' % (index+1) if index else '')
-        extra={k:v for k,v in current.items() if k in ('icon','rating','rating_label','rating_votes','desc','synopsis','series_title','series_url','season','episode','year','language_version','backdrop')}
+        extra={k:v for k,v in current.items() if k in ('icon','rating','rating_label','rating_votes','desc','synopsis','series_title','series_url','season','episode','year','language_version')}
         out.append(item(name+(' — '+label if label else ''),'resolve',provider=provider,provider_index=index,
                         url=current['url'],movie_title=current.get('title','Film'),**extra))
     return sorted(out,key=lambda x:('player','voe','mix').index(x['provider']))
@@ -189,14 +189,7 @@ def source_items(text,current):
 
 def browse(client,current):
     action=current.get('action','main')
-    if action=='main':
-        try:
-            import cinema_data
-            current_movies={'action':'movies','title':'Najnowsze filmy 2026','year':'2026','page':1}
-            url=movie_url(current_movies)
-            entries=paged(fetch(client,url),url,current_movies)
-            return cinema_data.enrich(entries,cinema_data.metadata(client))
-        except Exception:return []
+    if action=='main':return menu()
     if action in ('categories','versions','years'):
         return filters(fetch(client,BASE+'movie/cat/+'),action,current)
     if action=='movies':
@@ -208,8 +201,6 @@ def browse(client,current):
         return paged(fetch(client,url),url,current)
     if action in ('seasons','episodes','sources'):
         text=fetch(client,current['url'])
-        full=clean(group(r'class=[\"\']descriptionMovie[\"\'][^>]*>(.*?)</div>',text))
-        if full:current=dict(current,synopsis=full,desc=full)
         return {'seasons':seasons,'episodes':episodes,'sources':source_items}[action](text,current)
     if action=='next_episode':
         series_url=current.get('series_url','')

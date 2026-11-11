@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 
 PATH=Path('/etc/mk-ekino-e2/library.json')
 FIELDS=('title','action','url','icon','desc','synopsis','rating','rating_label',
-        'rating_votes','year','language_version','series_url','series_title','season','episode','backdrop')
+        'rating_votes','year','language_version','series_url','series_title','season','episode')
 
 
 def entry_copy(entry):
@@ -50,7 +50,7 @@ class Library:
         values=self.read().get('settings',{})
         if not isinstance(values,dict):values={}
         return {'auto_play':values.get('auto_play',True) is not False,
-                'view':'list' if values.get('view')=='list' else 'tiles',
+                'view':'tiles' if values.get('view')=='tiles' else 'list',
                 'playback_service':5002 if values.get('playback_service',5002)==5002 else 4097}
 
     def setting(self,key,value):

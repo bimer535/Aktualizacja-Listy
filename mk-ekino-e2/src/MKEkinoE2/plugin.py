@@ -26,12 +26,10 @@ ROOT=Path(__file__).resolve().parent
 try:
     from . import watchstate, playdiag
     from .tileview import PosterGrid
-    from .design import main_skin,description_skin
 except ImportError:
     import watchstate, playdiag
     from tileview import PosterGrid
-    from design import main_skin,description_skin
-VERSION='0.2.13'
+VERSION='0.2.14'
 HISTORY=Path('/etc/mk-ekino-e2/history.json')
 
 
@@ -58,7 +56,7 @@ def save_history(term):
 
 
 class Notices(Screen):
-    skin='''<screen name="MKEkinoNotices" position="center,center" size="1160,630" title="MK Kino — informacje i licencja">
+    skin='''<screen name="MKEkinoNotices" position="center,center" size="1160,630" title="MK Ekino E2 — informacje i licencja">
       <widget name="text" position="25,20" size="1110,565" font="Regular;19" />
       <widget name="hint" position="25,590" size="1110,30" font="Regular;20" />
     </screen>'''
@@ -72,7 +70,7 @@ class Notices(Screen):
 
 
 class Contact(Screen):
-    skin='''<screen name="MKEkinoContact" position="center,center" size="1100,560" title="MK Kino — autor i kontakt" backgroundColor="#0b101b">
+    skin='''<screen name="MKEkinoContact" position="center,center" size="1100,560" title="MK Ekino E2 — autor i kontakt" backgroundColor="#0b101b">
       <widget name="heading" position="35,25" size="1030,45" font="Regular;34" foregroundColor="#55c9d1" zPosition="1" />
       <widget name="author" position="35,88" size="660,40" font="Regular;27" foregroundColor="#ffffff" zPosition="1" />
       <widget name="email" position="35,151" size="660,50" font="Regular;36" foregroundColor="#f3d375" zPosition="1" />
@@ -271,7 +269,7 @@ class EkinoMoviePlayer(StreamSeekMixin,MoviePlayer):
 
 
 class Updates(Screen):
-    skin='''<screen name="MKEkinoUpdates" position="center,center" size="1050,470" title="MK Kino — aktualizacja">
+    skin='''<screen name="MKEkinoUpdates" position="center,center" size="1050,470" title="MK Ekino E2 — aktualizacja">
       <widget name="text" position="30,25" size="990,350" font="Regular;25" />
       <widget name="hint" position="30,400" size="990,40" font="Regular;22" foregroundColor="#66aaff" />
     </screen>'''
@@ -368,44 +366,61 @@ class Updates(Screen):
         self.detach()
 
 
-class FullDescription(Screen):
-    skin=description_skin()
-    def __init__(self,session,title,text):
-        Screen.__init__(self,session)
-        self['wallpaper']=Pixmap();self['title']=Label(title);self['body']=ScrollLabel(text)
-        self['hint']=Label('↑ ↓ / CH+ CH−: przewijaj · OK / EXIT: wróć')
-        self['actions']=ActionMap(['OkCancelActions','DirectionActions','NavigationActions'],{'ok':self.close,'cancel':self.close,'up':self['body'].pageUp,'down':self['body'].pageDown,'pageUp':self['body'].pageUp,'pageDown':self['body'].pageDown},-4)
-
-
 class MKEkino(Screen):
-    skin=main_skin()
+    skin='''<screen name="MKEkinoE2" position="center,center" size="1200,650" title="MK Ekino E2" backgroundColor="#0b101b">
+      <eLabel zPosition="0" position="0,0" size="1200,4" backgroundColor="#55c9d1" />
+      <eLabel zPosition="0" position="0,4" size="1200,82" backgroundColor="#121c2c" />
+      <widget name="heading" position="28,18" size="790,38" font="Regular;31" foregroundColor="#f5f7fc" backgroundColor="#121c2c" zPosition="1" />
+      <widget name="version" position="1000,24" size="170,28" font="Regular;19" halign="right" foregroundColor="#8e9db6" backgroundColor="#121c2c" zPosition="1" />
+      <widget name="path" position="30,61" size="1110,23" font="Regular;17" foregroundColor="#a9bacf" backgroundColor="#121c2c" noWrap="1" zPosition="1" />
+      <eLabel zPosition="0" position="24,101" size="650,444" backgroundColor="#111a29" />
+      <widget name="list" position="32,110" size="634,426" font="Regular;23" itemHeight="42" foregroundColor="#e7eef9" backgroundColor="#111a29" foregroundColorSelected="#ffffff" backgroundColorSelected="#235068" scrollbarMode="showOnDemand" zPosition="1" />
+      <eLabel zPosition="0" position="694,101" size="482,444" backgroundColor="#142033" />
+      <eLabel zPosition="0" position="714,121" size="200,300" backgroundColor="#1d3047" />
+      <widget name="poster_hint" position="732,224" size="164,90" font="Regular;19" halign="center" valign="center" foregroundColor="#6c8aa6" backgroundColor="#1d3047" zPosition="1" />
+      <widget name="poster" position="714,121" size="200,300" alphatest="on" zPosition="2" />
+      <widget name="selected_title" position="930,121" size="224,128" font="Regular;22" foregroundColor="#ffffff" backgroundColor="#142033" zPosition="1" />
+      <widget name="rating" position="930,263" size="224,58" font="Regular;23" foregroundColor="#f3d375" backgroundColor="#142033" zPosition="1" />
+      <widget name="metadata" position="930,338" size="224,75" font="Regular;17" foregroundColor="#a4b8d1" backgroundColor="#142033" zPosition="1" />
+      <eLabel zPosition="0" position="714,437" size="440,1" backgroundColor="#29405a" />
+      <widget name="description" position="714,452" size="440,80" font="Regular;20" foregroundColor="#c7d4e8" backgroundColor="#142033" zPosition="1" />
+      <widget name="status" position="30,558" size="945,29" font="Regular;20" foregroundColor="#a9bed5" backgroundColor="#0b101b" zPosition="1" />
+      <widget name="counter" position="985,558" size="185,29" font="Regular;20" halign="right" foregroundColor="#55c9d1" backgroundColor="#0b101b" zPosition="1" />
+      <widget name="options_hint" position="30,587" size="1140,17" font="Regular;16" foregroundColor="#8e9db6" backgroundColor="#0b101b" zPosition="1" />
+      <eLabel zPosition="0" position="24,604" size="270,3" backgroundColor="#ef7382" />
+      <eLabel zPosition="0" position="318,604" size="270,3" backgroundColor="#76d5a2" />
+      <eLabel zPosition="0" position="612,604" size="270,3" backgroundColor="#edcd76" />
+      <eLabel zPosition="0" position="906,604" size="270,3" backgroundColor="#77b5fa" />
+      <widget name="red" position="30,614" size="264,29" font="Regular;21" foregroundColor="#ef7382" backgroundColor="#0b101b" zPosition="1" />
+      <widget name="green" position="324,614" size="264,29" font="Regular;21" foregroundColor="#76d5a2" backgroundColor="#0b101b" zPosition="1" />
+      <widget name="yellow" position="618,614" size="264,29" font="Regular;21" foregroundColor="#edcd76" backgroundColor="#0b101b" zPosition="1" />
+      <widget name="blue" position="912,614" size="264,29" font="Regular;21" foregroundColor="#77b5fa" backgroundColor="#0b101b" zPosition="1" />
+    </screen>'''
     def __init__(self,session):
         Screen.__init__(self,session)
-        self['wallpaper']=Pixmap()
-        self['heading']=Label('MK Kino')
-        self.grid_mode_override=None
+        self['heading']=Label('MK Ekino E2')
         self['version']=Label('WERSJA '+VERSION)
         self['selected_title']=Label('Filmy i seriale')
         self['rating']=Label('')
         self['metadata']=Label('')
         self['counter']=Label('')
-        self['poster_hint']=Label('')
+        self['poster_hint']=Label('MK EKINO\nFILMY · SERIALE')
         self['poster']=Pixmap()
         self['path']=Label('Filmy i seriale')
         self['list']=MenuList([])
-        self['description']=ScrollLabel('')
+        self['description']=Label('')
         self['status']=Label('OK: wybierz · ↑/↓: nawigacja')
-        self['options_hint']=Label('INFO: pełny opis · MENU: opcje, ulubione i kontakt')
+        self['options_hint']=Label('MENU: opcje, ulubione i kontakt')
         self['red']=Label('Wyjdź / Wróć');self['green']=Label('Wyszukaj')
         self['yellow']=Label('Lista / kafelki');self['blue']=Label('Aktualizacja')
         self['actions']=ActionMap(['OkCancelActions','ColorActions','NavigationActions','InfoActions','MenuActions'],{
             'ok':self.select,'cancel':self.back,'red':self.back,'green':self.search,
             'yellow':self.toggle_view,'blue':self.updates,
-            'info':self.details,'menu':self.options,
+            'info':self.notices,'menu':self.options,
             'up':lambda:self.move('up'),'down':lambda:self.move('down'),
             'pageUp':lambda:self.move('pageUp'),'pageDown':lambda:self.move('pageDown')},-2)
         self['list'].onSelectionChanged.append(self.selection_changed)
-        self.current={'action':'main','title':'Główna'};self.entries=[];self.stack=[]
+        self.current={'action':'main','title':'Ekino'};self.entries=[];self.stack=[]
         self.library=watchstate.Library();self.preferences=self.library.settings()
         self.after_job=None;self.grid_pending=False;self.playback_entry={};self.next_entry={}
         self.container=None;self.running=False;self.stopping=False;self.closed=False
@@ -439,7 +454,7 @@ class MKEkino(Screen):
         url=preview.get('icon','')
         if url!=self.cover_url:
             self.cover_url=url;self.cover_timer.stop();self.cover_pending=None
-            self['poster'].hide();self['poster_hint'].setText('')
+            self['poster'].hide();self['poster_hint'].setText('MK EKINO\nFILMY · SERIALE')
             if url:self.cover_timer.start(250,True)
 
     def cover_path(self):
@@ -533,7 +548,7 @@ class MKEkino(Screen):
         self.session.openWithCallback(self.search_done,VirtualKeyBoard,title='Tytuł filmu lub serialu',text='')
 
     def search_done(self,term):
-        if not isinstance(term,str) or not term.strip():self.maybe_grid();return
+        if not isinstance(term,str) or not term.strip():return
         term=term.strip()[:200]
         try:save_history(term)
         except OSError:pass
@@ -582,10 +597,11 @@ class MKEkino(Screen):
                         ('Widok: '+('kafelki' if self.preferences['view']=='tiles' else 'lista')+' — zmień','view')])
         choices.append(('Odtwarzacz: '+('exteplayer3 (5002)' if self.preferences['playback_service']==5002 else 'standardowy (4097)')+' — zmień','player'))
         if entry.get('episode') and entry.get('series_url'):choices.append(('Następny odcinek','next'))
+        choices.append(('Sprawdź aktualizację','updates'))
         choices.append(('Odśwież listę','refresh'))
         choices.append(('Autor i kontakt','contact'))
         choices.append(('Informacje i licencja','info'))
-        self.session.openWithCallback(lambda choice:self.option_selected(choice,return_to_grid),ChoiceBox,title='MK Kino — opcje',list=choices)
+        self.session.openWithCallback(lambda choice:self.option_selected(choice,return_to_grid),ChoiceBox,title='MK Ekino — opcje',list=choices)
 
     def option_selected(self,choice,return_to_grid=False):
         if self.closed:return
@@ -610,6 +626,10 @@ class MKEkino(Screen):
                 return
             elif action=='next':
                 self.next_entry=self.selected_entry();self.next_confirmed(True);return
+            elif action=='updates':
+                if return_to_grid:self.session.openWithCallback(self.maybe_grid,Updates)
+                else:self.updates()
+                return
             elif action=='refresh':self.refresh();return
             elif action in ('contact','info'):
                 screen=Contact if action=='contact' else Notices
@@ -634,42 +654,18 @@ class MKEkino(Screen):
         if return_to_grid:self.maybe_grid()
 
     def maybe_grid(self,*args):
-        kind=self.current.get('action')
-        allowed=kind=='main' or any(entry.get('action') in ('sources','seasons','resolve','episodes') for entry in self.entries)
-        if not self.closed and not self.running and allowed and (kind=='main' or self.preferences['view']=='tiles'):
-            context=dict(self.current)
-            if kind=='sources' and self.entries:context.update(self.entries[0],title=self.current.get('title','Film'),action=kind)
-            self.session.openWithCallback(self.tile_selected,PosterGrid,self.entries,self['list'].getSelectedIndex(),context,self.grid_mode_override)
-
-    def route(self,index):
-        self.grid_mode_override=None
-        if index==3:self.search();return
-        if index==6:self.options(return_to_grid=True);return
-        self.stack=[]
-        entry={0:{'action':'main','title':'Główna'},1:{'action':'categories','title':'Filmy'},2:{'action':'series','title':'Seriale'},4:{'action':'favourites','title':'Ulubione'},5:{'action':'continue','title':'Oglądaj dalej'}}.get(index)
-        if not entry:return
-        if entry['action'] in ('favourites','continue'):self.local_list(entry,False)
-        else:self.load(entry,push=False)
-
-    def details(self):
-        current=self.selected_entry()
-        text=current.get('synopsis') or self.current.get('synopsis') or current.get('desc') or self.current.get('desc')
-        if text:self.session.openWithCallback(self.maybe_grid,FullDescription,current.get('movie_title') or current.get('title','Opis filmu'),text)
-        else:self.notices()
+        if (not self.closed and not self.running and self.preferences['view']=='tiles'
+                and any(entry.get('action') in ('sources','seasons') for entry in self.entries)):
+            self.session.openWithCallback(self.tile_selected,PosterGrid,self.entries,self['list'].getSelectedIndex())
 
     def tile_selected(self,result=None):
         if self.closed or not result:return
         action,index=result
-        if action=='route':self.route(index);return
         self['list'].moveToIndex(index);self.selection_changed()
-        if action=='select':self.grid_mode_override=None;self.select()
-        elif action=='expand':self.grid_mode_override='catalogue';self.maybe_grid()
-        elif action=='back':
-            if self.current.get('action')=='main' and self.grid_mode_override:
-                self.grid_mode_override=None;self.maybe_grid()
-            else:self.grid_mode_override=None;self.back()
-        elif action=='description':self.details()
+        if action=='select':self.select()
+        elif action=='back':self.back()
         elif action=='options':self.options(return_to_grid=True)
+        elif action=='updates':self.session.openWithCallback(self.maybe_grid,Updates)
         elif action=='list':
             try:self.library.setting('view','list')
             except OSError:pass
@@ -842,5 +838,5 @@ def main(session,**kwargs):session.open(MKEkino)
 
 
 def Plugins(**kwargs):
-    return [PluginDescriptor(name='MK Kino',description='Filmy i seriale — samodzielna wtyczka MK',
+    return [PluginDescriptor(name='MK Ekino E2',description='Filmy i seriale — samodzielna wtyczka MK',
                              where=PluginDescriptor.WHERE_PLUGINMENU,icon='icon.png',fnc=main)]

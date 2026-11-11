@@ -10,7 +10,7 @@ import time
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='0.2.13'
+VERSION='0.2.14'
 PACKAGE='enigma2-plugin-extensions-mkekinoe2'
 PREFIX='usr/lib/enigma2/python/Plugins/Extensions/MKEkinoE2/'
 
@@ -45,7 +45,7 @@ def main():
     manifest={'package':PACKAGE,'version':VERSION,
               'url':'https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/'+package.name,
               'size':len(data),'sha256':hashlib.sha256(data).hexdigest(),
-              'notes':'Poprawiony układ po 0.2.12: pełna ramka i niebieska poświata nad okładką, bez zasłaniania przez zdjęcie. Równe kafelki, cały rząd strony głównej w ekranie, większy margines górnego menu. Usunięty napis MK Kino z okładek. Odtwarzacz i ustawienia bez zmian. Po aktualizacji zrestartuj interfejs Enigma2.'}
+              'notes':'Powrót do sprawdzonego interfejsu i działania wersji 0.2.11. Usunięto interfejs kinowy z wydań 0.2.12–0.2.13. Aktualizacja z pilota: NIEBIESKI w widoku listy i kafelków albo MENU > Sprawdź aktualizację. Zachowane ustawienia, ulubione, historia, odtwarzacz i przewijanie. Po instalacji zrestartuj interfejs Enigma2.'}
     manifest_file=output/'update.json';manifest_file.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     source=output/('MK_Ekino_E2_'+VERSION+'_source.zip')
     with zipfile.ZipFile(source,'w',compression=zipfile.ZIP_DEFLATED) as archive:
