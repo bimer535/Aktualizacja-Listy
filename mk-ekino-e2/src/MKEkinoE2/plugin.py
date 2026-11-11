@@ -29,7 +29,7 @@ try:
 except ImportError:
     import watchstate, playdiag
     from tileview import PosterGrid
-VERSION='0.2.15'
+VERSION='0.2.16'
 HISTORY=Path('/etc/mk-ekino-e2/history.json')
 
 
@@ -411,10 +411,10 @@ class MKEkino(Screen):
         self['description']=Label('')
         self['status']=Label('OK: wybierz · ↑/↓: nawigacja')
         self['options_hint']=Label('MENU: opcje, ulubione i kontakt')
-        self['red']=Label('Wyjdź / Wróć');self['green']=Label('Wyszukaj')
+        self['red']=Label('Wyjdź');self['green']=Label('Wyszukaj')
         self['yellow']=Label('Lista / kafelki');self['blue']=Label('Aktualizacja')
         self['actions']=ActionMap(['OkCancelActions','ColorActions','NavigationActions','InfoActions','MenuActions'],{
-            'ok':self.select,'cancel':self.back,'red':self.back,'green':self.search,
+            'ok':self.select,'cancel':self.back,'red':self.close,'green':self.search,
             'yellow':self.toggle_view,'blue':self.updates,
             'info':self.notices,'menu':self.options,
             'up':lambda:self.move('up'),'down':lambda:self.move('down'),
@@ -664,6 +664,7 @@ class MKEkino(Screen):
     def tile_selected(self,result=None):
         if self.closed or not result:return
         action,index=result
+        if action=='exit':self.close();return
         self['list'].moveToIndex(index);self.selection_changed()
         if action=='select':self.select()
         elif action=='back':self.back()

@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.15",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.15.ipk",
-  "size": 238724,
-  "sha256": "85b0683fb2f96bf6e2fe36b36c01ddcf4d3f1ed2e1d821131080d96df4a50c0e",
-  "notes": "Stary interfejs Enigma2: kafelki domyślne po aktualizacji, niebieska ramka i poświata wokół całej wybranej okładki. Czytelny kafelek Następna strona ze strzałką i tym samym zaznaczeniem. Poprawiony kontakt i QR: bimer535@wp.pl. Aktualizacja pod NIEBIESKIM i w MENU. Po instalacji zrestartuj GUI."
+  "version": "0.2.16",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.16.ipk",
+  "size": 250682,
+  "sha256": "9a839dabb1d9f73f400a2c2a36ad1a8d6375bba0f80f8fc6ad87eeda175adcc2",
+  "notes": "Czytelny dolny pasek z kolorami pilota: czerwony Wyjdź, żółty Lista / kafelki, niebieski Aktualizacja i osobne MENU. Czerwony zamyka aplikację, EXIT wraca. Nowa wygładzona strzałka na kafelku Następna strona. Zachowany klasyczny układ i niebieska ramka okładek. Po instalacji zrestartuj GUI."
 }

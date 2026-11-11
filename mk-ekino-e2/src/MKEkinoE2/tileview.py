@@ -22,8 +22,8 @@ def is_next_page(entry):
 def grid_skin():
     parts=['''<screen name="MKEkinoTiles" position="center,center" size="1200,650" title="MK Ekino — kafelki" backgroundColor="#0b101b">
       <widget name="heading" position="30,22" size="1140,45" font="Regular;29" foregroundColor="#55c9d1" zPosition="1" />
-      <widget name="detail" position="30,552" size="1140,44" font="Regular;20" foregroundColor="#a9bed5" zPosition="1" />
-      <widget name="hint" position="30,599" size="1140,48" font="Regular;20" foregroundColor="#ffffff" zPosition="1" />''']
+      <widget name="detail" position="30,552" size="1140,28" font="Regular;20" foregroundColor="#a9bed5" zPosition="1" />
+      <widget name="hint" position="30,584" size="1140,22" font="Regular;18" foregroundColor="#ffffff" zPosition="1" />''']
     for i in range(4):
         x=24+i*290
         parts.extend([
@@ -33,6 +33,16 @@ def grid_skin():
             '<widget name="cover%d" position="%d,126" size="200,300" alphatest="on" zPosition="2" />' % (i,x+35),
             '<widget name="title%d" position="%d,439" size="270,66" font="Regular;23" halign="center" foregroundColor="#ffffff" zPosition="1" />' % (i,x),
             '<widget name="rating%d" position="%d,511" size="270,28" font="Regular;20" halign="center" foregroundColor="#f3d375" zPosition="1" />' % (i,x)])
+    parts.append('<eLabel position="30,609" size="1140,1" backgroundColor="#26394c" zPosition="1" />')
+    for i,(name,color) in enumerate((('red_key','#ef596e'),('yellow_key','#ffd45a'),('blue_key','#50b6ff'),('menu_key','#a9bed5'))):
+        x=30+i*290
+        if name=='menu_key':
+            parts.append('<widget name="menu_badge" position="%d,616" size="58,24" font="Regular;16" halign="center" valign="center" foregroundColor="#ffffff" backgroundColor="#2b394c" zPosition="1" />'%x)
+            offset=68
+        else:
+            parts.append('<eLabel position="%d,619" size="20,20" backgroundColor="%s" zPosition="1" />'%(x,color))
+            offset=32
+        parts.append('<widget name="%s" position="%d,613" size="%d,30" font="Regular;21" foregroundColor="#ffffff" transparent="1" zPosition="1" />'%(name,x+offset,280-offset))
     return ''.join(parts)+'</screen>'
 
 
@@ -44,7 +54,9 @@ class PosterGrid(Screen):
         self.entries=entries;self.index=max(0,min(index,len(entries)-1));self.page=-1
         self.closed=False;self.process=None;self.folder=None;self.generation=0
         self['heading']=Label('MK Ekino — filmy i seriale');self['detail']=Label('')
-        self['hint']=Label('←/→: wybierz · ↑/↓ / CH−/CH+: strona · OK: otwórz · EXIT: wróć\nŻÓŁTY: lista · NIEBIESKI: aktualizacja · MENU: opcje')
+        self['hint']=Label('← → wybierz    ↑ ↓ / CH− CH+ strona    OK otwórz    EXIT wróć')
+        self['menu_badge']=Label('MENU')
+        for name,text in [('red_key','Wyjdź'),('yellow_key','Lista / kafelki'),('blue_key','Aktualizacja'),('menu_key','Opcje')]:self[name]=Label(text)
         self.decoders=[];self.callbacks=[];self.decoding=[None]*4;self.loaded=[None]*4
         for i in range(4):
             self['mark%d'%i]=Pixmap();self['next%d'%i]=Pixmap();self['empty%d'%i]=Label('')
@@ -52,7 +64,7 @@ class PosterGrid(Screen):
             decoder=ePicLoad();callback=lambda *args,slot=i:self.decoded(slot)
             decoder.PictureData.get().append(callback);self.decoders.append(decoder);self.callbacks.append(callback)
         self['actions']=ActionMap(['OkCancelActions','NavigationActions','DirectionActions','MenuActions','ColorActions'],{
-            'ok':self.choose,'cancel':self.back,'menu':self.options,'yellow':self.list_view,'blue':self.updates,
+            'ok':self.choose,'cancel':self.back,'red':self.exit_app,'menu':self.options,'yellow':self.list_view,'blue':self.updates,
             'left':lambda:self.move(-1),'right':lambda:self.move(1),
             'up':lambda:self.move(-4),'down':lambda:self.move(4),
             'pageUp':lambda:self.move(-4),'pageDown':lambda:self.move(4)},-3)
@@ -141,6 +153,7 @@ class PosterGrid(Screen):
                 self['cover%d'%slot].instance.setPixmap(pointer);self['cover%d'%slot].show();self.loaded[slot]=token
         self.decode_available()
 
+    def exit_app(self):self.close(('exit',self.index))
     def choose(self):self.close(('select',self.index))
     def back(self):self.close(('back',self.index))
     def list_view(self):self.close(('list',self.index))

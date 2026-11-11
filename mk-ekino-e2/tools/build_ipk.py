@@ -10,7 +10,7 @@ import time
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='0.2.15'
+VERSION='0.2.16'
 PACKAGE='enigma2-plugin-extensions-mkekinoe2'
 PREFIX='usr/lib/enigma2/python/Plugins/Extensions/MKEkinoE2/'
 
@@ -45,7 +45,7 @@ def main():
     manifest={'package':PACKAGE,'version':VERSION,
               'url':'https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/'+package.name,
               'size':len(data),'sha256':hashlib.sha256(data).hexdigest(),
-              'notes':'Stary interfejs Enigma2: kafelki domyślne po aktualizacji, niebieska ramka i poświata wokół całej wybranej okładki. Czytelny kafelek Następna strona ze strzałką i tym samym zaznaczeniem. Poprawiony kontakt i QR: bimer535@wp.pl. Aktualizacja pod NIEBIESKIM i w MENU. Po instalacji zrestartuj GUI.'}
+              'notes':'Czytelny dolny pasek z kolorami pilota: czerwony Wyjdź, żółty Lista / kafelki, niebieski Aktualizacja i osobne MENU. Czerwony zamyka aplikację, EXIT wraca. Nowa wygładzona strzałka na kafelku Następna strona. Zachowany klasyczny układ i niebieska ramka okładek. Po instalacji zrestartuj GUI.'}
     manifest_file=output/'update.json';manifest_file.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     source=output/('MK_Ekino_E2_'+VERSION+'_source.zip')
     with zipfile.ZipFile(source,'w',compression=zipfile.ZIP_DEFLATED) as archive:
