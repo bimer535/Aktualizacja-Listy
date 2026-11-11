@@ -1,3 +1,25 @@
+# MK Kino 0.6.0
+
+Aktualna wersja: **0.6.0**, numer kompilacji **14**, pakiet `pl.mk.ekino.tv`.
+
+Nowy wygląd z niebieskim neonem: grafika na pełnym ekranie, baner zmieniany co 5 sekund, przewijane półki kategorii, odświeżony wybór źródeł i niebieskie akcenty odtwarzacza. Zachowany anonimowy katalog bez logowania.
+
+## Aktualizacja
+
+W aplikacji wybierz **MENU → Sprawdź aktualizację → Pobierz** lub użyj niebieskiego przycisku pilota. Wersje obsługujące sprawdzanie przy starcie mogą również wyświetlić propozycję aktualizacji po uruchomieniu.
+
+Aplikacja pobiera i łączy 58 części APK, sprawdza ich rozmiary i sumy SHA-256 oraz podpis instalatora. Instalację zatwierdź w systemie Android. Instaluj na obecną aplikację, bez jej odinstalowywania, aby zachować dane.
+
+Sprawdzono integralność ZIP i podpis APK v2, zgodność certyfikatu z wydaniem 0.3.1, identyfikator pakietu oraz numer wersji. APK ma 37982320 bajtów, SHA-256: `b4349c0ca8591e0c0bd83787a447f29c5d01d3a662b9662b8be36f3ac90351e2`. Testu na fizycznym Android TV nie wykonano.
+
+[Opis zmian](RELEASE_0.6.0.md)
+
+Kontakt: bimer535@wp.pl.
+
+---
+
+## Dokumentacja wcześniejszych wydań
+
 # MK Kino 0.3.1
 
 Aktualna wersja: **0.3.1**, numer kompilacji **10**, pakiet `pl.mk.ekino.tv`.
