@@ -15,6 +15,10 @@ from enigma import eTimer,ePicLoad,eConsoleAppContainer
 ROOT=Path(__file__).resolve().parent
 
 
+def is_next_page(entry):
+    return entry.get('pagination') is True or (entry.get('action')=='page' and entry.get('title')=='Następna strona')
+
+
 def grid_skin():
     parts=['''<screen name="MKEkinoTiles" position="center,center" size="1200,650" title="MK Ekino — kafelki" backgroundColor="#0b101b">
       <widget name="heading" position="30,22" size="1140,45" font="Regular;29" foregroundColor="#55c9d1" zPosition="1" />
@@ -23,7 +27,8 @@ def grid_skin():
     for i in range(4):
         x=24+i*290
         parts.extend([
-            '<widget name="mark%d" position="%d,88" size="270,28" font="Regular;18" halign="center" backgroundColor="#235068" foregroundColor="#ffffff" zPosition="1" />' % (i,x),
+            '<widget name="mark%d" position="%d,118" size="216,316" pixmap="%s" alphatest="blend" zPosition="5" />' % (i,x+27,ROOT/'poster_focus.png'),
+            '<widget name="next%d" position="%d,126" size="200,300" pixmap="%s" alphatest="on" zPosition="2" />' % (i,x+35,ROOT/'next_page.png'),
             '<widget name="empty%d" position="%d,126" size="200,300" font="Regular;24" halign="center" valign="center" backgroundColor="#142033" foregroundColor="#6c8aa6" zPosition="1" />' % (i,x+35),
             '<widget name="cover%d" position="%d,126" size="200,300" alphatest="on" zPosition="2" />' % (i,x+35),
             '<widget name="title%d" position="%d,439" size="270,66" font="Regular;23" halign="center" foregroundColor="#ffffff" zPosition="1" />' % (i,x),
@@ -42,7 +47,7 @@ class PosterGrid(Screen):
         self['hint']=Label('←/→: wybierz · ↑/↓ / CH−/CH+: strona · OK: otwórz · EXIT: wróć\nŻÓŁTY: lista · NIEBIESKI: aktualizacja · MENU: opcje')
         self.decoders=[];self.callbacks=[];self.decoding=[None]*4;self.loaded=[None]*4
         for i in range(4):
-            self['mark%d'%i]=Label('WYBRANO');self['empty%d'%i]=Label('')
+            self['mark%d'%i]=Pixmap();self['next%d'%i]=Pixmap();self['empty%d'%i]=Label('')
             self['cover%d'%i]=Pixmap();self['title%d'%i]=Label('');self['rating%d'%i]=Label('')
             decoder=ePicLoad();callback=lambda *args,slot=i:self.decoded(slot)
             decoder.PictureData.get().append(callback);self.decoders.append(decoder);self.callbacks.append(callback)
@@ -66,13 +71,14 @@ class PosterGrid(Screen):
             for i in range(4):
                 index=page*4+i;entry=self.entries[index] if index<len(self.entries) else {}
                 self['cover%d'%i].hide()
+                (self['next%d'%i].show if is_next_page(entry) else self['next%d'%i].hide)()
                 self['empty%d'%i].setText('')
                 self['title%d'%i].setText(('✓ ' if entry.get('watched') else '')+entry.get('title',''))
                 self['rating%d'%i].setText(entry.get('rating_label','').split(' · ')[0])
             self.timer.start(200,True)
         for i in range(4):
             marker=self['mark%d'%i]
-            if self.index==page*4+i:marker.show()
+            if self.entries and self.index==page*4+i:marker.show()
             else:marker.hide()
         entry=self.entries[self.index] if self.entries else {}
         self['heading'].setText('MK Ekino — %d / %d' % (self.index+1,len(self.entries)))
@@ -80,7 +86,7 @@ class PosterGrid(Screen):
 
     def current_url(self,slot):
         index=self.page*4+slot
-        return self.entries[index].get('icon','') if index<len(self.entries) else ''
+        return self.entries[index].get('icon','') if index<len(self.entries) and not is_next_page(self.entries[index]) else ''
 
     def cached(self,url):
         if not url:return None

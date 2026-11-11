@@ -126,7 +126,7 @@ def paged(text,url,current,episodes=False):
     if not next_url:
         next_url=group(r'<a[^>]*href="([^\"]+)"[^>]*title="Nast[^\"]*pna strona"',text)
     if out and next_url:
-        follow=dict(current,title='Następna strona',url=urljoin(url,html.unescape(next_url)),action='page')
+        follow=dict(current,title='Następna strona',url=urljoin(url,html.unescape(next_url)),action='page',pagination=True)
         out.append(follow)
     return out
 

@@ -50,8 +50,17 @@ class Library:
         values=self.read().get('settings',{})
         if not isinstance(values,dict):values={}
         return {'auto_play':values.get('auto_play',True) is not False,
-                'view':'tiles' if values.get('view')=='tiles' else 'list',
+                'view':'list' if values.get('view')=='list' else 'tiles',
                 'playback_service':5002 if values.get('playback_service',5002)==5002 else 4097}
+
+    def migrate_tile_default(self):
+        data=self.read()
+        if data.get('tile_default_v215') is True:return
+        settings=data.get('settings',{})
+        if not isinstance(settings,dict):settings={}
+        data['settings']=dict(settings,view='tiles')
+        data['tile_default_v215']=True
+        self.write(data)
 
     def setting(self,key,value):
         settings=self.settings()

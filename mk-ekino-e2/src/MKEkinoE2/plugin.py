@@ -29,7 +29,7 @@ try:
 except ImportError:
     import watchstate, playdiag
     from tileview import PosterGrid
-VERSION='0.2.14'
+VERSION='0.2.15'
 HISTORY=Path('/etc/mk-ekino-e2/history.json')
 
 
@@ -84,7 +84,7 @@ class Contact(Screen):
         Screen.__init__(self,session)
         self['heading']=Label('MK Ekino E2 · '+VERSION)
         self['author']=Label('Projekt i rozwój wtyczki: MK')
-        self['email']=Label('bimer55@wp.pl')
+        self['email']=Label('bimer535@wp.pl')
         self['text']=Label('Pomysły na nowe funkcje i zgłoszenia błędów.\n\nPrzy zgłoszeniu podaj:\n• model dekodera i wersję OpenATV,\n• wersję wtyczki,\n• krótki opis problemu.')
         self['qr']=Pixmap();self['qr_hint']=Label('Zeskanuj telefonem,\naby napisać wiadomość e-mail.')
         self['hint']=Label('OK / EXIT: wróć · INFO w przeglądarce: licencja')
@@ -421,7 +421,10 @@ class MKEkino(Screen):
             'pageUp':lambda:self.move('pageUp'),'pageDown':lambda:self.move('pageDown')},-2)
         self['list'].onSelectionChanged.append(self.selection_changed)
         self.current={'action':'main','title':'Ekino'};self.entries=[];self.stack=[]
-        self.library=watchstate.Library();self.preferences=self.library.settings()
+        self.library=watchstate.Library()
+        try:self.library.migrate_tile_default()
+        except OSError:pass
+        self.preferences=self.library.settings()
         self.after_job=None;self.grid_pending=False;self.playback_entry={};self.next_entry={}
         self.container=None;self.running=False;self.stopping=False;self.closed=False
         self.job_dir=None;self.pending=None;self.buffer='';self.push=False;self.playing=False

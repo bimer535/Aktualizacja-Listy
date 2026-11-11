@@ -199,7 +199,7 @@ class GuiTests(unittest.TestCase):
         self.session.open.assert_called_with(self.ui.Contact)
         contact=self.ui.Contact(self.session);contact.createGUIScreen()
         self.assertIn('contact_qr.png',contact.decoder.path)
-        self.assertEqual(contact['email'].text,'bimer55@wp.pl')
+        self.assertEqual(contact['email'].text,'bimer535@wp.pl')
         self.assertIn('MK',contact['author'].text)
         decoder=contact.decoder;contact.doClose()
         self.assertEqual(decoder.callbacks,[])
