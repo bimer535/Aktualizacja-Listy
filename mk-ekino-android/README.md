@@ -1,3 +1,23 @@
+# MK Kino 0.6.2
+
+Aktualna wersja: **0.6.2**, numer kompilacji **16**, pakiet `pl.mk.ekino.tv`.
+
+Grafika banera jest dopasowana proporcjonalnie do górnego obszaru ekranu, bez przycinania CENTER_CROP, rozciągania i przyciemniających nakładek. Osobny loader zachowuje więcej szczegółów niż miniatury plakatów. Przy braku panoramy wyświetlany jest cały pionowy plakat. Pozostaje rotacja do 12 slajdów co 5 sekund.
+
+Sezony i odcinki mają kompaktowe wiersze wyboru. Stała szerokość plakatów zapobiega rozciąganiu pojedynczego wyniku na całą szerokość ekranu. Powiększana jest tylko grafika zaznaczenia; podpisy przy lewej krawędzi pozostają na miejscu.
+
+## Aktualizacja
+
+Wybierz **MENU → Sprawdź aktualizację → Pobierz**, a następnie zatwierdź instalację w Androidzie. Instaluj na obecną aplikację, bez jej odinstalowywania. Nazwy części zachowują wzór wymagany przez dotychczasowy aktualizator: `MK_Ekino_TV_0.6.2.apk.partNNN`.
+
+Sprawdzono kompilację Android API 35/D8, 36 testów z regresjami geometrii siatki i próbkowania obrazu, podpis APK v2 i zgodność certyfikatu oraz integralność paczki. Biblioteki odtwarzania i pakiet Pythona pozostały niezmienione. Rozmiar APK: 37985823 bajtów, SHA-256: `cf5385a5731c900f42ffb734f14d63353ca92826726f145f583c8887241f28c8`. Nie wykonano testu wizualnego ani odtwarzania na fizycznym Android TV.
+
+[Opis zmian 0.6.2](RELEASE_0.6.2.md). Kontakt: bimer535@wp.pl.
+
+---
+
+## Dokumentacja poprzednich wydań
+
 # MK Kino 0.6.1
 
 Aktualna wersja: **0.6.1**, numer kompilacji **15**, pakiet `pl.mk.ekino.tv`.
