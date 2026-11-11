@@ -1,3 +1,23 @@
+# MK Kino 0.6.5
+
+Aktualna wersja **0.6.5**, versionCode **19**, pakiet `pl.mk.ekino.tv`.
+
+Panorama głównej: wyłącznie filmy 2026 z dostępnym tłem backdrop. Usunięto uzupełnianie listy pionowymi plakatami. Licznik pokazuje rzeczywistą liczbę dostępnych panoram, maksymalnie 12.
+
+Po otwarciu filmu aplikacja próbuje pobrać pełny opis z karty szczegółów katalogu. OK na opisie otwiera osobne, przewijane okno z całością dostępnego tekstu. Brak limitu wierszy w szczegółach. Jeśli dostawca nie udostępnia pełnego opisu, pozostaje tekst dostępny w katalogu.
+
+Pozostałe półki i zaakceptowany wygląd zachowane. Kompilacja, 36 testów, podpis i integralność APK sprawdzone; nie wykonano testu na fizycznym Android TV.
+
+Aktualizacja: **MENU → Sprawdź aktualizację → Pobierz**, następnie zatwierdź instalację Androida. Instaluj bez odinstalowywania poprzedniej wersji.
+
+Rozmiar APK: 37986236 bajtów. SHA-256: `3f66c0c191f11b575e0a7ae71682146ecacc0b1c1a84968851df22afdd9d66bb`.
+
+[Opis zmian](RELEASE_0.6.5.md). Kontakt: bimer535@wp.pl.
+
+---
+
+## Dokumentacja wcześniejszych wydań
+
 # MK Kino 0.6.4
 
 Aktualna wersja: **0.6.4**, versionCode **18**, pakiet `pl.mk.ekino.tv`.
