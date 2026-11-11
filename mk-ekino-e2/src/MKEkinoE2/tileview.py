@@ -39,7 +39,7 @@ class PosterGrid(Screen):
         self['hint'].setText('← → wybierz · OK otwórz · ↑ menu · INFO pełny opis · ŻÓŁTY lista · EXIT wróć')
         self.decoders=[];self.callbacks=[];self.decoding=[None]*self.slots;self.loaded=[None]*self.slots
         for i in range(self.slots):
-            self['cardbg%d'%i]=Pixmap();self['mark%d'%i]=Pixmap();self['empty%d'%i]=Label('MK KINO')
+            self['cardbg%d'%i]=Pixmap();self['mark%d'%i]=Pixmap();self['empty%d'%i]=Label('')
             self['cover%d'%i]=Pixmap();self['title%d'%i]=Label('');self['rating%d'%i]=Label('')
             decoder=ePicLoad();callback=lambda *args,slot=i:self.decoded(slot)
             decoder.PictureData.get().append(callback);self.decoders.append(decoder);self.callbacks.append(callback)
@@ -96,7 +96,8 @@ class PosterGrid(Screen):
             self.page=page;self.generation+=1;self.loaded=[None]*self.slots
             for i in range(self.slots):
                 index=page*self.slots+i;entry=self.entries[index] if index<len(self.entries) else {}
-                self['cover%d'%i].hide();self['empty%d'%i].setText('MK KINO' if entry else '')
+                self['cover%d'%i].hide();self['empty%d'%i].setText('')
+                (self['cardbg%d'%i].show if entry else self['cardbg%d'%i].hide)()
                 self['title%d'%i].setText(('✓ ' if entry.get('watched') else '')+entry.get('title',''))
                 self['rating%d'%i].setText(entry.get('rating_label','').split(' · ')[0] or entry.get('year',''))
             self.timer.start(200,True)

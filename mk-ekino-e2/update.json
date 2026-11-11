@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.12",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.12.ipk",
-  "size": 298140,
-  "sha256": "6f1a51bf9ce9c05e8ab6a5d327d01bf07c8fb204b4765b525d38008b700f6f76",
-  "notes": "Nowy natywny wygląd MK Kino wzorowany na Android TV 0.6.5: górne menu, kafelki i niebieska poświata. Panorama filmów 2026 z dostępnym szerokim zdjęciem, zmieniana co 5 sekund. Pełny opis pod INFO, małe kafelki sezonów i kafelki odcinków. Zachowano odtwarzacz, przewijanie i ustawienia. Po aktualizacji zrestartuj interfejs Enigma2."
+  "version": "0.2.13",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.13.ipk",
+  "size": 300164,
+  "sha256": "4c7a5a42bdc77feb8136d03ab73b72a5859ee13cb6f4f9a13e3c304314ed32fc",
+  "notes": "Poprawiony układ po 0.2.12: pełna ramka i niebieska poświata nad okładką, bez zasłaniania przez zdjęcie. Równe kafelki, cały rząd strony głównej w ekranie, większy margines górnego menu. Usunięty napis MK Kino z okładek. Odtwarzacz i ustawienia bez zmian. Po aktualizacji zrestartuj interfejs Enigma2."
 }

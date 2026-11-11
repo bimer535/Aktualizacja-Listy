@@ -5,17 +5,25 @@ from PIL import Image,ImageDraw,ImageFilter
 ROOT=Path(__file__).resolve().parents[1]/'src/MKEkinoE2'
 def card(name,size,focus=False,fill=(17,36,62,245)):
  w,h=size;im=Image.new('RGBA',size,(0,0,0,0));d=ImageDraw.Draw(im)
- d.rounded_rectangle((7,7,w-8,h-8),18,fill=fill,outline=(110,153,189,200),width=1)
- if focus:
-  glow=Image.new('RGBA',size);g=ImageDraw.Draw(glow);g.rounded_rectangle((7,7,w-8,h-8),18,outline=(0,153,255,255),width=9)
-  im=Image.alpha_composite(im,glow.filter(ImageFilter.GaussianBlur(4)));d=ImageDraw.Draw(im)
-  d.rounded_rectangle((7,7,w-8,h-8),18,outline=(87,222,255,255),width=4)
-  d.rounded_rectangle((11,11,w-12,h-12),14,outline=(228,251,255,255),width=1)
+ box=(8,8,w-9,h-9)
+ if not focus:
+  d.rounded_rectangle(box,16,fill=fill,outline=(110,153,189,210),width=1)
+ else:
+  # Overlay only: no opaque centre can cover either artwork or labels.
+  glow=Image.new('RGBA',size);g=ImageDraw.Draw(glow)
+  g.rounded_rectangle(box,16,outline=(0,153,255,255),width=7)
+  im=glow.filter(ImageFilter.GaussianBlur(4));d=ImageDraw.Draw(im)
+  d.rounded_rectangle(box,16,outline=(75,214,255,255),width=4)
+  d.rounded_rectangle((12,12,w-13,h-13),12,outline=(235,252,255,255),width=1)
+  # Completely transparent centre, including the blurred inner halo.
+  d.rounded_rectangle((16,16,w-17,h-17),8,fill=(0,0,0,0))
  im.save(ROOT/name,optimize=True)
-card('card.png',(232,400));card('card_focus.png',(232,400),True)
-card('source_card.png',(292,118));card('source_focus.png',(292,118),True)
-card('nav_focus.png',(232,54),True,fill=(10,90,145,220))
-card('header.png',(994,56),False,fill=(14,50,80,225))
+card('card.png',(224,408));card('card_focus.png',(224,408),True)
+card('home_card.png',(224,216));card('home_focus.png',(224,216),True)
+card('source_card.png',(284,120));card('source_focus.png',(284,120),True)
+card('nav_focus.png',(132,48),True)
+card('hero_focus.png',(244,54),True)
+card('header.png',(972,62),False,fill=(14,50,80,225))
 w,h=1280,720;im=Image.new('RGB',(w,h));p=im.load()
 for y in range(h):
  for x in range(w):

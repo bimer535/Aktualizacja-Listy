@@ -31,7 +31,7 @@ except ImportError:
     import watchstate, playdiag
     from tileview import PosterGrid
     from design import main_skin,description_skin
-VERSION='0.2.12'
+VERSION='0.2.13'
 HISTORY=Path('/etc/mk-ekino-e2/history.json')
 
 
@@ -389,7 +389,7 @@ class MKEkino(Screen):
         self['rating']=Label('')
         self['metadata']=Label('')
         self['counter']=Label('')
-        self['poster_hint']=Label('MK EKINO\nFILMY · SERIALE')
+        self['poster_hint']=Label('')
         self['poster']=Pixmap()
         self['path']=Label('Filmy i seriale')
         self['list']=MenuList([])
@@ -439,7 +439,7 @@ class MKEkino(Screen):
         url=preview.get('icon','')
         if url!=self.cover_url:
             self.cover_url=url;self.cover_timer.stop();self.cover_pending=None
-            self['poster'].hide();self['poster_hint'].setText('MK EKINO\nFILMY · SERIALE')
+            self['poster'].hide();self['poster_hint'].setText('')
             if url:self.cover_timer.start(250,True)
 
     def cover_path(self):

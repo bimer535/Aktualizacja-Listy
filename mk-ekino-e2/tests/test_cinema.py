@@ -51,4 +51,37 @@ class CinemaTests(unittest.TestCase):
                     self.assertLessEqual(x+w,dimensions[0],widget.get('name'))
                     self.assertLessEqual(y+h,dimensions[1],widget.get('name'))
             ET.fromstring(description_skin(dimensions))
+    def test_all_cinema_widgets_fit_safe_area_including_home(self):
+        for size in [(1280,720),(1920,1080)]:
+            for mode in ['home','catalogue','sources','seasons']:
+                for w in ET.fromstring(grid_skin(mode,size)).findall('widget'):
+                    if w.get('name') in ('wallpaper','backdrop','shade'):continue
+                    x,y=map(int,w.get('position').split(','));width,height=map(int,w.get('size').split(','))
+                    self.assertGreaterEqual(x,round(48*size[0]/1280),w.get('name'))
+                    self.assertGreaterEqual(y,round(48*size[1]/720),w.get('name'))
+                    self.assertLessEqual(x+width,round(1216*size[0]/1280),w.get('name'))
+                    self.assertLessEqual(y+height,round(672*size[1]/720),w.get('name'))
+    def test_focus_overlays_cannot_be_hidden_by_covers(self):
+        from PIL import Image
+        for mode in ['home','catalogue','sources','seasons']:
+            widgets={w.get('name'):w for w in ET.fromstring(grid_skin(mode)).findall('widget')}
+            frames=[w for name,w in widgets.items() if name.startswith('cardbg')]
+            self.assertEqual(len({w.get('size') for w in frames}),1)
+            for name,w in widgets.items():
+                if not (name.startswith('mark') or name.startswith('navmark') or name=='hero_focus'):continue
+                self.assertGreater(int(w.get('zPosition')),4)
+                with Image.open(w.get('pixmap')) as image:
+                    width,height=map(int,w.get('size').split(','))
+                    self.assertEqual(image.size,(width,height))
+                    self.assertEqual(image.getpixel((width//2,height//2))[3],0)
+                    for point in [(width//2,8),(width//2,height-9),(8,height//2),(width-9,height//2)]:
+                        self.assertGreater(image.getpixel(point)[3],240)
+    def test_loaded_covers_have_no_branding_overlay(self):
+        ui=load_ui();rows=[dict(action='sources',title='Film',year='2026',icon=WIDE)]
+        for mode in ['home','catalogue']:
+            grid=ui.PosterGrid(Mock(),rows,context={'action':'main'},mode=mode)
+            grid.layout_finished()
+            for i in range(grid.slots):self.assertEqual(grid['empty%d'%i].text,'')
+            self.assertNotIn('name="empty',grid.skin)
+            grid.cleanup()
 if __name__=='__main__':unittest.main()

@@ -1,3 +1,9 @@
+# MK Kino Enigma2 0.2.13 — poprawka układu
+
+Pełna ramka zaznaczenia nad zdjęciami, przezroczysty środek poświaty, równe kafelki w bezpiecznych marginesach ekranu, niższe menu i usunięty napis MK Kino z okładek. Po aktualizacji zrestartuj GUI.
+
+Testy układu wymagają Pillow na komputerze budującym. Przeprowadzono kontrolę warstw, przezroczystości i granic ekranu w 720p i 1080p oraz programowy podgląd. Weryfikacja na fizycznej Enigmie pozostaje do potwierdzenia.
+
 # MK Kino dla Enigma2 — 0.2.12
 
 Natywna przebudowa wyglądu wersji 0.2.11 na wzór Android TV 0.6.5. Zachowany identyfikator pakietu, ustawienia, ulubione, historia, źródła i odtwarzacz.
