@@ -1,8 +1,8 @@
 {
   "package": "enigma2-plugin-extensions-mkekinoe2",
-  "version": "0.2.11",
-  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.11.ipk",
-  "size": 231898,
-  "sha256": "d303922673bd0cc9079f43806de652a51fae529d8ddf2ddb9091ab0f40175bf8",
-  "notes": "Pasek przewijania z czasem docelowym, długością i rzeczywistą pozycją. Kółko lewo/prawo: skoki -10/+10 s. Przyciski << i >>: wybór pozycji na osi czasu w tempie x2/x4/x8/x16/x32/x64; OK lub PLAY zatwierdza i wznawia film. Bez przyspieszonego podglądu obrazu. Zrestartuj interfejs Enigma2 po aktualizacji."
+  "version": "0.2.12",
+  "url": "https://raw.githubusercontent.com/bimer535/Aktualizacja-Listy/main/mk-ekino-e2/packages/MK_Ekino_E2_0.2.12.ipk",
+  "size": 298140,
+  "sha256": "6f1a51bf9ce9c05e8ab6a5d327d01bf07c8fb204b4765b525d38008b700f6f76",
+  "notes": "Nowy natywny wygląd MK Kino wzorowany na Android TV 0.6.5: górne menu, kafelki i niebieska poświata. Panorama filmów 2026 z dostępnym szerokim zdjęciem, zmieniana co 5 sekund. Pełny opis pod INFO, małe kafelki sezonów i kafelki odcinków. Zachowano odtwarzacz, przewijanie i ustawienia. Po aktualizacji zrestartuj interfejs Enigma2."
 }

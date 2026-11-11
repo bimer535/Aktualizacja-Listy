@@ -1,0 +1,11 @@
+MK Ekino E2, independent Enigma2 client, 2026-10-22. GPL-3.0.
+The parserBYSE, parserVOESX, parserMIXDROP, parserSST and Upzone embed flow come
+from the public e2iplayer-2026.10.18.05 archive. Original credits retained.
+MK changes: standalone adapters, optional native proof-of-work arithmetic,
+timing metrics, renewed rejected access, source cache, GUI and local relay.
+No private PE2I module, private loader or E2i installation is included.
+See LICENSE, THIRD_PARTY.txt and source provenance in the source archive.
+New MK Ekino icon: original MK design generated using OpenAI image generation.
+Upzone string decoder: Python equivalent of the public upzonecc.byte cnc/atob;
+original decoder SHA-256 and comparison vectors are in reference/upzone_vectors.json.
+No JavaScript engine or public bytecode is installed on the receiver.

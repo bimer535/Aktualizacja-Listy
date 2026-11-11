@@ -1,3 +1,36 @@
+# MK Kino dla Enigma2 — 0.2.12
+
+Natywna przebudowa wyglądu wersji 0.2.11 na wzór Android TV 0.6.5. Zachowany identyfikator pakietu, ustawienia, ulubione, historia, źródła i odtwarzacz.
+
+- Górne menu, pięć okładek w rzędzie, niebieskie zaznaczenie z poświatą i spokojne tło.
+- Panorama filmów 2026 co 5 sekund. Wyłącznie pasujące szerokie kadry: nigdy rozciągnięte pionowe plakaty. Liczba slajdów zależy od dostępnych metadanych, maksymalnie 12.
+- Strzałki lewo/prawo zmieniają film, góra otwiera menu, dół rozwija katalog.
+- Małe kafelki sezonów, kafelki odcinków oraz hostingów. Automatyczny wybór hostingu pozostaje zgodny z dotychczasowym ustawieniem.
+- INFO otwiera cały dostępny opis z przewijaniem góra/dół; OK lub EXIT wraca.
+- Układ skalowany do rozdzielczości OSD. Grafiki pobierane w osobnym procesie, maksymalnie dwa pobrania równocześnie. Brak przeglądarki i animowanych efektów CSS.
+
+Obrazy panoramy są opcjonalnie dobierane po dokładnym tytule i roku z publicznych metadanych premiumsmart.eu i pobierane z image.tmdb.org. Awaria tej usługi nie blokuje katalogu ani odtwarzania z ekino.ws. Przy braku szerokiego kadru film pozostaje w katalogu kafelków.
+
+## Instalacja
+
+Zainstaluj `packages/MK_Ekino_E2_0.2.12.ipk` lub użyj aktualizatora w aplikacji. Następnie zrestartuj interfejs Enigma2. Pakiet aktualizuje `enigma2-plugin-extensions-mkekinoe2`; nie usuwa `/etc/mk-ekino-e2/library.json`.
+
+Wymagania pozostają takie jak w 0.2.11: Enigma2 z Pythonem 3, ServiceApp i exteplayer3. Natywna biblioteka ARM z poprzedniego wydania pozostaje bez zmian.
+
+## Weryfikacja i budowanie
+
+`python3 -m unittest discover -s tests`
+
+`python3 tools/build_ipk.py`
+
+Opcjonalne odtworzenie statycznych grafik: `python3 tools/make_assets.py` (Pillow na komputerze budującym, nie na dekoderze).
+
+Testy kontrolera wykorzystują atrapy API Enigma2. Nie zastępują testu na fizycznym dekoderze: układ, pilot i dekodowanie zdjęć wymagają sprawdzenia na urządzeniu. Odtwarzacz, resolver i funkcje przewijania z 0.2.11 pozostawiono bez zmian.
+
+Licencja źródeł: GPL-3.0-only, zgodnie z plikiem LICENSE.
+
+## Dokumentacja poprzednich wersji
+
 # MK Ekino E2 0.2.10
 
 ## Zmiany 0.2.10 — przewijanie OpenPLi / OpenATV
