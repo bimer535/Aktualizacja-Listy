@@ -1,3 +1,27 @@
+# MK Kino 0.3.1
+
+Aktualna wersja: **0.3.1**, numer kompilacji **10**, pakiet `pl.mk.ekino.tv`.
+
+## Oceny Filmweb
+
+Oceny eKino są wyłączone, również przy wczytywaniu starszych ulubionych. Nowe oceny pochodzą wyłącznie z Filmwebu: średnia użytkowników oraz liczba głosów. Dopasowanie sprawdza tytuł lub tytuł oryginalny, dokładny rok i typ produkcji. Niejednoznaczne wyniki pozostają bez oceny.
+
+Oceny są pobierane w tle i zapisywane lokalnie. Kafelki oraz panel opisu uzupełniają wynik bez przeładowania strony i zmiany zaznaczenia. Niedostępność Filmwebu nie blokuje katalogu. Działanie nowego interfejsu pilotem wymaga jeszcze sprawdzenia na fizycznym Android TV.
+
+Walidacja: 25 testów lokalnych, prawidłowe dopasowanie i pobranie ocen dla 13 rzeczywistych filmów (w tym różnych roczników Diuny), odrzucenie niezgodnego rocznika, weryfikacja podpisu APK i niezmienionych bibliotek odtwarzania.
+
+## Aktualizacja
+
+W MK Kino wybierz **MENU → Sprawdź aktualizację** lub naciśnij **niebieski przycisk** pilota. Aplikacja pobierze i połączy 57 części, zweryfikuje sumy SHA-256 i podpis, a następnie otworzy instalator Androida. Instaluj na obecną aplikację bez odinstalowywania, aby zachować dane.
+
+[Źródła wersji 0.3.1](packages/MK_Kino_Android_TV_0.3.1_SOURCE.zip). Instrukcja budowania znajduje się w README archiwum. Klucz podpisujący jest przechowywany osobno i nie jest publikowany.
+
+Kontakt: bimer535@wp.pl.
+
+---
+
+## Wcześniejsze wydania
+
 # MK Kino 0.3.0
 
 Aktualna wersja na Android TV: **0.3.0**, numer kompilacji **9**, pakiet `pl.mk.ekino.tv`.
