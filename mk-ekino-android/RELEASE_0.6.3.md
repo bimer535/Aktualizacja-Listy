@@ -1,0 +1,2 @@
+# MK Kino 0.6.3
+Panorama na cały ekran, opis po lewej, przyciemnienie pod tekstem i łagodne przejście pod półkami. Preferowane prawdziwe panoramy katalogu; bez rozciągania proporcji. Przy braku panoram używany jest plakat. Przywrócone kafelki odcinków; kompaktowy wybór sezonu zachowany. Szczegóły: dłuższy biały opis w ograniczonej szerokości z cieniem pod tekstem. Zachowany podpis i dane aplikacji. Bez wizualnego testu na fizycznym TV.
