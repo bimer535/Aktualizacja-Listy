@@ -1,3 +1,21 @@
+# MK Kino 0.6.4
+
+Aktualna wersja: **0.6.4**, versionCode **18**, pakiet `pl.mk.ekino.tv`.
+
+Panorama na głównej wybiera wyłącznie filmy z 2026 roku: bez seriali, starszych tytułów i niepotwierdzonych roczników. Maksymalnie 12 dostępnych tytułów; brak uzupełniania starszymi filmami. Pozostałe półki i wygląd zachowano.
+
+Po otwarciu filmu opis nie ma limitu wierszy ani wielokropka. Dłuższy opis przewija się pilotem w obszarze strony. Wybór hostingu zachowuje opis filmu. Na głównej pozostaje krótki opis.
+
+Aktualizacja: **MENU → Sprawdź aktualizację → Pobierz**, potem potwierdź instalację w Androidzie. Instaluj bez odinstalowywania poprzedniej wersji.
+
+Sprawdzone: kompilacja Android API 35/D8, 36 testów z przypadkami wykluczania starych filmów i seriali, podpis APK v2, zgodność certyfikatu i integralność ZIP. Nie wykonano testu wizualnego na fizycznym Android TV. Rozmiar APK: 37986255 bajtów; SHA-256: `af51e75c5b73eb5432b26f4297d742aa0fe1d07cc3d5a7be18cae4bef4864694`.
+
+[Opis zmian](RELEASE_0.6.4.md). Kontakt: bimer535@wp.pl.
+
+---
+
+## Dokumentacja wcześniejszych wydań
+
 # MK Kino 0.6.2
 
 Aktualna wersja: **0.6.2**, numer kompilacji **16**, pakiet `pl.mk.ekino.tv`.
