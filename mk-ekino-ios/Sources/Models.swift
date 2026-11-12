@@ -20,6 +20,9 @@ struct Entry: Codable, Identifiable, Hashable {
     var provider = ""
     var key = ""
     var section = 0
+    var backdrop: String? = nil
+    var originalTitle: String? = nil
+    var language: String? = nil
     var id: String { [action, url, title, category, version, year, key].joined(separator: "|") }
     var isTitle: Bool { action == "sources" || action == "seasons" }
     var subtitle: String { [rating.isEmpty ? "" : "★ \(rating)/10", year].filter { !$0.isEmpty }.joined(separator: " · ") }

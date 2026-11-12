@@ -6,8 +6,8 @@ options:
 settings:
   base:
     SWIFT_VERSION: '5.0'
-    MARKETING_VERSION: '1.0.4'
-    CURRENT_PROJECT_VERSION: '5'
+    MARKETING_VERSION: '1.1.0'
+    CURRENT_PROJECT_VERSION: '6'
     CODE_SIGN_STYLE: Automatic
     TARGETED_DEVICE_FAMILY: '1,2'
 packages:
@@ -25,9 +25,9 @@ targets:
     info:
       path: Resources/Info.plist
       properties:
-        CFBundleDisplayName: MK eKino
-        CFBundleShortVersionString: '1.0.4'
-        CFBundleVersion: '5'
+        CFBundleDisplayName: MK Kino
+        CFBundleShortVersionString: '1.1.0'
+        CFBundleVersion: '6'
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

@@ -78,6 +78,8 @@ actor Catalogue {
             entry.icon = absolute(try image?.attr("src") ?? "", base: page)
             entry.year = first("\\b([12][0-9]{3})\\b", try node.select(".cates").text())
             entry.desc = try node.select(".movieDesc").text()
+            entry.originalTitle = try node.select(".title a.blue").first()?.text()
+            entry.language = try node.select("i[title]").first()?.attr("title")
             let score = try node.select(".sum-vote div").first()?.text() ?? ""
             if let number = Double(score.replacingOccurrences(of: ",", with: ".")), (0...10).contains(number) { entry.rating = score.replacingOccurrences(of: ".", with: ",") }
             rows.append(entry)
@@ -155,9 +157,12 @@ actor Catalogue {
         }
         if ["seasons", "episodes", "sources"].contains(entry.action) {
             let (text, _) = try await fetch(entry.url)
-            if entry.action == "sources" { return try Self.sourceItems(text, parent: entry) }
-            if entry.action == "episodes" { return Self.episodeItems(text, parent: entry) }
-            return Self.seasonItems(text, parent: entry)
+            var full = entry
+            let description = try SwiftSoup.parse(text).select(".descriptionMovie").text()
+            if !description.isEmpty { full.desc = description }
+            if entry.action == "sources" { return try Self.sourceItems(text, parent: full) }
+            if entry.action == "episodes" { return Self.episodeItems(text, parent: full) }
+            return Self.seasonItems(text, parent: full)
         }
         var url = entry.url
         if entry.action == "movies" { url = try Self.movieURL(entry) }
@@ -192,6 +197,22 @@ actor Catalogue {
         }
         let (text, final) = try await fetch(url)
         return try Self.cards(text, page: final)
+    }
+    static func detailedEntry(_ entry: Entry, html: String) throws -> Entry {
+        var full = entry
+        let description = try SwiftSoup.parse(html).select(".descriptionMovie").text()
+        if !description.isEmpty { full.desc = description }
+        return full
+    }
+    func details(_ entry: Entry) async throws -> Entry {
+        guard entry.isTitle else { return entry }
+        let (text, _) = try await fetch(entry.url)
+        return try Self.detailedEntry(entry, html: text)
+    }
+    func homeFilms() async throws -> [Entry] {
+        let rows = try await browse(Entry(title: "Filmy 2026", action: "movies", year: "2026"))
+        let artwork = await ArtworkService.shared.films()
+        return CinemaArtwork.enrich(rows.filter { $0.isTitle }, with: artwork)
     }
     // Resolve the provider's ordinary same-film redirect before constructing the
     // WebKit host policy. Never trust an unrelated popup or a different film ID.
