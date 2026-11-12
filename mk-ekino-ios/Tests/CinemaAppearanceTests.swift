@@ -7,7 +7,7 @@ final class CinemaAppearanceTests: XCTestCase {
     @MainActor func testTouchControlsFitPortraitAndLandscape() throws {
         for size in [CGSize(width: 390, height: 844), CGSize(width: 844, height: 390)] {
             let entry = Entry(title: "Przykładowy film", action: "sources", url: "https://ekino.ws/movie/show/test", desc: "Pełny opis filmu do sprawdzenia układu ekranu.", year: "2026", rating: "7,8", backdrop: "https://image.tmdb.org/t/p/w1280/test.jpg")
-            let root = CinemaView(previewRows: [entry]).environmentObject(LibraryStore()).preferredColorScheme(.dark)
+            let root = CinemaView(previewRows: [entry, Entry(title: "Następna strona", action: "page")]).environmentObject(LibraryStore()).preferredColorScheme(.dark)
             let controller = UIHostingController(rootView: root)
             let window = UIWindow(frame: CGRect(origin: .zero, size: size))
             window.rootViewController = controller; window.makeKeyAndVisible()

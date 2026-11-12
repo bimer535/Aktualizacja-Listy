@@ -252,13 +252,18 @@ struct CinemaView: View {
                                     .background(.black.opacity(0.65), in: Capsule()).overlay(Capsule().stroke(.white.opacity(0.7))).padding(8)
                             }
                         }.clipShape(RoundedRectangle(cornerRadius: 17))
+                } else if entry.action == "page" {
+                    ZStack {
+                        Theme.ink.opacity(0.45)
+                        Image(systemName: "arrow.right.circle").font(.system(size: 40)).foregroundStyle(Theme.cyan)
+                    }.aspectRatio(2/3, contentMode: .fit).clipShape(RoundedRectangle(cornerRadius: 17))
                 } else {
-                    Image(systemName: symbol(entry.action)).font(.system(size: entry.action == "page" ? 34 : 25)).foregroundStyle(Theme.cyan)
-                        .frame(maxWidth: .infinity).frame(height: entry.action == "page" ? 140 : 56)
+                    Image(systemName: symbol(entry.action)).font(.system(size: 25)).foregroundStyle(Theme.cyan)
+                        .frame(maxWidth: .infinity).frame(height: 56)
                 }
                 Text(entry.title).font(.system(size: 14, weight: .semibold)).lineLimit(2).frame(height: 36, alignment: .topLeading)
-                if !entry.subtitle.isEmpty { Text(entry.subtitle).font(.system(size: 11)).foregroundStyle(Theme.cyan).lineLimit(1) }
-            }.padding(entry.isTitle ? 7 : 14).frame(maxWidth: .infinity, alignment: .topLeading)
+                Text(entry.subtitle.isEmpty ? " " : entry.subtitle).font(.system(size: 11)).foregroundStyle(Theme.cyan).lineLimit(1).frame(height: 14)
+            }.padding(entry.isTitle || entry.action == "page" ? 7 : 14).frame(maxWidth: .infinity, alignment: .topLeading)
                 .background(Theme.panel.opacity(0.55), in: RoundedRectangle(cornerRadius: 21))
                 .overlay(RoundedRectangle(cornerRadius: 21).stroke(.white.opacity(0.45)))
         }.buttonStyle(PosterTouchStyle()).contextMenu {
