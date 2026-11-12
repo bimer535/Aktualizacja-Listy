@@ -28,6 +28,7 @@ struct CinemaButtonStyle: ButtonStyle {
 }
 struct CinemaBackdrop: View {
     let address: String?
+    var fillsFrame = false
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
@@ -35,7 +36,11 @@ struct CinemaBackdrop: View {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image {
                             // Preserve the whole widescreen frame. Never magnify a vertical poster.
-                            image.resizable().scaledToFit().frame(width: geometry.size.width, alignment: .top)
+                            if fillsFrame {
+                                image.resizable().scaledToFill().frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                            } else {
+                                image.resizable().scaledToFit().frame(width: geometry.size.width, alignment: .top)
+                            }
                         }
                     }
                 }
@@ -108,9 +113,10 @@ struct CinemaView: View {
             let landscape = geometry.size.width > geometry.size.height
             ZStack(alignment: .top) {
                 Theme.background.ignoresSafeArea()
-                CinemaBackdrop(address: backdrop).frame(height: max(420, geometry.size.width * 9/16 + 200)).ignoresSafeArea(edges: .top)
+                if current.action != "main" {
+                    CinemaBackdrop(address: backdrop).frame(height: max(420, geometry.size.width * 9/16 + 200)).ignoresSafeArea(edges: .top)
+                }
                 VStack(spacing: 8) {
-                    header(compact: landscape)
                     navigation
                     CatalogueScrollView(revision: pageRevision) {
                         VStack(alignment: .leading, spacing: 20) {
@@ -141,26 +147,11 @@ struct CinemaView: View {
         .task(id: slideRevision) { if !isPreview { await rotateSlides() } }
         .onDisappear { loadTask?.cancel() }
     }
-    private func header(compact: Bool) -> some View {
-        HStack(spacing: 10) {
+    private var navigation: some View {
+        HStack(spacing: 0) {
             if !stack.isEmpty {
                 Button(action: back) { Image(systemName: "chevron.left").frame(width: 44, height: 44) }.accessibilityLabel("Wróć")
             }
-            Image("Brand").resizable().scaledToFit().frame(width: compact ? 30 : 38, height: compact ? 30 : 38).clipShape(RoundedRectangle(cornerRadius: 8))
-            Text("MK KINO").font(.system(size: compact ? 17 : 21, weight: .bold))
-            Spacer(minLength: 0)
-            Text("1.1.0").font(.caption2).foregroundStyle(.white.opacity(0.6))
-            optionsMenu
-        }.foregroundStyle(.white).padding(.horizontal, 18).padding(.top, 4)
-    }
-    private var optionsMenu: some View {
-        Menu {
-            Button(library.tiles ? "Widok listy" : "Widok kafelków", systemImage: "square.grid.2x2") { library.tiles.toggle(); pageRevision = UUID() }
-            Button("Odśwież", systemImage: "arrow.clockwise") { load(current, push: false) }
-            Button("Autor i kontakt", systemImage: "info.circle") { info = true }
-        } label: { Image(systemName: "ellipsis.circle").frame(width: 44, height: 44) }.accessibilityLabel("Opcje")
-    }
-    private var navigation: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 nav("Główna", action: "main", icon: "house.fill")
@@ -171,7 +162,8 @@ struct CinemaView: View {
                 nav("Oglądaj dalej", action: "continue", icon: "play.circle")
                 Button { info = true } label: { Text("Opcje").font(.system(size: 13, weight: .semibold)) }.buttonStyle(CinemaButtonStyle())
             }.padding(.horizontal, 18).padding(.vertical, 9)
-        }.background(Theme.panel.opacity(0.35), in: Capsule()).padding(.horizontal, 10)
+        }
+        }.foregroundStyle(.white).background(Theme.panel.opacity(0.35), in: Capsule()).padding(.horizontal, 10)
     }
     private func nav(_ title: String, action: String, icon: String) -> some View {
         Button { stack.removeAll(); load(Entry(title: title, action: action), push: false) } label: {
@@ -180,11 +172,11 @@ struct CinemaView: View {
     }
     private func hero(width: CGFloat, landscape: Bool) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Spacer(minLength: landscape ? 18 : 80)
+            Spacer(minLength: 36)
             if let entry = activeSlide {
                 FilmBadges(entry: entry)
-                Text(entry.title).font(.system(size: landscape ? 32 : 34, weight: .bold)).lineLimit(2).shadow(color: .black.opacity(0.7), radius: 2, y: 1)
-                Text(entry.desc).font(.system(size: 15)).foregroundStyle(.white.opacity(0.9)).lineLimit(2)
+                Text(entry.title).font(.system(size: landscape ? 30 : 28, weight: .bold)).lineLimit(2).shadow(color: .black.opacity(0.7), radius: 2, y: 1)
+                Text(entry.desc).font(.system(size: 13)).foregroundStyle(.white.opacity(0.9)).lineLimit(2)
                 HStack(spacing: 10) {
                     Button { load(entry) } label: { Label("Oglądaj teraz", systemImage: "play.fill").font(.system(size: 14, weight: .semibold)) }.buttonStyle(CinemaButtonStyle(selected: true))
                     Button { selected = entry } label: { Text("Szczegóły").font(.system(size: 14, weight: .semibold)) }.buttonStyle(CinemaButtonStyle())
@@ -201,7 +193,13 @@ struct CinemaView: View {
                 Button { stepSlide(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }.accessibilityLabel("Następny film")
             }.foregroundStyle(.white)
         }.frame(maxWidth: landscape ? width * 0.63 : .infinity, alignment: .leading)
-            .frame(minHeight: landscape ? 250 : 400, alignment: .bottomLeading).padding(.bottom, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: landscape ? 250 : 300, alignment: .bottomLeading)
+            .padding(.top, 12).padding(.bottom, 4)
+            .background {
+                CinemaBackdrop(address: activeSlide?.backdrop, fillsFrame: true)
+                    .padding(.horizontal, landscape ? -24 : -18)
+            }
     }
     private var catalogueHeading: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -315,7 +313,7 @@ struct CinemaView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Image("Brand").resizable().scaledToFit().frame(height: 110).frame(maxWidth: .infinity)
-                    Text("MK Kino • iOS 1.1.0").font(.title2.bold())
+                    Text("MK Kino • iOS 1.1.1").font(.title2.bold())
                     Text("Wygląd wzorowany na MK Kino Android TV 0.6.5. Autor: MK.")
                     Link("bimer535@wp.pl", destination: URL(string: "mailto:bimer535@wp.pl")!)
                     Toggle("Widok kafelków", isOn: $library.tiles)

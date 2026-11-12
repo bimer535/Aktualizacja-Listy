@@ -1,4 +1,4 @@
-# MK Kino iOS 1.1.0 — wygląd Android TV 0.6.5
+# MK Kino iOS 1.1.1 — wygląd Android TV 0.6.5
 
 Przebudowano główny ekran: duża panorama w tle, niebieskie kapsułki menu, metadane, Oglądaj teraz, Szczegóły, licznik slajdów i poziomy rząd okładek. Na iPhonie menu można przesuwać; w pionie i poziomie zachowuje bezpieczny obszar ekranu i dotykowe przyciski. Okładki są dopasowane bez rozciągania i obcinania. Wybór sezonu i hostingu używa mniejszych kafelków, wybór odcinka — okładek.
 
@@ -10,7 +10,7 @@ IPA jest budowane bez podpisu konta Apple przez istniejący workflow macOS. Zain
 
 ## Dokumentacja wcześniejszej wersji i licencje
 
-# MK eKino iOS — 1.1.0
+# MK eKino iOS — 1.1.1
 
 Niezależne wydanie MK na iPhone i iPad. Autor wydania: **MK**, kontakt **bimer535@wp.pl**. Układ graficzny przeniesiony stylistycznie z epremki.eu eKino, ale osobna identyfikacja MK i przekazana turkusowa ikona. iOS 16+, bundle `pl.mk.ekino.ios`.
 
@@ -37,7 +37,7 @@ Alternatywnie na Macu: Xcode + XcodeGen, następnie `bash tools/build-ios.sh`.
 1. Zainstaluj **AltServer / AltStore Classic** zgodnie z aktualnym poradnikiem: https://faq.altstore.io/altstore-classic/how-to-install-altstore-windows . Nie chodzi o AltStore PAL.
 2. Podłącz iPhone do Windowsa i zainstaluj AltStore. Konto Apple wpisujesz lokalnie w AltServer, nigdy w czacie ani w GitHub Secrets.
 3. W razie potrzeby włącz Tryb dewelopera na iPhonie.
-4. Pobierz ZIP artefaktu `MK_Kino_iOS_1.1.0` z udanego przebiegu GitHub Actions. Wypakuj IPA, udostępnij do AltStore / dodaj przez zakładkę My Apps (+).
+4. Pobierz ZIP artefaktu `MK_Kino_iOS_1.1.1` z udanego przebiegu GitHub Actions. Wypakuj IPA, udostępnij do AltStore / dodaj przez zakładkę My Apps (+).
 5. AltStore podpisuje aplikację Twoim kontem. Darmowe profile wygasają po 7 dniach; wymagają odświeżania. AltServer musi być dostępny do odnawiania, nie do oglądania filmów.
 
 Aktualizacje wymagają ponownego podpisania i instalacji IPA. iOS nie oferuje tej aplikacji androidowego samodzielnego instalatora APK z GitHuba.

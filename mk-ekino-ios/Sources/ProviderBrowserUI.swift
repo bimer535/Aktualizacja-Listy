@@ -73,13 +73,25 @@ struct ProviderNavigationPolicy {
         view.backgroundColor = .black; browser.isOpaque = false; browser.backgroundColor = .black
         browser.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(browser)
         NSLayoutConstraint.activate([
-            browser.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            browser.topAnchor.constraint(equalTo: view.topAnchor),
             browser.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             browser.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             browser.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Zamknij okno", style: .done, target: self, action: #selector(closeWindow))
+        let close = UIButton(type: .system)
+        close.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
+        close.tintColor = .white; close.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        close.layer.cornerRadius = 22; close.accessibilityLabel = "Zamknij okno"
+        close.addTarget(self, action: #selector(closeWindow), for: .touchUpInside)
+        close.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(close)
+        NSLayoutConstraint.activate([
+            close.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
+            close.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            close.widthAnchor.constraint(equalToConstant: 44), close.heightAnchor.constraint(equalToConstant: 44)
+        ])
     }
+    override var prefersStatusBarHidden: Bool { true }
+    override var prefersHomeIndicatorAutoHidden: Bool { true }
     @objc func closeWindow() {
         guard !closed else { return }; closed = true
         onClose?(); navigationController?.dismiss(animated: true)

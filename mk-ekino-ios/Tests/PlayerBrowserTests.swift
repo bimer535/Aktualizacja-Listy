@@ -107,6 +107,9 @@ final class PlayerBrowserTests: XCTestCase {
         let config = WKWebViewConfiguration(); let pool = config.processPool
         let child = coordinator.openPopup(configuration: config, address: URL(string: "https://example.org/verify"), presenter: presenter)
         XCTAssertNotNil(child); XCTAssertEqual(coordinator.popups.count, 1)
+        XCTAssertEqual(coordinator.popups.first?.navigationController?.modalPresentationStyle, .fullScreen)
+        XCTAssertEqual(coordinator.popups.first?.navigationController?.isNavigationBarHidden, true)
+        XCTAssertEqual(child?.configuration.allowsInlineMediaPlayback, false)
         XCTAssertTrue(child?.configuration.processPool === pool)
         coordinator.stop()
         XCTAssertTrue(coordinator.popups.isEmpty); XCTAssertNil(child?.navigationDelegate); XCTAssertNil(child?.uiDelegate)

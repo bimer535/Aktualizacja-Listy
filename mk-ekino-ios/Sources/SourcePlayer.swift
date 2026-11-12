@@ -16,6 +16,9 @@ struct PlaybackRequest: Identifiable {
     @Published var message = "Uruchamianie odtwarzacza źródłowego…"
     @Published var failed = false
     @Published var confirmed = false
+    @Published var controlsVisible = true
+    @Published var controlsRevision = UUID()
+    func revealControls() { controlsVisible = true; controlsRevision = UUID() }
     weak var webView: WKWebView?
     func startVideo() {
         webView?.evaluateJavaScript("window.postMessage({mkVideoAction:'play'}, '*')", completionHandler: nil)
@@ -33,25 +36,35 @@ struct SourcePlayer: View {
     @State private var nextEntry: Entry?
     @State private var showNext = false
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button { dismiss() } label: { Label("Wróć", systemImage: "chevron.left").frame(minHeight: 44) }
-                VStack(alignment: .leading) { Text(request.entry.title).font(.headline).lineLimit(1); Text(request.source.provider.capitalized).font(.caption).foregroundStyle(Theme.cyan) }
-                Spacer()
-                if !request.entry.seriesURL.isEmpty {
-                    Button { Task { await nextEpisode() } } label: { Image(systemName: "forward.end.fill").frame(width: 44, height: 44) }.disabled(nextBusy).accessibilityLabel("Następny odcinek")
-                }
-                Button { state.retry() } label: { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }.accessibilityLabel("Ponów")
-            }.padding(.horizontal, 14).background(Theme.panel)
-            if !state.confirmed {
-                Button { state.startVideo() } label: { Label("Odtwórz wideo", systemImage: "play.fill").frame(minHeight: 44) }
+        ZStack(alignment: .top) {
+            Color.black.ignoresSafeArea()
+            PlayerWebView(request: request, state: state) { seconds, duration in library.record(request.entry, seconds: seconds, duration: duration) }
+                .id(request.id).ignoresSafeArea()
+            if state.controlsVisible || !state.confirmed {
+                VStack(spacing: 10) {
+                    HStack(spacing: 12) {
+                        Button { dismiss() } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Zamknij odtwarzacz")
+                        Spacer()
+                        if !request.entry.seriesURL.isEmpty {
+                            Button { Task { await nextEpisode() } } label: { Image(systemName: "forward.end.fill").frame(width: 44, height: 44) }.disabled(nextBusy).accessibilityLabel("Następny odcinek")
+                        }
+                        Button { state.retry() } label: { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }.accessibilityLabel("Ponów")
+                    }.buttonStyle(.plain).foregroundStyle(.white)
+                    if !state.confirmed {
+                        Button { state.startVideo() } label: { Label("Odtwórz wideo", systemImage: "play.fill").frame(minHeight: 44) }
+                        if state.loading { ProgressView() }
+                        Text(state.message).font(.caption).foregroundStyle(state.failed ? .orange : .white.opacity(0.8)).lineLimit(3)
+                    }
+                }.padding(.horizontal, 14).padding(.bottom, 12)
+                    .background(LinearGradient(colors: [.black.opacity(0.85), .clear], startPoint: .top, endPoint: .bottom))
             }
-            if state.loading { ProgressView().frame(height: 24) }
-            if !state.confirmed {
-                Text(state.message).font(.caption).foregroundStyle(state.failed ? .orange : .secondary).lineLimit(3).padding(.horizontal, 12).frame(maxWidth: .infinity).frame(height: 66)
-            }
-            PlayerWebView(request: request, state: state) { seconds, duration in library.record(request.entry, seconds: seconds, duration: duration) }.id(request.id)
         }.background(.black).preferredColorScheme(.dark)
+        .statusBarHidden(true).persistentSystemOverlays(.hidden)
+        .onChange(of: state.confirmed) { playing in if playing { state.revealControls() } }
+        .task(id: state.controlsRevision) {
+            guard state.confirmed else { return }
+            do { try await Task.sleep(nanoseconds: 3_000_000_000); state.controlsVisible = false } catch {}
+        }
         .task {
             try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
             try? AVAudioSession.sharedInstance().setActive(true)
@@ -90,7 +103,7 @@ struct PlayerWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
-        config.allowsInlineMediaPlayback = true
+        config.allowsInlineMediaPlayback = false
         config.allowsAirPlayForMediaPlayback = true
         config.allowsPictureInPictureMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -112,7 +125,7 @@ struct PlayerWebView: UIViewRepresentable {
           let playbackStarted=false;
           document.addEventListener('click',e=>{if(e.isTrusted && !playbackStarted)startVideo();},false);
           const seen=new WeakSet();const attach=()=>{document.querySelectorAll('video').forEach(v=>{
-          if(seen.has(v))return;seen.add(v);v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
+          if(seen.has(v))return;seen.add(v);v.removeAttribute('playsinline');v.removeAttribute('webkit-playsinline');
           v.addEventListener('playing',()=>{playbackStarted=true;});let last=0;let sought=false;
           const resume=()=>{if(!sought && v.duration>0){sought=true;const n=\(start);if(n>10&&n<v.duration-15){try{v.currentTime=n;}catch(e){}}}};
           v.addEventListener('loadedmetadata',resume);resume();
@@ -208,6 +221,7 @@ struct PlayerWebView: UIViewRepresentable {
             guard navigationPolicy.permitsPopup(address) else { blockedExternalWindow(); return nil }
             guard popups.isEmpty, !(presenter is UIAlertController) else { return nil }
             // The supplied configuration keeps window.opener, cookies and process pool.
+            configuration.allowsInlineMediaPlayback = false
             let popup = ProviderWindowController(configuration: configuration, address: address)
             popup.browser.navigationDelegate = self; popup.browser.uiDelegate = self
             popup.onClose = { [weak self, weak popup] in
@@ -219,6 +233,8 @@ struct PlayerWebView: UIViewRepresentable {
             parent.state.message = "Źródło otworzyło dodatkowe okno. Po zakończeniu wróć przyciskiem Zamknij okno."
             let navigation = UINavigationController(rootViewController: popup)
             navigation.isModalInPresentation = true
+            navigation.modalPresentationStyle = .fullScreen
+            navigation.setNavigationBarHidden(true, animated: false)
             presenter.present(navigation, animated: true)
             return popup.browser
         }
@@ -256,7 +272,9 @@ struct PlayerWebView: UIViewRepresentable {
         }
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             guard active, let value = message.body as? [String: Any] else { return }
-            if let event = value["event"] as? String, !parent.state.confirmed {
+            if let event = value["event"] as? String {
+                if event == "tap", parent.state.confirmed { parent.state.revealControls(); return }
+                guard !parent.state.confirmed else { return }
                 if event == "tap" {
                     parent.state.message = "Dotknięcie odebrane przez stronę. Oczekiwanie na uruchomienie wideo…"
                     DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
