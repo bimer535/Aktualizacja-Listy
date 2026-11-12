@@ -95,6 +95,12 @@ struct CinemaView: View {
     @State private var activeLoad = UUID()
     @State private var pageRevision = UUID()
     private let catalogue = Catalogue()
+    private let isPreview: Bool
+    init(previewRows: [Entry]? = nil) {
+        isPreview = previewRows != nil
+        _rows = State(initialValue: previewRows ?? [])
+        _slides = State(initialValue: CinemaArtwork.slides(previewRows ?? []))
+    }
     private var activeSlide: Entry? { slides.indices.contains(slideIndex) ? slides[slideIndex] : nil }
     private var backdrop: String? { current.action == "main" ? activeSlide?.backdrop : current.backdrop }
     var body: some View {
@@ -118,7 +124,7 @@ struct CinemaView: View {
                         }.padding(.horizontal, landscape ? 24 : 18).padding(.bottom, 30)
                     }
                 }
-            }
+            }.frame(width: geometry.size.width, height: geometry.size.height, alignment: .top).clipped()
         }
         .sheet(isPresented: $search) { searchSheet }
         .sheet(isPresented: $info) { about }
@@ -131,8 +137,8 @@ struct CinemaView: View {
         .alert("Nie udało się otworzyć", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
             Button("OK") { error = nil }
         } message: { Text(error ?? "") }
-        .task { if rows.isEmpty && !busy { load(current, push: false) } }
-        .task(id: slideRevision) { await rotateSlides() }
+        .task { if !isPreview && rows.isEmpty && !busy { load(current, push: false) } }
+        .task(id: slideRevision) { if !isPreview { await rotateSlides() } }
         .onDisappear { loadTask?.cancel() }
     }
     private func header(compact: Bool) -> some View {
