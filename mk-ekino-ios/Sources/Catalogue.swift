@@ -209,10 +209,10 @@ actor Catalogue {
         let (text, _) = try await fetch(entry.url)
         return try Self.detailedEntry(entry, html: text)
     }
-    func homeFilms() async throws -> [Entry] {
-        let rows = try await browse(Entry(title: "Filmy 2026", action: "movies", year: "2026"))
+    func homeFilms(_ page: Entry? = nil) async throws -> [Entry] {
+        let rows = try await browse(page ?? Entry(title: "Filmy 2026", action: "movies", year: "2026"))
         let artwork = await ArtworkService.shared.films()
-        return CinemaArtwork.enrich(rows.filter { $0.isTitle }, with: artwork)
+        return CinemaArtwork.enrich(rows, with: artwork)
     }
     // Resolve the provider's ordinary same-film redirect before constructing the
     // WebKit host policy. Never trust an unrelated popup or a different film ID.

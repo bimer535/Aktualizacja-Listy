@@ -381,8 +381,23 @@ struct CinemaView: View {
                 if push { stack.append((current, rows)) }
                 var full = entry
                 if entry.isTitle, let first = next.first, !first.desc.isEmpty { full.desc = first.desc }
-                current = full; rows = next; pageRevision = UUID()
-                if entry.action == "main" { slides = CinemaArtwork.slides(next); slideIndex = 0; slideRevision = UUID() }
+                current = full; rows = entry.action == "main" ? next.filter { $0.isTitle } : next; pageRevision = UUID()
+                if entry.action == "main" {
+                    slides = CinemaArtwork.slides(rows); slideIndex = 0; slideRevision = UUID()
+                    // New uploads and artwork have different ordering. Fill the panorama
+                    // progressively instead of leaving the first page with no wide frames.
+                    var page = next.first { $0.action == "page" }
+                    for _ in 0..<4 {
+                        guard slides.count < 12, let following = page else { break }
+                        guard let more = try? await catalogue.homeFilms(following) else { break }
+                        try Task.checkCancellation()
+                        var seen = Set(rows.map(\.url))
+                        rows.append(contentsOf: more.filter { $0.isTitle && seen.insert($0.url).inserted })
+                        slides = CinemaArtwork.slides(rows)
+                        page = more.first { $0.action == "page" }
+                    }
+                    slideRevision = UUID()
+                }
             } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
         }
     }
