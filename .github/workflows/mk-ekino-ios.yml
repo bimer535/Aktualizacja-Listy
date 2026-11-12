@@ -26,7 +26,9 @@ jobs:
         run: |
           xcrun simctl list devices available --json > /tmp/mk-devices.json
           SIMULATOR_ID=$(python3 -c 'import json; d=json.load(open("/tmp/mk-devices.json")); print(next(x["udid"] for runtime, devices in d["devices"].items() if "iOS" in runtime for x in devices if "iPhone" in x["name"] and x["isAvailable"]))')
-          xcodebuild -project MKEkino.xcodeproj -scheme MKEkino -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO test
+          xcrun simctl boot "$SIMULATOR_ID" || true
+          python3 -c 'import subprocess,sys; subprocess.run(["xcrun", "simctl", "bootstatus", sys.argv[1], "-b"], check=True, timeout=240)' "$SIMULATOR_ID"
+          xcodebuild -parallel-testing-enabled NO -maximum-concurrent-test-simulator-destinations 1 -destination-timeout 120 -project MKEkino.xcodeproj -scheme MKEkino -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath build -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO test
       - name: Build IPA for personal signing
         working-directory: mk-ekino-ios
         run: bash tools/build-ios.sh
