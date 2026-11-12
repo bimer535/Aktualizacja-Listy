@@ -59,6 +59,7 @@ actor ArtworkService {
     static let shared = ArtworkService()
     private var cached: [FilmArtwork] = []
     private var fetchedAt = Date.distantPast
+    private var lastAttempt = Date.distantPast
     private let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 8
@@ -74,7 +75,8 @@ actor ArtworkService {
         return parts.url!
     }
     func films() async -> [FilmArtwork] {
-        if Date().timeIntervalSince(fetchedAt) < 1800 { return cached }
+        if Date().timeIntervalSince(fetchedAt) < 1800 || Date().timeIntervalSince(lastAttempt) < 30 { return cached }
+        lastAttempt = Date()
         var request = URLRequest(url: Self.catalogueURL)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("https://premiumsmart.eu/", forHTTPHeaderField: "Referer")
