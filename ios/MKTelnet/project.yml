@@ -1,0 +1,29 @@
+name: MKTelnet
+options:
+  bundleIdPrefix: de.mkapps
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  MKTelnet:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: "MK Telnet"
+        NSLocalNetworkUsageDescription: "Aplikacja łączy się przez Telnet z dekoderem w sieci domowej."
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiredDeviceCapabilities:
+          - arm64
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.mkapps.mktelnet
+        TARGETED_DEVICE_FAMILY: 1
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
