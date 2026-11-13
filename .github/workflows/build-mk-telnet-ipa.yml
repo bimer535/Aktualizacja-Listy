@@ -1,0 +1,37 @@
+name: Build MK Telnet iOS IPA
+on:
+  push:
+    branches: [mk-telnet-ios]
+    paths:
+      - "ios/MKTelnet/**"
+      - ".github/workflows/build-mk-telnet-ipa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: cd ios/MKTelnet && xcodegen generate
+      - name: Build iOS app
+        run: |
+          xcodebuild -project ios/MKTelnet/MKTelnet.xcodeproj \
+            -scheme MKTelnet -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Make unsigned IPA
+        run: |
+          mkdir -p "$RUNNER_TEMP/package/Payload"
+          cp -R "$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/MKTelnet.app" "$RUNNER_TEMP/package/Payload/"
+          (cd "$RUNNER_TEMP/package" && zip -qry "$GITHUB_WORKSPACE/MKTelnet-unsigned.ipa" Payload)
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MKTelnet-unsigned-ipa
+          path: MKTelnet-unsigned.ipa
+          retention-days: 30
