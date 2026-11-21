@@ -1,0 +1,11 @@
+{
+  "windows": {
+    "version": "0.6.12",
+    "sha256": "d8052bfa01b70f8bfb20efdef6a902d07c0098514d3b14d4150000840fad1123"
+  },
+  "android": {
+    "version": "1.0.4",
+    "code": 5,
+    "sha256": "645544cda298f1119a746642a29f685cb264fcd5b2dffa2b63ad153c24799234"
+  }
+}
