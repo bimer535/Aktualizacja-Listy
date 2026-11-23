@@ -388,8 +388,8 @@ struct CinemaView: View {
             do {
                 var next: [Entry]
                 if entry.action == "main" { next = try await catalogue.homeFilms() }
-                else if entry.action == "favourites" { next = library.favourites }
-                else if entry.action == "continue" { next = library.records.filter { !$0.complete && $0.seconds > 10 }.map(\.entry) }
+                else if entry.action == "favourites" { next = await catalogue.visibleFilms(library.favourites) }
+                else if entry.action == "continue" { next = await catalogue.visibleFilms(library.records.filter { !$0.complete && $0.seconds > 10 }.map(\.entry)) }
                 else { next = try await catalogue.browse(entry) }
                 try Task.checkCancellation()
                 if push { stack.append((current, rows)) }

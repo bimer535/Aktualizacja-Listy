@@ -134,6 +134,40 @@ actor Catalogue {
         let episodes = Self.seasonItems(text, parent: parent).flatMap { Self.episodeItems(text, parent: $0) }
         return episodes.first { (Int($0.season) ?? 0, $0.episode) > (Int(entry.season) ?? 0, entry.episode) }
     }
+    private var upzoneCache: [String: (Date, Bool)] = [:]
+
+    private func onlyUpzone(_ entry: Entry) async -> Bool {
+        guard !Task.isCancelled, entry.action == "sources", entry.episode == 0,
+              entry.url.hasPrefix(Self.base + "movie/show/") else { return false }
+        if let (date, hidden) = upzoneCache[entry.url], Date().timeIntervalSince(date) < 3600 { return hidden }
+        guard let (html, _) = try? await fetch(entry.url) else { return false }
+        let names = matches("(?i)ShowPlayer\\s*\\(\\s*['\"]([^'\"]+)['\"]", html)
+            + matches("(?i)href=['\"][^'\"]*/watch/f/([^/'\"]+)/", html)
+        guard !names.isEmpty else { return false }
+        let hidden = names.allSatisfy { $0.first?.lowercased() == "upzone" }
+        if upzoneCache.count > 3000 { upzoneCache.removeAll() }
+        upzoneCache[entry.url] = (Date(), hidden)
+        return hidden
+    }
+
+    func visibleFilms(_ entries: [Entry]) async -> [Entry] {
+        var result: [Entry] = []
+        for start in stride(from: 0, to: entries.count, by: 4) {
+            if Task.isCancelled { break }
+            let batch = Array(entries[start..<min(start+4, entries.count)])
+            let hidden = await withTaskGroup(of: Int?.self) { group in
+                for (index, row) in batch.enumerated() {
+                    group.addTask { await self.onlyUpzone(row) ? index : nil }
+                }
+                var indexes = Set<Int>()
+                for await value in group { if let index = value { indexes.insert(index) } }
+                return indexes
+            }
+            result += batch.enumerated().compactMap { hidden.contains($0.offset) ? nil : $0.element }
+        }
+        return result
+    }
+
     func browse(_ entry: Entry) async throws -> [Entry] {
         if entry.action == "main" { return Self.home() }
         if ["categories", "versions", "years"].contains(entry.action) {
@@ -196,7 +230,7 @@ actor Catalogue {
             return matches("<a class=\"b\"\\s+href=\"([^\"]+)\">([^<]+)</a>", section).map { Entry(title: clean($0[1]), action: "seasons", url: absolute($0[0])) }
         }
         let (text, final) = try await fetch(url)
-        return try Self.cards(text, page: final)
+        return await visibleFilms(try Self.cards(text, page: final))
     }
     static func detailedEntry(_ entry: Entry, html: String) throws -> Entry {
         var full = entry
