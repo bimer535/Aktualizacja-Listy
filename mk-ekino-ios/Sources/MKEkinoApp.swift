@@ -4,7 +4,7 @@ import SwiftUI
 @main struct MKEkinoApp: App {
     @StateObject private var library = LibraryStore()
     var body: some Scene {
-        WindowGroup { CinemaView().environmentObject(library).preferredColorScheme(.dark).tint(Theme.cyan) }
+        WindowGroup { EpremkiRoot().environmentObject(library).preferredColorScheme(.dark).tint(Theme.cyan) }
     }
 }
 enum Theme {
@@ -93,6 +93,8 @@ struct CinemaView: View {
     @State private var error: String?
     @State private var query = ""
     @State private var search = false
+    @State private var tv = false
+    @EnvironmentObject private var access: EpremkiAccess
     @State private var info = false
     @State private var selected: Entry?
     @State private var playback: PlaybackRequest?
@@ -133,6 +135,7 @@ struct CinemaView: View {
             }.frame(width: geometry.size.width, height: geometry.size.height, alignment: .top).clipped()
         }
         .sheet(isPresented: $search) { searchSheet }
+        .fullScreenCover(isPresented: $tv) { LiveStationsView() }
         .sheet(isPresented: $info) { about }
         .sheet(item: $selected) { entry in
             MovieDetails(entry: entry, catalogue: catalogue) { full in selected = nil; load(full) }.environmentObject(library)
@@ -157,6 +160,7 @@ struct CinemaView: View {
                 nav("Główna", action: "main", icon: "house.fill")
                 nav("Filmy", action: "movies", icon: "film")
                 nav("Seriale", action: "series", icon: "tv")
+                Button { tv = true } label: { Label("Kanały TV", systemImage: "play.tv") }.buttonStyle(CinemaButtonStyle())
                 Button { search = true } label: { Label("Szukaj", systemImage: "magnifyingglass").font(.system(size: 13, weight: .semibold)) }.buttonStyle(CinemaButtonStyle())
                 nav("Ulubione", action: "favourites", icon: "heart")
                 nav("Oglądaj dalej", action: "continue", icon: "play.circle")
@@ -313,9 +317,10 @@ struct CinemaView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Image("Brand").resizable().scaledToFit().frame(height: 110).frame(maxWidth: .infinity)
-                    Text("MK Kino • iOS 1.1.1").font(.title2.bold())
-                    Text("Wygląd wzorowany na MK Kino Android TV 0.6.5. Autor: MK.")
-                    Link("bimer535@wp.pl", destination: URL(string: "mailto:bimer535@wp.pl")!)
+                    Text("Epremki kino • iOS 1.0.0").font(.title2.bold())
+                    if let until = access.expiry { Text("Dostęp do " + until.formatted(date: .numeric, time: .omitted)) }
+                    Button("Wyloguj się") { Task { await access.logout() } }
+                    Link("epremki.eu", destination: URL(string: "https://epremki.eu")!)
                     Toggle("Widok kafelków", isOn: $library.tiles)
                     Button("Odśwież katalog") { info = false; load(current, push: false) }.buttonStyle(CinemaButtonStyle())
                     Text("Instaluj nowy plik IPA przez ten sam program i konto Apple co poprzednio. iOS nie instaluje aktualizacji samodzielnie z poziomu aplikacji.")
